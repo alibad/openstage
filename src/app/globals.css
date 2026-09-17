@@ -1,0 +1,489 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", "Fira Code", ui-monospace, monospace;
+  --font-display: "Instrument Serif", "Iowan Old Style", Georgia, serif;
+
+  /* Named spectrum gradient stops used by presentation utilities and
+     print/PPTX fallback rules below. */
+  --color-spectrum-cyan: #7DD3FC;
+  --color-spectrum-blue: #818CF8;
+  --color-spectrum-purple: #A78BFA;
+  --color-spectrum-pink: #E879A8;
+  --color-spectrum-magenta: #F472B6;
+
+  /* Runtime-tunable brand gradient stops (overridden by `BrandProvider` via
+     inline `style.setProperty` on `:root`). Defaults match the spectrum stops
+     so existing decks render identically until a brand is customized. */
+  --color-brand-1: #7DD3FC;
+  --color-brand-2: #818CF8;
+  --color-brand-3: #A78BFA;
+  --color-brand-4: #E879A8;
+  --color-brand-5: #F472B6;
+
+  /* Dark theme (primary for presentation) */
+  --color-bg-dark: #0A0718;
+  --color-bg-surface: #110E24;
+  --color-bg-elevated: #1A1538;
+  --color-bg-card: #1E1845;
+
+  /* Light sections */
+  --color-bg-light: #FAFAFE;
+  --color-bg-light-surface: #FFFFFF;
+
+  /* Semantic */
+  --color-background: #FAFAFE;
+  --color-foreground: #1F2937;
+  --color-muted: #4B5563;
+  --color-border: #E5E7EB;
+  --color-accent: #818CF8;
+  --color-accent-secondary: #A78BFA;
+  --color-accent-light: #EEF2FF;
+  --color-surface: #FFFFFF;
+  --color-code-bg: #0F0B21;
+  --color-code-fg: #E2E8F0;
+  --color-success: #10B981;
+  --color-warning: #F59E0B;
+  --color-error: #EF4444;
+}
+
+@layer base {
+  * {
+    box-sizing: border-box;
+  }
+
+  /* NOTE: do NOT set `scroll-behavior: smooth` on html — it fights with
+     GSAP ScrollTrigger `scrub` and causes pinned sections to engage at
+     the wrong scroll position (visible as two sections "colliding" during
+     the pin transition). */
+  html {
+    scroll-behavior: auto;
+  }
+
+  body {
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  [dir="rtl"],
+  [dir="rtl"] * {
+    font-family: var(--font-arabic), var(--font-sans), sans-serif;
+  }
+
+  ::selection {
+    background: color-mix(in srgb, var(--color-brand-2) 30%, transparent);
+    color: white;
+  }
+}
+
+/* Slide deck dark-mode overrides — outside @layer so they beat the
+   @theme declarations. Re-maps semantic tokens so slide primitives
+   render correctly on the dark background. */
+.slide-dark {
+  --color-background: #0A0718;
+  --color-foreground: #F3F4F6;
+  --color-muted: #9CA3AF;
+  --color-border: rgba(255, 255, 255, 0.1);
+  --color-surface: #1A1538;
+  --color-accent-light: color-mix(in srgb, var(--color-brand-2) 12%, transparent);
+  --color-bg-elevated: #1A1538;
+  --color-bg-surface: #110E24;
+  color-scheme: dark;
+}
+
+/* ─── Typography utilities — fluid scale, balance/pretty, editorial serif ─── */
+
+@layer utilities {
+  .editorial-serif {
+    font-family: var(--font-display), "Iowan Old Style", Georgia, serif;
+    font-feature-settings: "liga", "kern", "onum", "pnum";
+    letter-spacing: -0.01em;
+  }
+
+  .editorial-italic {
+    font-family: var(--font-display), "Iowan Old Style", Georgia, serif;
+    font-style: italic;
+    font-feature-settings: "liga", "kern";
+  }
+
+  /* Fluid display type — scales between the two values based on viewport width.
+     Use these in hero sections, chapter breaks, quote slides. */
+  .display-xs {
+    font-size: clamp(2rem, 4vw + 1rem, 3.5rem);
+    line-height: 1.05;
+    letter-spacing: -0.02em;
+  }
+  .display-sm {
+    font-size: clamp(2.5rem, 5vw + 1rem, 4.5rem);
+    line-height: 1.02;
+    letter-spacing: -0.025em;
+  }
+  .display-md {
+    font-size: clamp(3rem, 6vw + 1rem, 6rem);
+    line-height: 1;
+    letter-spacing: -0.03em;
+  }
+  .display-lg {
+    font-size: clamp(4rem, 8vw + 1rem, 8rem);
+    line-height: 0.98;
+    letter-spacing: -0.035em;
+  }
+  .display-xl {
+    font-size: clamp(5rem, 12vw + 1rem, 11rem);
+    line-height: 0.94;
+    letter-spacing: -0.04em;
+  }
+  .display-monster {
+    font-size: clamp(6rem, 18vw + 1rem, 16rem);
+    line-height: 0.9;
+    letter-spacing: -0.05em;
+  }
+
+  .text-pretty {
+    text-wrap: pretty;
+  }
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  /* Optical-size aware body copy. */
+  .prose-presentation {
+    font-size: clamp(1rem, 0.4vw + 0.9rem, 1.25rem);
+    line-height: 1.65;
+    text-wrap: pretty;
+    letter-spacing: -0.005em;
+  }
+}
+
+/* ─── Color moods — per-section art direction ───────────────────────────────
+   Usage: <section data-mood="warm">. Overrides accent, gradient, and key
+   hues for everything inside. Defaults to "cool". */
+
+[data-mood="warm"] {
+  --mood-1: #FBBF24;
+  --mood-2: #F97316;
+  --mood-3: #F43F5E;
+  --mood-accent: #FBBF24;
+  --mood-bg: #1C0F05;
+  --mood-surface: #2A1507;
+  --mood-gradient: linear-gradient(90deg, #FBBF24 0%, #F97316 50%, #F43F5E 100%);
+}
+
+[data-mood="cool"] {
+  --mood-1: #7DD3FC;
+  --mood-2: #818CF8;
+  --mood-3: #A78BFA;
+  --mood-accent: #818CF8;
+  --mood-bg: #0A0718;
+  --mood-surface: #110E24;
+  --mood-gradient: linear-gradient(90deg, #7DD3FC 0%, #818CF8 50%, #A78BFA 100%);
+}
+
+[data-mood="night"] {
+  --mood-1: #312E81;
+  --mood-2: #6D28D9;
+  --mood-3: #E879A8;
+  --mood-accent: #A78BFA;
+  --mood-bg: #050214;
+  --mood-surface: #0C0825;
+  --mood-gradient: linear-gradient(90deg, #312E81 0%, #6D28D9 50%, #E879A8 100%);
+}
+
+[data-mood="dawn"] {
+  --mood-1: #FDBA74;
+  --mood-2: #F472B6;
+  --mood-3: #A78BFA;
+  --mood-accent: #F472B6;
+  --mood-bg: #170A14;
+  --mood-surface: #241020;
+  --mood-gradient: linear-gradient(90deg, #FDBA74 0%, #F472B6 50%, #A78BFA 100%);
+}
+
+[data-mood="mono"] {
+  --mood-1: #D4D4D8;
+  --mood-2: #A1A1AA;
+  --mood-3: #71717A;
+  --mood-accent: #F4F4F5;
+  --mood-bg: #09090B;
+  --mood-surface: #18181B;
+  --mood-gradient: linear-gradient(90deg, #D4D4D8 0%, #A1A1AA 50%, #71717A 100%);
+}
+
+/* Mood-aware gradient text utility — works inside any [data-mood] scope,
+   falls back to the active brand gradient elsewhere. */
+.mood-gradient-text {
+  background: var(--mood-gradient, var(--brand-gradient,
+    linear-gradient(90deg, var(--color-brand-1) 0%, var(--color-brand-2) 25%, var(--color-brand-3) 50%, var(--color-brand-4) 75%, var(--color-brand-5) 100%)));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.mood-gradient-bar {
+  height: 3px;
+  background: var(--mood-gradient, var(--brand-gradient,
+    linear-gradient(90deg, var(--color-brand-1) 0%, var(--color-brand-2) 25%, var(--color-brand-3) 50%, var(--color-brand-4) 75%, var(--color-brand-5) 100%)));
+}
+
+@layer utilities {
+  /* Named spectrum gradient utilities. The gradient stops resolve through
+     CSS variables so the active brand themes them automatically. Default
+     values in `@theme` keep behavior identical without a provider. */
+  .spectrum-gradient-bar {
+    height: 3px;
+    background: linear-gradient(
+      90deg,
+      var(--color-spectrum-cyan) 0%,
+      var(--color-spectrum-blue) 25%,
+      var(--color-spectrum-purple) 50%,
+      var(--color-spectrum-pink) 75%,
+      var(--color-spectrum-magenta) 100%
+    );
+  }
+
+  .spectrum-gradient-text {
+    background: linear-gradient(
+      90deg,
+      var(--color-spectrum-cyan) 0%,
+      var(--color-spectrum-blue) 25%,
+      var(--color-spectrum-purple) 50%,
+      var(--color-spectrum-pink) 75%,
+      var(--color-spectrum-magenta) 100%
+    );
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .spectrum-gradient-bg {
+    background: linear-gradient(
+      90deg,
+      var(--color-spectrum-cyan) 0%,
+      var(--color-spectrum-blue) 25%,
+      var(--color-spectrum-purple) 50%,
+      var(--color-spectrum-pink) 75%,
+      var(--color-spectrum-magenta) 100%
+    );
+  }
+
+  /* Brand-tunable gradient utilities — read `--brand-gradient` injected by
+     `BrandProvider`, falling back to the spectrum gradient so the
+     classes work even without the provider mounted. */
+  .brand-gradient-bar {
+    height: 3px;
+    background: var(
+      --brand-gradient,
+      linear-gradient(90deg, var(--color-brand-1) 0%, var(--color-brand-2) 25%, var(--color-brand-3) 50%, var(--color-brand-4) 75%, var(--color-brand-5) 100%)
+    );
+  }
+
+  .brand-gradient-text {
+    background: var(
+      --brand-gradient,
+      linear-gradient(90deg, var(--color-brand-1) 0%, var(--color-brand-2) 25%, var(--color-brand-3) 50%, var(--color-brand-4) 75%, var(--color-brand-5) 100%)
+    );
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .brand-gradient-bg {
+    background: var(
+      --brand-gradient,
+      linear-gradient(90deg, var(--color-brand-1) 0%, var(--color-brand-2) 25%, var(--color-brand-3) 50%, var(--color-brand-4) 75%, var(--color-brand-5) 100%)
+    );
+  }
+
+  .glow-blue {
+    box-shadow:
+      0 0 40px color-mix(in srgb, var(--color-brand-2) 15%, transparent),
+      0 0 80px color-mix(in srgb, var(--color-brand-2) 5%, transparent);
+  }
+
+  .glow-purple {
+    box-shadow:
+      0 0 40px color-mix(in srgb, var(--color-brand-3) 15%, transparent),
+      0 0 80px color-mix(in srgb, var(--color-brand-3) 5%, transparent);
+  }
+
+  .text-shadow-glow {
+    text-shadow:
+      0 0 60px color-mix(in srgb, var(--color-brand-2) 40%, transparent),
+      0 0 120px color-mix(in srgb, var(--color-brand-3) 20%, transparent);
+  }
+
+  .noise-overlay {
+    position: relative;
+  }
+  .noise-overlay::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    opacity: 0.03;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    pointer-events: none;
+  }
+}
+
+@keyframes pulse-slow {
+  0%, 100% { opacity: 0.4; }
+  50% { opacity: 0.8; }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-12px); }
+}
+
+/* ─── Enhanced Presentation Animations ─── */
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+@keyframes gradient-x {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+
+.shimmer-line {
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    color-mix(in srgb, var(--color-brand-1) 6%, transparent) 25%,
+    color-mix(in srgb, var(--color-brand-2) 12%, transparent) 50%,
+    color-mix(in srgb, var(--color-brand-1) 6%, transparent) 75%,
+    transparent 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 3s ease-in-out infinite;
+}
+
+.glass {
+  background: rgba(255, 255, 255, 0.02);
+  backdrop-filter: blur(16px) saturate(180%);
+  -webkit-backdrop-filter: blur(16px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.text-glow-cyan {
+  text-shadow:
+    0 0 20px color-mix(in srgb, var(--color-brand-1) 50%, transparent),
+    0 0 60px color-mix(in srgb, var(--color-brand-1) 20%, transparent);
+}
+
+.text-glow-emerald {
+  text-shadow: 0 0 20px rgba(16, 185, 129, 0.5), 0 0 60px rgba(16, 185, 129, 0.2);
+}
+
+/* ─── Print / PDF Export ─── */
+/* Visit ?print to enter export mode, then Cmd+P → "Save as PDF" with "Background graphics" checked. */
+
+main.print-mode .print-hidden {
+  display: none !important;
+}
+
+main.print-mode ~ nextjs-portal,
+body:has(main.print-mode) nextjs-portal,
+body:has(main.print-mode) [data-nextjs-toast],
+body:has(main.print-mode) #__next-build-indicator {
+  display: none !important;
+}
+
+main.print-mode .spectrum-gradient-text,
+.pptx-capture .spectrum-gradient-text,
+main.print-mode .brand-gradient-text,
+.pptx-capture .brand-gradient-text {
+  background: none !important;
+  -webkit-background-clip: unset !important;
+  background-clip: unset !important;
+  -webkit-text-fill-color: var(--color-brand-3, #A78BFA) !important;
+  color: var(--color-brand-3, #A78BFA) !important;
+}
+
+/* Slim horizontal scrollbar for walkthrough carousels — visible enough to
+   signal "more content over there", light enough to not dominate the UI. */
+.walkthrough-strip {
+  scrollbar-width: thin;
+  scrollbar-color: #CBD5E1 transparent;
+}
+.walkthrough-strip::-webkit-scrollbar {
+  height: 6px;
+}
+.walkthrough-strip::-webkit-scrollbar-track {
+  background: transparent;
+}
+.walkthrough-strip::-webkit-scrollbar-thumb {
+  background-color: #CBD5E1;
+  border-radius: 3px;
+}
+.walkthrough-strip::-webkit-scrollbar-thumb:hover {
+  background-color: #94A3B8;
+}
+
+@media print {
+  @page {
+    size: landscape;
+    margin: 0;
+  }
+
+  html, body {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    color-adjust: exact !important;
+  }
+
+  /* Each section starts on a new page; tall sections flow onto extra pages */
+  section {
+    break-before: page;
+    page-break-before: always;
+    min-height: 100vh !important;
+  }
+
+  main > section:first-of-type {
+    break-before: auto;
+    page-break-before: auto;
+  }
+
+  /* Keep cards, grids, diagrams, and images from splitting across pages */
+  [class*="rounded-xl"],
+  [class*="rounded-2xl"],
+  [class*="rounded-3xl"] {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  svg, figure, blockquote, table, img {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  h1, h2, h3, h4 {
+    break-after: avoid;
+    page-break-after: avoid;
+  }
+
+  /* Kill CSS animations (JS ones are already off via ?print) */
+  *, *::before, *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+
+  /* Ensure backgrounds render */
+  section, div {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  .spectrum-gradient-text {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  .noise-overlay::after {
+    display: none !important;
+  }
+}

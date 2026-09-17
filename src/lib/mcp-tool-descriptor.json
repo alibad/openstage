@@ -1,0 +1,56 @@
+{
+  "name": "generate_presentation",
+  "description": "Generate a branded presentation from a brief. Creates a fully styled, immersive web presentation with animations, charts, 3D elements, and scrollytelling components. Automatically deploys to a preview branch and creates a PR.\n\nThe framework ships exactly two templates:\n- 'scroll' — immersive scroll narrative powered by the Phase 2 art-direction primitives (WebGL heroes, horizontal-pin case studies, scroll-linked 3D camera, path-draw spines, editorial grids, hero stats).\n- 'slides' — traditional deck with keyboard nav, speaker notes, and PPTX export. Uses the Awwwards-tier slide layouts (hero-stat, editorial, full-bleed quote, chapter break, bento) with per-slide transitions and mood overrides.\n\nNarrative posture (problem-solution, status-direction, etc.) is a separate field that tones the prompt; it does not change the template.",
+  "inputSchema": {
+    "type": "object",
+    "properties": {
+      "title": {
+        "type": "string",
+        "description": "Presentation title (5 words max recommended)"
+      },
+      "audience": {
+        "type": "string",
+        "description": "Who will see this presentation (e.g. 'C-suite executives at ACME Corp', 'Engineering team', 'Conference attendees')"
+      },
+      "intent": {
+        "type": "string",
+        "description": "What the audience should do after seeing this (e.g. 'Approve the AI transformation budget', 'Adopt the new testing framework')"
+      },
+      "mode": {
+        "type": "string",
+        "enum": ["scroll", "slides"],
+        "description": "Presentation mode. 'scroll' for immersive narratives with parallax and scrollytelling. 'slides' for traditional decks with keyboard nav and PPTX export.",
+        "default": "scroll"
+      },
+      "templateId": {
+        "type": "string",
+        "enum": ["scroll", "slides"],
+        "description": "Optional. The framework ships one template per mode; defaults from `mode` when omitted."
+      },
+      "posture": {
+        "type": "string",
+        "enum": [
+          "validation-extension",
+          "problem-solution",
+          "comparison-recommendation",
+          "education-implication",
+          "status-direction"
+        ],
+        "description": "Optional narrative posture that tones the deck. 'validation-extension' for building on existing work, 'problem-solution' for proposing fixes, 'comparison-recommendation' for option tradeoffs, 'education-implication' for teaching first, 'status-direction' for status updates."
+      },
+      "accentColor": {
+        "type": "string",
+        "description": "Optional CSS color for key highlights (e.g. '#4EA8DE'). Defaults to your brand colors."
+      },
+      "sourceMaterial": {
+        "type": "string",
+        "description": "Raw text, markdown, or document content to use as primary source material. The AI will extract real data, quotes, and specifics from this. Never fabricates statistics."
+      },
+      "additionalInstructions": {
+        "type": "string",
+        "description": "Any additional instructions for the AI generator (e.g. 'Focus on cost savings', 'Include Arabic translations', 'Use 3D globe for the hero section')"
+      }
+    },
+    "required": ["title", "audience", "intent"]
+  }
+}
