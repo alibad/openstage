@@ -22,6 +22,19 @@ export interface PresentationMeta {
 
 export const presentations: PresentationMeta[] = [
   {
+    slug: "ai-patterns",
+    title: "AI Patterns — Running, Not Described",
+    subtitle: "Four patterns, three of them live inside the page",
+    author: "Ali Badereddin",
+    date: "September 21, 2026",
+    description:
+      "The AI Tinkerers Doha Round 3 talk. Feedback, Openstage, Walkthrough and MCP — four things rebuilt in every app until they turned out to be patterns. The feedback widget, the presentation itself, and a live MCP discover-and-invoke panel all run inside the deck; the Walkthrough embeds its generated catalog. Every number verified.",
+    type: "scroll",
+    accentColor: "#31439b",
+    customer: "Human Quest",
+    status: "draft",
+  },
+  {
     slug: "awwwards-flagship",
     title: "The Grammar of Attention",
     subtitle: "Flagship deck — every Phase 2 primitive in one argument",
