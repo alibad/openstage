@@ -7,3 +7,5 @@ export { FlowDiagram } from "./flow-diagram";
 export { ScoreMatrix } from "./score-matrix";
 export { DataTable } from "./data-table";
 export { BeforeAfter } from "./before-after";
+export { BarRows, type BarRowItem } from "./bar-rows";
+export { CaseTimeline, type CaseMark } from "./case-timeline";

@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useRef } from "react";
 import { useInView } from "framer-motion";
+import { viewportMargin } from "@/lib/motion";
 
 interface TypewriterProps {
   lines: { text: string; className?: string }[];
@@ -9,6 +10,12 @@ interface TypewriterProps {
   lineDelay?: number;
   className?: string;
   cursorClassName?: string;
+  /** When false, typing begins on mount. Default true. */
+  startWhenVisible?: boolean;
+  /** External start signal (e.g. parent section in view). Overrides internal observer. */
+  start?: boolean;
+  /** Fraction of the element that must be visible before typing starts (0–1). */
+  viewportAmount?: number;
 }
 
 export function Typewriter({
@@ -17,9 +24,23 @@ export function Typewriter({
   lineDelay = 400,
   className,
   cursorClassName,
+  startWhenVisible = true,
+  start,
+  viewportAmount = 0.35,
 }: TypewriterProps) {
   const ref = useRef<HTMLDivElement>(null);
-  const isInView = useInView(ref, { once: true, margin: "-100px" });
+  const internalInView = useInView(ref, {
+    once: true,
+    margin: viewportMargin.late,
+    amount: viewportAmount,
+  });
+  const shouldStart =
+    start !== undefined
+      ? start
+      : startWhenVisible
+        ? internalInView
+        : true;
+
   const [visibleLines, setVisibleLines] = useState<
     { text: string; className?: string; revealed: string }[]
   >([]);
@@ -28,18 +49,11 @@ export function Typewriter({
   const [done, setDone] = useState(false);
 
   useEffect(() => {
-    if (!isInView) return;
+    if (!shouldStart) return;
 
     if (currentLine >= lines.length) {
       setDone(true);
       return;
-    }
-
-    if (currentChar === 0 && currentLine > 0) {
-      const timeout = setTimeout(() => {
-        setCurrentChar(0);
-      }, lineDelay);
-      return () => clearTimeout(timeout);
     }
 
     const line = lines[currentLine];
@@ -52,11 +66,11 @@ export function Typewriter({
         };
         return updated;
       });
-      setTimeout(() => {
+      const timeout = setTimeout(() => {
         setCurrentLine((l) => l + 1);
         setCurrentChar(0);
       }, lineDelay);
-      return;
+      return () => clearTimeout(timeout);
     }
 
     if (currentChar === 0) {
@@ -79,23 +93,34 @@ export function Typewriter({
     }, speed);
 
     return () => clearTimeout(timeout);
-  }, [isInView, currentLine, currentChar, lines, speed, lineDelay]);
+  }, [shouldStart, currentLine, currentChar, lines, speed, lineDelay]);
 
   return (
-    <div ref={ref} className={className}>
-      {visibleLines.map((line, i) => (
-        <div key={i} className={line.className}>
-          {line.revealed}
-          {i === currentLine && !done && (
-            <span
-              className={
-                cursorClassName ||
-                "inline-block w-[2px] h-[1.1em] bg-brand-1 ml-0.5 align-text-bottom animate-pulse"
-              }
-            />
-          )}
-        </div>
-      ))}
+    <div
+      ref={start === undefined && startWhenVisible ? ref : undefined}
+      className={className}
+      aria-live="polite"
+    >
+      {!shouldStart &&
+        lines.map((line, i) => (
+          <div key={`placeholder-${i}`} className={line.className} aria-hidden>
+            <span className="invisible">{line.text}</span>
+          </div>
+        ))}
+      {shouldStart &&
+        visibleLines.map((line, i) => (
+          <div key={i} className={line.className}>
+            {line.revealed}
+            {i === currentLine && !done && (
+              <span
+                className={
+                  cursorClassName ||
+                  "inline-block w-[2px] h-[1.1em] bg-brand-1 ml-0.5 align-text-bottom animate-pulse"
+                }
+              />
+            )}
+          </div>
+        ))}
     </div>
   );
 }

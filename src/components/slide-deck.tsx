@@ -24,67 +24,93 @@ function waitForRerender(): Promise<void> {
   });
 }
 
+// Apple-level polish: all transitions run simultaneously (mode="sync" on AnimatePresence).
+// The old slide exits while the new one enters — no pause between them.
+// Spring physics on `slide` give a physical, lived-in feel. All other variants use
+// symmetric inOut easings so the two planes move as one continuous gesture.
+
 const slideVariantMap: Record<SlideTransitionType, Variants> = {
+  // Default: natural horizontal push. The new slide covers the old one from the
+  // side, both planes moving together. Spring stiffness/damping tuned to feel
+  // snappy but not abrupt — same register as iOS navigation.
   slide: {
     enter: (direction: number) => ({
       opacity: 0,
-      x: direction > 0 ? 60 : -60,
-      scale: 0.98,
+      x: direction > 0 ? 48 : -48,
+      scale: 0.97,
       filter: "blur(0px)",
     }),
     center: { opacity: 1, x: 0, scale: 1, filter: "blur(0px)" },
     exit: (direction: number) => ({
       opacity: 0,
-      x: direction > 0 ? -60 : 60,
-      scale: 0.98,
+      x: direction > 0 ? -48 : 48,
+      scale: 0.97,
       filter: "blur(0px)",
     }),
   },
+
+  // Elegant cross-dissolve with a whisper of depth (scale 0.98→1).
+  // inOutQuart gives symmetric acceleration so both opacity curves feel matched.
   fade: {
-    enter: { opacity: 0, x: 0, scale: 1, filter: "blur(0px)" },
+    enter: { opacity: 0, x: 0, scale: 0.98, filter: "blur(0px)" },
     center: { opacity: 1, x: 0, scale: 1, filter: "blur(0px)" },
-    exit: { opacity: 0, x: 0, scale: 1, filter: "blur(0px)" },
+    exit: { opacity: 0, x: 0, scale: 0.98, filter: "blur(0px)" },
   },
+
+  // Focus shift: feels like the lens rack-focusing to a new subject.
+  // Reduced blur (10px) and a gentle y-drift give directionality.
   blur: {
-    enter: { opacity: 0, filter: "blur(16px)", scale: 1.02, x: 0 },
-    center: { opacity: 1, filter: "blur(0px)", scale: 1, x: 0 },
-    exit: { opacity: 0, filter: "blur(16px)", scale: 0.98, x: 0 },
+    enter: { opacity: 0, filter: "blur(10px)", scale: 1.015, y: 8, x: 0 },
+    center: { opacity: 1, filter: "blur(0px)", scale: 1, y: 0, x: 0 },
+    exit: { opacity: 0, filter: "blur(10px)", scale: 0.985, y: -8, x: 0 },
   },
+
+  // Subtle zoom — feels like the camera pushing in. Tight scale range (1.05/0.97)
+  // keeps it cinematic without being jarring. Soft blur on enter/exit smooths edges.
   zoom: {
     enter: (direction: number) => ({
       opacity: 0,
-      scale: direction > 0 ? 1.12 : 0.88,
-      filter: "blur(0px)",
+      scale: direction > 0 ? 1.05 : 0.96,
+      filter: "blur(4px)",
       x: 0,
+      y: 0,
     }),
-    center: { opacity: 1, scale: 1, filter: "blur(0px)", x: 0 },
+    center: { opacity: 1, scale: 1, filter: "blur(0px)", x: 0, y: 0 },
     exit: (direction: number) => ({
       opacity: 0,
-      scale: direction > 0 ? 0.88 : 1.12,
-      filter: "blur(0px)",
+      scale: direction > 0 ? 0.96 : 1.05,
+      filter: "blur(4px)",
       x: 0,
+      y: 0,
     }),
   },
+
+  // Directional curtain wipe. Now direction-aware: forward = wipe from right,
+  // backward = wipe from left. Feels deliberate and theatrical.
   mask: {
-    enter: {
+    enter: (direction: number) => ({
       opacity: 1,
-      clipPath: "inset(0 0 100% 0)",
+      clipPath: direction > 0 ? "inset(0 100% 0 0 round 4px)" : "inset(0 0 0 100% round 4px)",
       x: 0,
       scale: 1,
-    },
+      filter: "blur(0px)",
+    }),
     center: {
       opacity: 1,
-      clipPath: "inset(0 0 0% 0)",
+      clipPath: "inset(0 0% 0 0% round 4px)",
       x: 0,
       scale: 1,
+      filter: "blur(0px)",
     },
-    exit: {
+    exit: (direction: number) => ({
       opacity: 1,
-      clipPath: "inset(100% 0 0 0)",
+      clipPath: direction > 0 ? "inset(0 0 0 100% round 4px)" : "inset(0 100% 0 0 round 4px)",
       x: 0,
       scale: 1,
-    },
+      filter: "blur(0px)",
+    }),
   },
+
   none: {
     enter: { opacity: 1, x: 0, scale: 1, filter: "blur(0px)" },
     center: { opacity: 1, x: 0, scale: 1, filter: "blur(0px)" },
@@ -93,11 +119,22 @@ const slideVariantMap: Record<SlideTransitionType, Variants> = {
 };
 
 const slideTransitionMap: Record<SlideTransitionType, Transition> = {
-  slide: { duration: duration.base, ease: ease.outQuart },
-  fade: { duration: duration.fast, ease: ease.outQuart },
-  blur: { duration: duration.slow, ease: ease.outExpo },
-  zoom: { duration: duration.slow, ease: ease.outQuart },
-  mask: { duration: duration.slow, ease: ease.outCirc },
+  // Spring physics: feels physical and alive, not mechanical.
+  // stiffness 300 / damping 28 → snappy but settled, ~350ms effective duration.
+  slide: { type: "spring", stiffness: 300, damping: 28, restDelta: 0.001 },
+
+  // Symmetric ease for a clean, confident dissolve.
+  fade: { duration: 0.38, ease: ease.inOutQuart },
+
+  // Slightly longer so the blur "travel" feels intentional.
+  blur: { duration: 0.5, ease: ease.outExpo },
+
+  // Tight zoom — outExpo gives a satisfying snap to center.
+  zoom: { duration: 0.48, ease: ease.outExpo },
+
+  // inOutExpo: slow start + slow end gives the curtain theatrical weight.
+  mask: { duration: 0.6, ease: ease.inOutExpo },
+
   none: { duration: 0 },
 };
 
@@ -416,7 +453,7 @@ export function SlideDeck({ presentation }: SlideDeckProps) {
           </div>
         </div>
       ) : (
-        <AnimatePresence initial={false} custom={direction} mode="wait">
+        <AnimatePresence initial={false} custom={direction} mode="sync">
           <motion.div
             key={currentIndex}
             custom={direction}
