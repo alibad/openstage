@@ -328,21 +328,34 @@ function OpenstageSection() {
 /* ─── 4. Walkthrough — pattern #3, the artifact is the demo ───────────── */
 
 function WalkthroughSection() {
-  const [features, setFeatures] = useState<number | null>(null);
+  // Two honest numbers from the real catalog: how many features were
+  // discovered, and how many have actually been walked (screenshots, video).
+  // Never conflate them — "14 walked" when 0 were is the exact lie the
+  // walkthrough skill exists to refuse.
+  const [cataloged, setCataloged] = useState<number | null>(null);
+  const [walked, setWalked] = useState<number>(0);
   useEffect(() => {
     let cancelled = false;
     fetch("/walkthroughs/catalog.json")
       .then((r) => (r.ok ? r.json() : null))
       .then((j) => {
         if (cancelled || !j) return;
-        const n = Array.isArray(j?.features) ? j.features.length : null;
-        setFeatures(n);
+        const list = Array.isArray(j?.features) ? (j.features as { desktopStatus?: string; mobileStatus?: string }[]) : [];
+        setCataloged(list.length);
+        setWalked(list.filter((f) => f.desktopStatus === "done" || f.mobileStatus === "done").length);
       })
       .catch(() => {});
     return () => {
       cancelled = true;
     };
   }, []);
+  const features = cataloged === null ? null : walked > 0 ? walked : cataloged;
+  const caption =
+    cataloged === null
+      ? "features · artifact drops in before the talk"
+      : walked > 0
+        ? `of ${cataloged} features walked — desktop + mobile + video`
+        : "features cataloged · walks pending";
 
   return (
     <Section id="walkthrough" className="py-32">
@@ -370,9 +383,7 @@ function WalkthroughSection() {
               <div className="text-6xl md:text-7xl font-semibold tracking-tight leading-none" style={{ color: "var(--color-brand-1)" }}>
                 {features === null ? "—" : <FlipNumber value={features} />}
               </div>
-              <div className="text-sm text-white/60 mt-2">
-                {features === null ? "features · artifact drops in before the talk" : "features walked, desktop + mobile + video"}
-              </div>
+              <div className="text-sm text-white/60 mt-2">{caption}</div>
             </div>
             <div className="relative font-mono text-[11px] text-white/40 leading-relaxed">
               catalog → capture → personas → dashboard → verify

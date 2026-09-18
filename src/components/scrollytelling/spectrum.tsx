@@ -83,7 +83,7 @@ export function Spectrum({
   const labelOpacity = light ? 0.85 : 0.5;
 
   return (
-    <div ref={ref} className={className}>
+    <div ref={ref} className={`relative ${className ?? ""}`}>
       <svg viewBox={`0 0 ${W} ${H}`} className="w-full" role="img" aria-hidden="true">
         {/* Axis */}
         <line

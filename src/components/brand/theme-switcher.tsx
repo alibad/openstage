@@ -54,6 +54,10 @@ export function ThemeSwitcher({
 }: ThemeSwitcherProps) {
   const { presets, activePresetId, setActivePreset, isLoaded } = useBrand();
   const [open, setOpen] = useState(false);
+  // Component-local mount gate: guaranteed false on THIS subtree's first
+  // hydration render even when the brand provider has already loaded.
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -105,7 +109,10 @@ export function ThemeSwitcher({
         className={
           triggerClassName ?? `${triggerBase} ${triggerByVariant[variant]}`
         }
-        title={active ? `Theme: ${active.name} (press T to cycle)` : "Choose theme"}
+        // Mount-gated on isLoaded: the preset is read client-side, so the first
+        // client render must match the server ("Choose theme") to avoid a
+        // hydration mismatch. The real title lands after the context loads.
+        title={mounted && active ? `Theme: ${active.name} (press T to cycle)` : "Choose theme"}
         aria-label="Choose theme"
         aria-haspopup="menu"
         aria-expanded={open}
