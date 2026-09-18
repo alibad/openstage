@@ -28,10 +28,15 @@ export function ParallaxLayer({
 }: ParallaxLayerProps) {
   const print = usePrintMode();
   const ref = useRef(null);
-  const { scrollYProgress } = useScroll({
-    target: ref,
-    offset: ["start end", "end start"],
-  });
+  /* `print ? undefined` matters: the print branch below returns a plain <div>
+     that never attaches `ref`, so passing a target here leaves motion with a
+     ref it can never resolve and it throws "Target ref is defined but not
+     hydrated", crashing the whole deck in ?print. Same guard `FullBleed` uses.
+     With no target, useScroll falls back to the viewport and the values are
+     discarded anyway. */
+  const { scrollYProgress } = useScroll(
+    print ? undefined : { target: ref, offset: ["start end", "end start"] },
+  );
 
   const yRange = 100 * (1 - speed);
   const y = useTransform(scrollYProgress, [0, 1], [yRange, -yRange]);

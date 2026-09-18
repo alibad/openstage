@@ -425,9 +425,20 @@ main.print-mode .brand-gradient-text,
 }
 
 @media print {
+  /* `size: auto` lets the browser's print dialog drive page size AND
+     orientation — hardcoding `landscape` here silently overrode the user's
+     portrait/landscape choice. Sections still fill a full page in whichever
+     orientation is picked (see `min-height` below). */
   @page {
-    size: landscape;
+    size: auto;
     margin: 0;
+  }
+
+  /* Hide app chrome marked print-hidden during actual printing too — not just
+     the on-screen ?print view. Catches floating UI mounted outside the deck's
+     <main> (e.g. the global feedback FAB), which the scoped rule above misses. */
+  .print-hidden {
+    display: none !important;
   }
 
   html, body {
