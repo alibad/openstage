@@ -2,7 +2,7 @@ import Link from "next/link";
 import { LayoutDashboard, Plus, Sparkles } from "lucide-react";
 
 export const metadata = {
-  title: "Admin — Presenter",
+  title: "Admin — Openstage",
 };
 
 export default function AdminLayout({
@@ -25,7 +25,7 @@ export default function AdminLayout({
                 href="/admin"
                 className="text-sm font-semibold text-foreground hover:text-accent transition-colors"
               >
-                <span className="brand-gradient-text">Presenter</span>
+                <span className="brand-gradient-text">Openstage</span>
               </Link>
               <span className="text-xs text-muted font-medium bg-accent-light border border-accent/15 px-2 py-0.5 rounded-full">
                 Admin

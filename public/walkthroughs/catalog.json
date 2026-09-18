@@ -1,0 +1,319 @@
+{
+  "projectName": "Openstage",
+  "githubRepo": "alibad/openstage",
+  "baseUrl": "http://localhost:3000",
+  "brand": {
+    "primaryColor": "#818CF8",
+    "primaryColorLight": "#E0E7FF",
+    "secondaryColor": "#0A0718",
+    "accentColor": "#7DD3FC",
+    "backgroundColor": "#FAFAFE",
+    "textColor": "#1F2937",
+    "logoPath": "/icon-192.png",
+    "fontFamily": "Inter",
+    "fontFamilyBody": "Inter, system-ui, sans-serif"
+  },
+  "discoveredAt": "2026-09-18T07:17:17.346Z",
+  "updatedAt": "2026-09-18T07:17:17.346Z",
+  "features": [
+    {
+      "featureId": "decks-gallery",
+      "featureName": "Presentation Gallery",
+      "route": "/",
+      "category": "decks",
+      "requiresAuth": false,
+      "authRole": null,
+      "description": "Home — every live deck with search, type filter, and grouping by customer/author/date.",
+      "desktopStatus": "pending",
+      "mobileStatus": "pending",
+      "videoStatus": "pending",
+      "issueCount": 0,
+      "lastWalkthroughAt": null,
+      "lastCodeChangeAt": null,
+      "isStale": false
+    },
+    {
+      "featureId": "decks-ai-patterns",
+      "featureName": "AI Patterns — Running, Not Described",
+      "route": "/ai-patterns",
+      "category": "decks",
+      "requiresAuth": false,
+      "authRole": null,
+      "description": "The AI Tinkerers Doha Round 3 talk: Feedback, Openstage, Walkthrough and MCP, three of them running inside the deck.",
+      "desktopStatus": "pending",
+      "mobileStatus": "pending",
+      "videoStatus": "pending",
+      "issueCount": 0,
+      "lastWalkthroughAt": null,
+      "lastCodeChangeAt": null,
+      "isStale": false
+    },
+    {
+      "featureId": "decks-awwwards-flagship",
+      "featureName": "The Grammar of Attention",
+      "route": "/awwwards-flagship",
+      "category": "decks",
+      "requiresAuth": false,
+      "authRole": null,
+      "description": "Flagship scroll deck — every Phase 2 primitive sequenced as one argument about craft.",
+      "desktopStatus": "pending",
+      "mobileStatus": "pending",
+      "videoStatus": "pending",
+      "issueCount": 0,
+      "lastWalkthroughAt": null,
+      "lastCodeChangeAt": null,
+      "isStale": false
+    },
+    {
+      "featureId": "decks-sample-scroll",
+      "featureName": "Visual Effects Sample",
+      "route": "/sample-scroll",
+      "category": "decks",
+      "requiresAuth": false,
+      "authRole": null,
+      "description": "The 35+ component catalog: shader gradients, particles, 3D globe, charts, StickyMedia, flow diagrams.",
+      "desktopStatus": "pending",
+      "mobileStatus": "pending",
+      "videoStatus": "pending",
+      "issueCount": 0,
+      "lastWalkthroughAt": null,
+      "lastCodeChangeAt": null,
+      "isStale": false
+    },
+    {
+      "featureId": "decks-sample-slides",
+      "featureName": "Slide Mode Sample",
+      "route": "/sample-slides",
+      "category": "decks",
+      "requiresAuth": false,
+      "authRole": null,
+      "description": "Slide-mode tour: primitives, keyboard navigation, speaker notes, one-click PPTX export.",
+      "desktopStatus": "pending",
+      "mobileStatus": "pending",
+      "videoStatus": "pending",
+      "issueCount": 0,
+      "lastWalkthroughAt": null,
+      "lastCodeChangeAt": null,
+      "isStale": false
+    },
+    {
+      "featureId": "decks-showcase-games",
+      "featureName": "Interactive Game Templates",
+      "route": "/showcase-games",
+      "category": "decks",
+      "requiresAuth": false,
+      "authRole": null,
+      "description": "14 drop-in mini-games (quiz, drag-sort, memory, spin wheel, jeopardy …) for live decks.",
+      "desktopStatus": "pending",
+      "mobileStatus": "pending",
+      "videoStatus": "pending",
+      "issueCount": 0,
+      "lastWalkthroughAt": null,
+      "lastCodeChangeAt": null,
+      "isStale": false
+    },
+    {
+      "featureId": "viewer-share",
+      "featureName": "Shared Presentation Link",
+      "route": "/share/:id",
+      "category": "viewer",
+      "requiresAuth": false,
+      "authRole": null,
+      "description": "Tokenised share link that opens a presentation for an external viewer.",
+      "desktopStatus": "pending",
+      "mobileStatus": "pending",
+      "videoStatus": "pending",
+      "issueCount": 0,
+      "lastWalkthroughAt": null,
+      "lastCodeChangeAt": null,
+      "isStale": false
+    },
+    {
+      "featureId": "viewer-settings",
+      "featureName": "Settings",
+      "route": "/settings",
+      "category": "viewer",
+      "requiresAuth": false,
+      "authRole": null,
+      "description": "Viewer/presenter preferences (theme preset, brand overrides).",
+      "desktopStatus": "pending",
+      "mobileStatus": "pending",
+      "videoStatus": "pending",
+      "issueCount": 0,
+      "lastWalkthroughAt": null,
+      "lastCodeChangeAt": null,
+      "isStale": false
+    },
+    {
+      "featureId": "viewer-onboarding",
+      "featureName": "Onboarding",
+      "route": "/onboarding",
+      "category": "viewer",
+      "requiresAuth": false,
+      "authRole": null,
+      "description": "First-run introduction to the framework.",
+      "desktopStatus": "pending",
+      "mobileStatus": "pending",
+      "videoStatus": "pending",
+      "issueCount": 0,
+      "lastWalkthroughAt": null,
+      "lastCodeChangeAt": null,
+      "isStale": false
+    },
+    {
+      "featureId": "auth-password-gate",
+      "featureName": "Password Gate",
+      "route": "/auth/:slug",
+      "category": "auth",
+      "requiresAuth": false,
+      "authRole": null,
+      "description": "Enter the per-deck or admin password; redirects to `next` on success.",
+      "desktopStatus": "pending",
+      "mobileStatus": "pending",
+      "videoStatus": "pending",
+      "issueCount": 0,
+      "lastWalkthroughAt": null,
+      "lastCodeChangeAt": null,
+      "isStale": false
+    },
+    {
+      "featureId": "admin-dashboard",
+      "featureName": "Admin Dashboard",
+      "route": "/admin",
+      "category": "admin",
+      "requiresAuth": true,
+      "authRole": "admin",
+      "description": "Manage presentations — status, visibility, protection.",
+      "desktopStatus": "pending",
+      "mobileStatus": "pending",
+      "videoStatus": "pending",
+      "issueCount": 0,
+      "lastWalkthroughAt": null,
+      "lastCodeChangeAt": null,
+      "isStale": false
+    },
+    {
+      "featureId": "admin-new-request",
+      "featureName": "Quick Request",
+      "route": "/admin/new",
+      "category": "admin",
+      "requiresAuth": true,
+      "authRole": "admin",
+      "description": "No-code brief → GitHub issue → generated deck.",
+      "desktopStatus": "pending",
+      "mobileStatus": "pending",
+      "videoStatus": "pending",
+      "issueCount": 0,
+      "lastWalkthroughAt": null,
+      "lastCodeChangeAt": null,
+      "isStale": false
+    },
+    {
+      "featureId": "admin-studio",
+      "featureName": "AI Studio",
+      "route": "/admin/studio",
+      "category": "admin",
+      "requiresAuth": true,
+      "authRole": "admin",
+      "description": "Chat-driven create / edit / feedback for presentations with a preview-deploy pipeline.",
+      "desktopStatus": "pending",
+      "mobileStatus": "pending",
+      "videoStatus": "pending",
+      "issueCount": 0,
+      "lastWalkthroughAt": null,
+      "lastCodeChangeAt": null,
+      "isStale": false
+    },
+    {
+      "featureId": "admin-presentation-detail",
+      "featureName": "Presentation Detail",
+      "route": "/admin/:slug",
+      "category": "admin",
+      "requiresAuth": true,
+      "authRole": "admin",
+      "description": "Per-presentation admin view.",
+      "desktopStatus": "pending",
+      "mobileStatus": "pending",
+      "videoStatus": "pending",
+      "issueCount": 0,
+      "lastWalkthroughAt": null,
+      "lastCodeChangeAt": null,
+      "isStale": false
+    }
+  ],
+  "personas": [
+    {
+      "id": "visitor",
+      "name": "Visitor",
+      "description": "Anyone with a link — browses the gallery and reads a deck end-to-end. No account.",
+      "authRole": null,
+      "entryPoint": "/",
+      "keyJourneys": [
+        "Browse the gallery and filter by type",
+        "Open a scroll deck and read it chapter by chapter",
+        "Open a slide deck and step through it",
+        "Print / export a deck to PDF"
+      ],
+      "navItems": [
+        {
+          "label": "Gallery",
+          "route": "/"
+        },
+        {
+          "label": "Settings",
+          "route": "/settings"
+        }
+      ]
+    },
+    {
+      "id": "presenter",
+      "name": "Presenter",
+      "description": "The host on stage — runs a deck live with narration, the chapter rail, theme switching and the in-deck feedback loop.",
+      "authRole": null,
+      "entryPoint": "/ai-patterns",
+      "keyJourneys": [
+        "Present a scroll deck with the narrator and chapter rail",
+        "Switch theme preset live",
+        "Open the in-deck feedback widget and file an issue",
+        "Print the deck as a leave-behind"
+      ],
+      "navItems": [
+        {
+          "label": "AI Patterns",
+          "route": "/ai-patterns"
+        },
+        {
+          "label": "Flagship",
+          "route": "/awwwards-flagship"
+        }
+      ]
+    },
+    {
+      "id": "admin",
+      "name": "Admin",
+      "description": "Password-gated operator — creates and manages presentations through the no-code request form and the AI Studio.",
+      "authRole": "admin",
+      "entryPoint": "/admin",
+      "keyJourneys": [
+        "Unlock /admin with the admin password",
+        "Review presentation status and visibility",
+        "Submit a quick request brief",
+        "Generate or edit a deck in AI Studio"
+      ],
+      "navItems": [
+        {
+          "label": "Dashboard",
+          "route": "/admin"
+        },
+        {
+          "label": "Quick Request",
+          "route": "/admin/new"
+        },
+        {
+          "label": "AI Studio",
+          "route": "/admin/studio"
+        }
+      ]
+    }
+  ]
+}
