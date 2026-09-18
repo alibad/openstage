@@ -498,3 +498,63 @@ main.print-mode .brand-gradient-text,
     display: none !important;
   }
 }
+
+/* ── EditorialGrid: collapse to one column on phones ──────────────────────
+ *
+ * `EditorialGrid` lays out a fixed 12-column grid and each `EditorialCell`
+ * declares an explicit `grid-column` (the `lede` spans 1/8, the `aside` spans
+ * 9/12, and so on). That is the right shape for a magazine layout on a laptop
+ * and an actively broken one on a phone.
+ *
+ * What went wrong: with `repeat(12, minmax(0, 1fr))` on a 393px viewport, the
+ * fr tracks floor at 0 once the cells' content cannot fit — every column
+ * computes to literally `0px` — and the cells then overflow their tracks. The
+ * document grew to 560px on a 393px screen, so Safari zoomed the whole page
+ * out to fit and every deck rendered small with a sideways scroll. It was
+ * found by a walkthrough measuring the layout viewport, not by eye: the
+ * screenshots looked like an ordinary narrow render.
+ *
+ * `!important` is load-bearing here, not laziness. The spans are applied as
+ * inline styles from JS, and inline styles win over stylesheets; this is the
+ * only way a media query can take them back without rewriting the component's
+ * API.
+ *
+ * 768px matches Tailwind's `md` breakpoint, which is where the rest of these
+ * decks switch between one-column and multi-column reading.
+ */
+@media (max-width: 767px) {
+  [data-editorial-grid] {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+
+  [data-editorial-cell] {
+    grid-column: 1 / -1 !important;
+    grid-row: auto !important;
+  }
+}
+
+/* ── Stop stray horizontal overflow zooming the whole page out ────────────
+ *
+ * The EditorialGrid collapse above fixed the large offender. What remains is
+ * the long tail — a screen-reader-only table that measures wider than it
+ * should, an SVG chart a few pixels over, a decorative row that escapes its
+ * container. Individually trivial; collectively they still push the document
+ * past the viewport, and the consequence is out of all proportion: Chrome and
+ * Safari widen the layout viewport to fit and render the ENTIRE page zoomed
+ * out, so a 393px phone ends up reading a 456px layout scaled down.
+ *
+ * `clip`, not `hidden`, and this distinction matters: `overflow-x: hidden`
+ * creates a scroll container, which silently breaks every `position: sticky`
+ * descendant — and these decks are full of sticky section headers and pinned
+ * media. `overflow: clip` clips without establishing a scroll container, so
+ * sticky keeps working.
+ *
+ * Phones only. On a desktop an overflowing element is a visible bug worth
+ * seeing rather than hiding.
+ */
+@media (max-width: 767px) {
+  html,
+  body {
+    overflow-x: clip;
+  }
+}

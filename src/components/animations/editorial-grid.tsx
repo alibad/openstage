@@ -52,6 +52,11 @@ export function EditorialGrid({
 }: EditorialGridProps) {
   return (
     <div
+      // Tagged so a media query can override the inline grid below. Inline
+      // styles beat stylesheets, so the mobile collapse in globals.css has to
+      // target an attribute and use !important — there is no way around that
+      // while the spans are computed in JS.
+      data-editorial-grid=""
       className={cn("grid w-full", className)}
       style={{
         gridTemplateColumns: "repeat(12, minmax(0, 1fr))",
@@ -126,7 +131,7 @@ export function EditorialCell({
   if (align) style.alignSelf = align;
 
   return (
-    <div className={cn("min-w-0", className)} style={style}>
+    <div data-editorial-cell="" className={cn("min-w-0", className)} style={style}>
       {children}
     </div>
   );

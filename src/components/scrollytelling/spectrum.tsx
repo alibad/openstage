@@ -139,8 +139,22 @@ export function Spectrum({
         ))}
       </svg>
 
-      {/* Screen reader table */}
-      <table className="sr-only">
+      {/*
+        Screen reader table.
+
+        The `sr-only` class lives on a wrapping div, NOT on the <table>.
+        Tailwind's `sr-only` works by setting `width: 1px` — which a table
+        ignores, because a table's used width is never less than its
+        min-content width. With `white-space: nowrap` also in that utility, this
+        table measured 432px wide on a 393px phone, pushed the document past
+        the viewport, and made the browser render the whole deck zoomed out.
+        An accessibility helper was breaking the visual layout for everyone.
+
+        A block-level div does respect `width: 1px` and clips the table inside
+        it, so assistive technology still reads the table and nothing else does.
+      */}
+      <div className="sr-only">
+      <table>
         <caption>Spectrum: {axis.left} to {axis.right}</caption>
         <thead>
           <tr>
@@ -157,6 +171,7 @@ export function Spectrum({
           ))}
         </tbody>
       </table>
+      </div>
     </div>
   );
 }
