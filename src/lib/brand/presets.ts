@@ -23,8 +23,13 @@ const SPECTRUM: BrandPreset = {
   description: "Cyan → blue → purple → pink. A vivid, high-contrast palette.",
   builtin: true,
   config: {
-    companyName: "Presenter",
-    logo: null,
+    // Openstage is a Human Quest product — it is not the AI Tinkerers site.
+    // (Tinkerstage, the separate fork, is the AI Tinkerers one.) These identity
+    // fields were still carrying the upstream template's "Presenter" placeholder,
+    // which surfaced as the gallery header, the deck footer watermark and the
+    // copyright line on every deck.
+    companyName: "Human Quest",
+    logo: "/logos/humanquest.svg",
     colors: {
       primary: "#818CF8",
       secondary: "#A78BFA",
@@ -39,10 +44,10 @@ const SPECTRUM: BrandPreset = {
       monoFont: "JetBrains Mono",
     },
     defaults: {
-      author: "",
-      footerText: "presenter",
+      author: "Ali Badereddin",
+      footerText: "humanquest.net",
       copyright: "© {year} {company}",
-      website: "",
+      website: "https://humanquest.net",
     },
     tone: {
       voice: "professional",

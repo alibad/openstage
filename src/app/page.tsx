@@ -5,8 +5,6 @@ import { presentations } from "@/content/registry";
 import { Settings } from "lucide-react";
 import { GalleryFilters } from "@/components/gallery-filters";
 import { useBrand } from "@/lib/brand";
-import { useRouter } from "next/navigation";
-import { useEffect } from "react";
 
 function getVisiblePresentations() {
   return presentations.filter((p) => {
@@ -19,19 +17,20 @@ function getVisiblePresentations() {
 }
 
 export default function HomePage() {
-  const { brand, isLoaded, hasOnboarded, copyrightText } = useBrand();
-  const router = useRouter();
+  const { brand, isLoaded, copyrightText } = useBrand();
   const visible = getVisiblePresentations();
   const scrollCount = visible.filter((p) => p.type === "scroll").length;
   const slideCount = visible.filter((p) => p.type === "slides").length;
 
-  useEffect(() => {
-    if (isLoaded && !hasOnboarded) {
-      router.push("/onboarding");
-    }
-  }, [isLoaded, hasOnboarded, router]);
-
-  if (!isLoaded || !hasOnboarded) {
+  /* Deliberately NOT redirecting to /onboarding when there is no stored brand.
+     `hasOnboarded` is false for every first-time visitor, because it only means
+     "this browser has saved a brand" — so this page used to greet the public
+     with a six-step "Set Up Your Brand" wizard for somebody else's product.
+     Verified live on https://openstage.humanquest.net before this change.
+     The default brand is Human Quest and is already correct, so a visitor has
+     nothing to set up. Onboarding stays reachable at /onboarding and from
+     /settings for the owner. */
+  if (!isLoaded) {
     return (
       <div className="min-h-screen bg-bg-light flex items-center justify-center">
         <div className="w-8 h-8 border-2 border-accent border-t-transparent rounded-full animate-spin" />

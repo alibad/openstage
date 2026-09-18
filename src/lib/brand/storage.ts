@@ -1,9 +1,18 @@
 import type { BrandConfig, BrandHint } from "./types";
 import { defaultBrandConfig } from "./defaults";
 
-const STORAGE_KEY = "brand-config";
-const ACTIVE_PRESET_KEY = "brand-active-preset-id";
-const PER_DECK_KEY = "brand-overrides";
+/* Namespaced per app, and that prefix is load-bearing.
+   Tinkerstage (`alibad/tinkerer-presenter`) is a fork of the same template and
+   used the identical unprefixed keys. In production the two are separate origins
+   so nothing collides — but every Next dev server runs on `http://localhost:3000`,
+   which means one origin and one localStorage. Running Tinkerstage locally then
+   running Openstage locally handed Openstage the AI Tinkerers brand: gallery
+   header "AI Tinkerers Presentations", and a broken <img> because the stored logo
+   path `/brand/ai-tinkerers-logo.png` does not exist in this repo. It looked like
+   a branding bug in Openstage and it was neighbouring data. */
+const STORAGE_KEY = "openstage:brand-config";
+const ACTIVE_PRESET_KEY = "openstage:brand-active-preset-id";
+const PER_DECK_KEY = "openstage:brand-overrides";
 const STORAGE_VERSION = 1;
 
 interface StoredBrand {
