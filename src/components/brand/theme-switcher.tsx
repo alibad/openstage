@@ -30,6 +30,9 @@ interface ThemeSwitcherProps {
   showShortcutHint?: boolean;
 }
 
+/** Dropdown menu width (w-72) — used to pick the anchor edge before opening. */
+const MENU_WIDTH_PX = 288;
+
 function PresetSwatch({ preset, size = 18 }: { preset: BrandPreset; size?: number }) {
   const stops = preset.config.colors.gradientStops;
   const gradient = `linear-gradient(135deg, ${stops
@@ -54,11 +57,35 @@ export function ThemeSwitcher({
 }: ThemeSwitcherProps) {
   const { presets, activePresetId, setActivePreset, isLoaded } = useBrand();
   const [open, setOpen] = useState(false);
-  // Component-local mount gate: guaranteed false on THIS subtree's first
-  // hydration render even when the brand provider has already loaded.
+  // `mounted` flips true *after* this component itself has hydrated on the
+  // client. We need it in addition to the provider's `isLoaded` because with
+  // React 18 + Suspense streaming, the BrandProvider lives above a Suspense
+  // boundary (in the root layout) and its mount effect can fire — flipping
+  // `isLoaded` to true and `activePresetId` to the saved preset — *before*
+  // child subtrees inside Suspense (like this one, mounted via DeckControls)
+  // do their hydration render. The result was a hydration mismatch on the
+  // `title` attribute: server HTML had "Choose theme" (isLoaded=false at SSR),
+  // but the client's first hydration pass already saw the post-effect context
+  // and rendered "Theme: Aurora". Pinning brand-aware output to `null` until
+  // *this component* has mounted guarantees server and client first render
+  // are byte-identical, regardless of provider effect ordering.
   const [mounted, setMounted] = useState(false);
-  useEffect(() => setMounted(true), []);
+  // Menu is right-aligned to the trigger by default; on narrow screens where
+  // the trigger sits near the left viewport edge, a right-anchored 18rem menu
+  // would extend past the left edge — flip the anchor instead. Computed on
+  // every open so it tracks resizes/wraps.
+  const [align, setAlign] = useState<"left" | "right">("right");
   const containerRef = useRef<HTMLDivElement>(null);
+
+  const toggleOpen = () => {
+    const rect = containerRef.current?.getBoundingClientRect();
+    if (rect) setAlign(rect.right - MENU_WIDTH_PX < 8 ? "left" : "right");
+    setOpen((o) => !o);
+  };
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     if (!open) return;
@@ -76,18 +103,14 @@ export function ThemeSwitcher({
     };
   }, [open]);
 
-  // Gate brand-aware content behind `isLoaded` (set true by BrandProvider's
-  // mount effect after it reads localStorage). The provider lives in the
-  // root layout and persists across client navigations, so the active
-  // preset can be ahead of whatever was server-rendered into the cached
-  // HTML — rendering a preset name during SSR but a different one on the
-  // first client commit produces a hydration mismatch on the `title`
-  // attribute. Falling back to `null` until hydration completes keeps SSR
-  // and the first client paint identical, then the brand-aware UI fills
-  // in once the provider's mount effect runs.
-  const active = isLoaded
-    ? presets.find((p) => p.id === activePresetId) ?? null
-    : null;
+  // Brand-aware content is gated on BOTH `isLoaded` (provider has finished
+  // reading localStorage) AND `mounted` (this specific component has finished
+  // its first client render). See the `mounted` declaration above for why
+  // both are required.
+  const active =
+    mounted && isLoaded
+      ? presets.find((p) => p.id === activePresetId) ?? null
+      : null;
 
   const triggerBase =
     "inline-flex items-center gap-2 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/40";
@@ -105,17 +128,19 @@ export function ThemeSwitcher({
     <div ref={containerRef} className={`relative ${className}`}>
       <button
         type="button"
-        onClick={() => setOpen((o) => !o)}
+        onClick={toggleOpen}
         className={
           triggerClassName ?? `${triggerBase} ${triggerByVariant[variant]}`
         }
-        // Mount-gated on isLoaded: the preset is read client-side, so the first
-        // client render must match the server ("Choose theme") to avoid a
-        // hydration mismatch. The real title lands after the context loads.
-        title={mounted && active ? `Theme: ${active.name} (press T to cycle)` : "Choose theme"}
+        title={active ? `Theme: ${active.name} (press T to cycle)` : "Choose theme"}
         aria-label="Choose theme"
         aria-haspopup="menu"
         aria-expanded={open}
+        // Brand state hydrates after the first paint (see `mounted` above).
+        // The text content of this button (icon/label) is also brand-aware,
+        // so suppress hydration warnings here as a safety net for any
+        // streaming-SSR ordering edge cases.
+        suppressHydrationWarning
       >
         {variant === "icon" ? (
           <Palette className="w-4 h-4" />
@@ -136,7 +161,7 @@ export function ThemeSwitcher({
       {open && (
         <div
           role="menu"
-          className={`absolute z-50 ${openUpwards ? "bottom-full mb-2" : "top-full mt-2"} right-0 w-72 rounded-xl border border-border bg-surface shadow-xl overflow-hidden`}
+          className={`absolute z-50 ${openUpwards ? "bottom-full mb-2" : "top-full mt-2"} ${align === "right" ? "right-0" : "left-0"} w-72 max-w-[calc(100vw-1.5rem)] rounded-xl border border-border bg-surface shadow-xl overflow-hidden`}
         >
           <div className="px-3 py-2 border-b border-border bg-black/[0.03]">
             <p className="text-[10px] uppercase tracking-widest text-muted font-semibold">
