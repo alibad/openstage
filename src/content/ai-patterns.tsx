@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import { motion } from "framer-motion";
+import { QRCodeSVG } from "qrcode.react";
 import {
   Reveal,
   StaggerChildren,
@@ -734,39 +735,91 @@ function MetaSection() {
 
 function CtaSection() {
   return (
-    <Section id="cta" dark className="min-h-screen flex items-center overflow-hidden">
-      <MeshGradient speed="slow" intensity={0.14} colors={["#FBBF24", "#F59E0B", "#6476ce", "#31439b"]} className="absolute inset-0" />
-      <div className="absolute inset-0" style={{ background: "rgba(11,15,31,0.6)" }} />
-      <div className="relative max-w-5xl mx-auto px-6 w-full py-32">
+    <section id="cta" className="relative min-h-screen overflow-hidden bg-[#070817] text-white">
+      <MeshGradient
+        speed="slow"
+        intensity={0.2}
+        colors={["#FBBF24", "#A78BFA", "#67E8F9", "#31439b"]}
+        className="absolute inset-0"
+      />
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_78%_45%,rgba(103,232,249,0.12),transparent_28%),linear-gradient(105deg,rgba(7,8,23,0.98)_0%,rgba(7,8,23,0.88)_48%,rgba(7,8,23,0.56)_100%)]" />
+      <div className="absolute inset-0 opacity-[0.08] bg-[linear-gradient(rgba(255,255,255,.14)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,.14)_1px,transparent_1px)] bg-[size:72px_72px]" />
+      <div className="pointer-events-none absolute -left-8 top-1/2 hidden -translate-y-1/2 select-none text-[34vw] font-black leading-none tracking-[-0.1em] text-white/[0.018] lg:block">
+        ONE
+      </div>
+
+      <div className="relative mx-auto grid min-h-screen w-full max-w-6xl items-center gap-14 px-6 py-24 lg:grid-cols-[minmax(0,1fr)_360px] lg:gap-20">
         <Reveal>
-          <Kicker dark>05 · Take them home</Kicker>
-          <h2 className="text-5xl md:text-7xl font-semibold tracking-tight leading-[0.98] mb-6 max-w-3xl">
-            One take-home page. <span className="text-white/40">No QR scavenger hunt.</span>
-          </h2>
-          <p className="text-lg text-white/60 max-w-2xl mb-12">
-            Feedback + Openstage, Walkthroughs, and Console + MCP. The event deck has the only
-            audience QR, and it points to one page with the live references and honest availability.
-          </p>
+          <div>
+            <Kicker dark>05 · Take them home</Kicker>
+            <h2 className="mt-7 max-w-3xl text-5xl font-semibold leading-[0.94] tracking-[-0.055em] sm:text-6xl md:text-7xl lg:text-[5.7rem]">
+              Keep the patterns.
+              <span className="mt-2 block font-serif font-normal italic text-cyan-200/72">
+                Use them tomorrow.
+              </span>
+            </h2>
+            <p className="mt-8 max-w-xl text-base leading-relaxed text-white/58 md:text-lg">
+              Feedback, Openstage, Walkthroughs, Console and MCP — one page with the live
+              references, source status and what is ready to try.
+            </p>
+
+            <div className="mt-12 grid max-w-xl grid-cols-3 border-y border-white/12 py-5 font-mono text-[10px] uppercase tracking-[0.18em] text-white/42">
+              <span><b className="mr-2 text-amber-300">01</b>Capture</span>
+              <span><b className="mr-2 text-cyan-300">02</b>Prove</span>
+              <span><b className="mr-2 text-violet-300">03</b>Act</span>
+            </div>
+
+            <p className="mt-8 font-mono text-[10px] uppercase tracking-[0.28em] text-white/28">
+              {TAGLINE}
+            </p>
+          </div>
         </Reveal>
 
-        <Reveal delay={0.2}>
+        <Reveal delay={0.18}>
           <a
             href="https://www.humanquest.net/ai-patterns"
             target="_blank"
             rel="noopener noreferrer"
-            className="chunky-brand inline-flex items-center gap-2 px-6 py-3 text-base font-semibold mb-16"
+            aria-label="Open the AI Patterns take-home page"
+            className="group mx-auto block w-full max-w-[360px] rounded-[2rem] border border-white/16 bg-white/[0.07] p-3 shadow-[0_34px_100px_rgba(0,0,0,0.48)] backdrop-blur-xl transition-transform duration-300 hover:-translate-y-1"
           >
-            humanquest.net/ai-patterns <ArrowRight className="w-4 h-4" />
+            <div className="rounded-[1.45rem] bg-[#f7f5ef] p-5 text-[#0b0f1f] sm:p-6">
+              <div className="mb-5 flex items-center justify-between font-mono text-[9px] uppercase tracking-[0.2em] text-[#0b0f1f]/48">
+                <span>One scan · all patterns</span>
+                <span className="h-2 w-2 rounded-full bg-amber-400" />
+              </div>
+
+              <div className="mx-auto aspect-square w-full max-w-[244px] rounded-2xl bg-white p-3 shadow-[0_12px_35px_rgba(11,15,31,0.1)]">
+                <QRCodeSVG
+                  value="https://www.humanquest.net/ai-patterns"
+                  size={220}
+                  level="H"
+                  marginSize={0}
+                  bgColor="#ffffff"
+                  fgColor="#0b0f1f"
+                  className="h-full w-full"
+                  title="QR code for humanquest.net/ai-patterns"
+                />
+              </div>
+
+              <div className="mt-6 border-t border-[#0b0f1f]/10 pt-5">
+                <div className="flex items-center justify-between gap-4">
+                  <span className="text-base font-semibold tracking-[-0.02em] sm:text-lg">
+                    humanquest.net/ai-patterns
+                  </span>
+                  <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#0b0f1f] text-white transition-transform duration-300 group-hover:translate-x-1">
+                    <ArrowRight className="h-4 w-4" />
+                  </span>
+                </div>
+                <p className="mt-2 text-xs leading-relaxed text-[#0b0f1f]/48">
+                  Scan now. Keep the references after the room closes.
+                </p>
+              </div>
+            </div>
           </a>
         </Reveal>
-
-        <Reveal delay={0.4}>
-          <p style={{ fontFamily: "var(--font-marker)" }} className="text-3xl md:text-4xl text-center">
-            <span style={{ color: "var(--color-brand-1)" }}>{TAGLINE}</span>
-          </p>
-        </Reveal>
       </div>
-    </Section>
+    </section>
   );
 }
 
