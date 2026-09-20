@@ -22,6 +22,20 @@ export interface PresentationMeta {
 
 export const presentations: PresentationMeta[] = [
   {
+    slug: "proof-before-promise",
+    title: "Proof Before Promise",
+    subtitle: "How credible product walkthroughs are made",
+    author: "Human Quest",
+    date: "September 2026",
+    description:
+      "A slide-mode demonstration built with OpenStage's presentation skills, showing how persona, surface, action, result, and evidence form a trustworthy walkthrough.",
+    type: "slides",
+    slideCount: 7,
+    accentColor: "#7DD3FC",
+    customer: "Human Quest",
+    status: "live",
+  },
+  {
     slug: "ai-patterns",
     title: "AI Patterns — Running, Not Described",
     subtitle: "Three live dives: capture, proof, controlled action",
