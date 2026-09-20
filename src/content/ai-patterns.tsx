@@ -703,15 +703,15 @@ function McpSection() {
                 </div>
                 <div className="min-w-0 flex-1">
                   <div className="font-mono text-[10px] uppercase tracking-[0.24em] text-violet-200">Studio walkthrough · Inner Quest MCP</div>
-                  <h3 className="mt-2 text-3xl font-semibold tracking-[-0.035em] text-white">Ask what it knows. Turn insight into practice.</h3>
+                  <h3 className="mt-2 text-3xl font-semibold tracking-[-0.035em] text-white">Ask the whole Personal OS. Save the insight.</h3>
                 </div>
               </div>
               <p className="mt-6 text-sm leading-relaxed text-white/58">
-                Inner Quest retrieves an official CliftonStrengths profile with provenance, turns the themes
-                into testable hypotheses, and writes a private reflection that appears in My Reflections.
+                Codex asks Inner Quest one hard question across assessments, values, feedback, habits,
+                career evidence, and wellbeing—then saves the evidence-backed takeaway as a private reflection you can see in the app.
               </p>
               <div className="mt-6 flex flex-wrap gap-2 font-mono text-[9px] uppercase tracking-[0.16em] text-white/60">
-                {['assessment evidence', 'strengths in practice', 'private reflection'].map((item) => <span key={item} className="rounded-full border border-white/10 px-3 py-2">{item}</span>)}
+                {['real Codex question', 'cross-surface evidence', 'reflection in app'].map((item) => <span key={item} className="rounded-full border border-white/10 px-3 py-2">{item}</span>)}
               </div>
               <div className="mt-7 inline-flex items-center gap-2 text-sm font-semibold text-violet-200">
                 Open the evidence <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
@@ -890,7 +890,7 @@ const NARRATION_SECTIONS: NarrationSection[] = [
   { sectionId: "problem", label: "The repeat signal", text: "Eight domain MVPs in the fleet. Four separate times I built the MCP layer before noticing it was one thing. Eighteen skills across two skills directories. The fourth time you build something isn't a productivity failure — it's the first time the pattern is visible enough to name." },
   { sectionId: "feedback", label: "Feedback + Openstage", text: "First: Feedback. File a report from the running page and inspect the issue it creates. The presentation carrying the demo is Openstage — a web app that can hold live controls and then get out of the way when the real demo starts." },
   { sectionId: "walkthrough", label: "Walkthroughs", text: "Second: Walkthroughs drives a real web app and keeps the evidence — catalog, desktop and mobile captures, video, journeys and findings. It refuses to ship a misleading walkthrough: byte-identical screenshots get rejected, and a dead backend blocks the run." },
-  { sectionId: "mcp", label: "Console + MCP", text: "Third: Console plus MCP. Hangar shows the real services, models, memory budgets and calls across local machines. MCP exposes deliberate actions so an agent can drive a system and then read the result back. DoneOS starts at Connect, creates a task and shows it in Queue and Activity. Inner Quest retrieves official strengths evidence with provenance, turns it into practice, and writes a private reflection visible in My Reflections. Both open in Walkthrough Studio as features of the products they belong to, with the protocol proof one surface deeper." },
+  { sectionId: "mcp", label: "Console + MCP", text: "Third: Console plus MCP. Hangar shows the real services, models, memory budgets and calls across local machines. MCP exposes deliberate actions so an agent can drive a system and then read the result back. DoneOS starts at Connect, creates a task and shows it in Queue and Activity. Inner Quest now tells one continuous story: a real Codex question crosses assessments, values, feedback, behavior, career evidence and wellbeing, becomes a testable insight, saves a private reflection, and ends with that exact reflection in the app. Both walkthroughs are features of the products they belong to." },
   { sectionId: "meta", label: "The unit of reuse", text: "Underneath all three is one move: notice the workflow, package it as a skill with its rules and its scars, and give people one reliable place to find it." },
   { sectionId: "cta", label: "Take them home", text: "One take-home page, no QR scavenger hunt. The event deck's only audience QR points to humanquest dot net slash A I patterns." },
 ];
