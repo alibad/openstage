@@ -2,13 +2,11 @@ import type { BrandConfig } from "./types";
 import { BUILTIN_PRESETS, DEFAULT_PRESET_ID } from "./presets";
 
 /**
- * The default brand for this app is the "Spectrum" preset — keeps existing
- * decks pixel-identical out of the box and gives onboarding a sane,
- * already-branded starting point. Importing from `presets.ts` (rather
- * than duplicating the literal) makes the two sources of truth impossible
- * to drift apart.
+ * Openstage is a Human Quest product, so its default brand comes from the
+ * Human Quest logo and site palette. Importing from `presets.ts` keeps the
+ * default, theme switcher and settings UI on one source of truth.
  */
-const spectrumPreset = BUILTIN_PRESETS.find((p) => p.id === DEFAULT_PRESET_ID);
-if (!spectrumPreset) throw new Error("Default preset 'spectrum' not found");
+const defaultPreset = BUILTIN_PRESETS.find((p) => p.id === DEFAULT_PRESET_ID);
+if (!defaultPreset) throw new Error(`Default preset '${DEFAULT_PRESET_ID}' not found`);
 
-export const defaultBrandConfig: BrandConfig = spectrumPreset.config;
+export const defaultBrandConfig: BrandConfig = defaultPreset.config;

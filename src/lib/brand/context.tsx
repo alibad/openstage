@@ -125,10 +125,26 @@ export function BrandProvider({ children }: { children: ReactNode }) {
     const saved = loadBrandConfig();
     const savedPresetId = loadActivePresetId();
     if (saved) {
-      setBrand(saved);
+      // The original Openstage default was stored as preset `spectrum` while
+      // carrying the Human Quest name and logo. Upgrade that exact legacy
+      // combination to the real Human Quest preset. Custom brands and users
+      // who deliberately choose the now-generic Spectrum preset stay intact.
+      const isLegacyHumanQuestSpectrum =
+        savedPresetId === "spectrum" && saved.companyName === "Human Quest";
+      const resolvedPreset = getBuiltinPreset(
+        isLegacyHumanQuestSpectrum ? DEFAULT_PRESET_ID : savedPresetId ?? "",
+      );
+      const resolvedBrand = resolvedPreset?.config ?? saved;
+      const resolvedPresetId = resolvedPreset?.id ?? savedPresetId;
+
+      setBrand(resolvedBrand);
       setHasOnboarded(true);
-      setActivePresetIdState(savedPresetId);
-      injectCSSVariables(saved);
+      setActivePresetIdState(resolvedPresetId);
+      injectCSSVariables(resolvedBrand);
+      if (resolvedPreset) {
+        saveBrandConfig(resolvedBrand);
+        saveActivePresetId(resolvedPreset.id);
+      }
     } else {
       setActivePresetIdState(DEFAULT_PRESET_ID);
       injectCSSVariables(defaultBrandConfig);

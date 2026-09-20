@@ -30,9 +30,9 @@ export const presentations: PresentationMeta[] = [
     description:
       "The AI Tinkerers Doha Round 3 talk: Feedback with Openstage, Walkthroughs, and Console with MCP. Working systems, inspectable evidence, and one take-home destination.",
     type: "scroll",
-    accentColor: "#31439b",
+    accentColor: "#D95538",
     customer: "Human Quest",
-    status: "draft",
+    status: "live",
   },
   {
     slug: "awwwards-flagship",

@@ -7,41 +7,41 @@
 
   /* Named spectrum gradient stops used by presentation utilities and
      print/PPTX fallback rules below. */
-  --color-spectrum-cyan: #7DD3FC;
-  --color-spectrum-blue: #818CF8;
-  --color-spectrum-purple: #A78BFA;
-  --color-spectrum-pink: #E879A8;
-  --color-spectrum-magenta: #F472B6;
+  --color-spectrum-cyan: #991F16;
+  --color-spectrum-blue: #D95538;
+  --color-spectrum-purple: #DD623A;
+  --color-spectrum-pink: #F49B31;
+  --color-spectrum-magenta: #FBC74F;
 
   /* Runtime-tunable brand gradient stops (overridden by `BrandProvider` via
-     inline `style.setProperty` on `:root`). Defaults match the spectrum stops
-     so existing decks render identically until a brand is customized. */
-  --color-brand-1: #7DD3FC;
-  --color-brand-2: #818CF8;
-  --color-brand-3: #A78BFA;
-  --color-brand-4: #E879A8;
-  --color-brand-5: #F472B6;
+     inline `style.setProperty` on `:root`). Server defaults use the Human
+     Quest mark so first paint and hydrated state agree. */
+  --color-brand-1: #991F16;
+  --color-brand-2: #D95538;
+  --color-brand-3: #DD623A;
+  --color-brand-4: #F49B31;
+  --color-brand-5: #FBC74F;
 
   /* Dark theme (primary for presentation) */
-  --color-bg-dark: #0A0718;
-  --color-bg-surface: #110E24;
-  --color-bg-elevated: #1A1538;
-  --color-bg-card: #1E1845;
+  --color-bg-dark: #120907;
+  --color-bg-surface: #21100C;
+  --color-bg-elevated: #2B1510;
+  --color-bg-card: #351A13;
 
   /* Light sections */
-  --color-bg-light: #FAFAFE;
+  --color-bg-light: #FFFAF5;
   --color-bg-light-surface: #FFFFFF;
 
   /* Semantic */
-  --color-background: #FAFAFE;
+  --color-background: #FFFAF5;
   --color-foreground: #1F2937;
   --color-muted: #4B5563;
   --color-border: #E5E7EB;
-  --color-accent: #818CF8;
-  --color-accent-secondary: #A78BFA;
-  --color-accent-light: #EEF2FF;
+  --color-accent: #D95538;
+  --color-accent-secondary: #F49B31;
+  --color-accent-light: #FFF1E8;
   --color-surface: #FFFFFF;
-  --color-code-bg: #0F0B21;
+  --color-code-bg: #120907;
   --color-code-fg: #E2E8F0;
   --color-success: #10B981;
   --color-warning: #F59E0B;
@@ -82,14 +82,14 @@
    @theme declarations. Re-maps semantic tokens so slide primitives
    render correctly on the dark background. */
 .slide-dark {
-  --color-background: #0A0718;
+  --color-background: #120907;
   --color-foreground: #F3F4F6;
   --color-muted: #9CA3AF;
   --color-border: rgba(255, 255, 255, 0.1);
-  --color-surface: #1A1538;
+  --color-surface: #2B1510;
   --color-accent-light: color-mix(in srgb, var(--color-brand-2) 12%, transparent);
-  --color-bg-elevated: #1A1538;
-  --color-bg-surface: #110E24;
+  --color-bg-elevated: #2B1510;
+  --color-bg-surface: #21100C;
   color-scheme: dark;
 }
 

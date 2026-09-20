@@ -17,26 +17,21 @@ export interface BrandPreset {
   builtin?: boolean;
 }
 
-const SPECTRUM: BrandPreset = {
-  id: "spectrum",
-  name: "Spectrum",
-  description: "Cyan → blue → purple → pink. A vivid, high-contrast palette.",
+const HUMAN_QUEST: BrandPreset = {
+  id: "human-quest",
+  name: "Human Quest",
+  description: "Deep red → coral → orange → gold, drawn from the Human Quest mark.",
   builtin: true,
   config: {
-    // Openstage is a Human Quest product — it is not the AI Tinkerers site.
-    // (Tinkerstage, the separate fork, is the AI Tinkerers one.) These identity
-    // fields were still carrying the upstream template's "Presenter" placeholder,
-    // which surfaced as the gallery header, the deck footer watermark and the
-    // copyright line on every deck.
     companyName: "Human Quest",
     logo: "/logos/humanquest.svg",
     colors: {
-      primary: "#818CF8",
-      secondary: "#A78BFA",
-      accent: "#E879A8",
-      gradientStops: ["#7DD3FC", "#818CF8", "#A78BFA", "#E879A8", "#F472B6"],
-      darkBg: "#0A0718",
-      darkSurface: "#1A1538",
+      primary: "#D95538",
+      secondary: "#F49B31",
+      accent: "#FBC74F",
+      gradientStops: ["#991F16", "#D95538", "#DD623A", "#F49B31", "#FBC74F"],
+      darkBg: "#120907",
+      darkSurface: "#2B1510",
     },
     typography: {
       headingFont: "Inter",
@@ -52,6 +47,41 @@ const SPECTRUM: BrandPreset = {
     tone: {
       voice: "professional",
       defaultAudience: "Enterprise stakeholders",
+      writingNotes: "",
+    },
+  },
+};
+
+const SPECTRUM: BrandPreset = {
+  id: "spectrum",
+  name: "Spectrum",
+  description: "Cyan → blue → purple → pink. A vivid, high-contrast palette.",
+  builtin: true,
+  config: {
+    companyName: "Spectrum",
+    logo: null,
+    colors: {
+      primary: "#818CF8",
+      secondary: "#A78BFA",
+      accent: "#E879A8",
+      gradientStops: ["#7DD3FC", "#818CF8", "#A78BFA", "#E879A8", "#F472B6"],
+      darkBg: "#0A0718",
+      darkSurface: "#1A1538",
+    },
+    typography: {
+      headingFont: "Inter",
+      bodyFont: "Inter",
+      monoFont: "JetBrains Mono",
+    },
+    defaults: {
+      author: "",
+      footerText: "spectrum",
+      copyright: "© {year} {company}",
+      website: "",
+    },
+    tone: {
+      voice: "professional",
+      defaultAudience: "General audiences",
       writingNotes: "",
     },
   },
@@ -163,13 +193,14 @@ const MONO: BrandPreset = {
 };
 
 export const BUILTIN_PRESETS: readonly BrandPreset[] = [
+  HUMAN_QUEST,
   SPECTRUM,
   AURORA,
   EDITORIAL,
   MONO,
 ] as const;
 
-export const DEFAULT_PRESET_ID = "spectrum";
+export const DEFAULT_PRESET_ID = "human-quest";
 
 export function getBuiltinPreset(id: string): BrandPreset | null {
   return BUILTIN_PRESETS.find((p) => p.id === id) ?? null;
