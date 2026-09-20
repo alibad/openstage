@@ -37,6 +37,8 @@ import {
   Cpu,
   Database,
   Layers3,
+  BookOpen,
+  Github,
 } from "lucide-react";
 
 /**
@@ -820,7 +822,8 @@ function CtaSection() {
             </h2>
             <p className="mt-8 max-w-xl text-base leading-relaxed text-white/58 md:text-lg">
               Feedback, Openstage, Walkthroughs, Console and MCP — one page with the live
-              references, source status and what is ready to try.
+              references, source status and what is ready to try. Plus one open-source bonus
+              for learning the engineering underneath them.
             </p>
 
             <div className="mt-12 grid max-w-xl grid-cols-3 border-y border-white/12 py-5 font-mono text-[10px] uppercase tracking-[0.18em] text-white/42">
@@ -832,6 +835,44 @@ function CtaSection() {
             <p className="mt-8 font-mono text-[10px] uppercase tracking-[0.28em] text-white/28">
               {TAGLINE}
             </p>
+
+            <div className="mt-8 max-w-xl rounded-2xl border border-amber-300/20 bg-amber-300/[0.06] p-5 backdrop-blur-sm">
+              <div className="flex items-center gap-3">
+                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-amber-300/12 text-amber-200">
+                  <BookOpen className="h-4 w-4" />
+                </span>
+                <div>
+                  <p className="font-mono text-[9px] uppercase tracking-[0.22em] text-amber-200/70">
+                    Bonus · free and open source
+                  </p>
+                  <h3 className="mt-1 text-lg font-semibold tracking-[-0.02em] text-white">
+                    Learn the systems underneath the patterns.
+                  </h3>
+                </div>
+              </div>
+              <p className="mt-4 text-sm leading-relaxed text-white/52">
+                System Designer is a free, interactive path through distributed systems,
+                GenAI and ML engineering. Study it, use it, or improve the public curriculum.
+              </p>
+              <div className="mt-4 flex flex-wrap gap-4 font-mono text-[10px] uppercase tracking-[0.16em]">
+                <a
+                  href="https://www.systemdesigner.net"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 text-amber-200 transition-colors hover:text-white"
+                >
+                  systemdesigner.net <ArrowRight className="h-3 w-3" />
+                </a>
+                <a
+                  href="https://github.com/alibad/systemdesigner"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 text-white/42 transition-colors hover:text-white"
+                >
+                  <Github className="h-3.5 w-3.5" /> Contribute
+                </a>
+              </div>
+            </div>
           </div>
         </Reveal>
 
@@ -892,7 +933,7 @@ const NARRATION_SECTIONS: NarrationSection[] = [
   { sectionId: "walkthrough", label: "Walkthroughs", text: "Second: Walkthroughs drives a real web app and keeps the evidence — catalog, desktop and mobile captures, video, journeys and findings. It refuses to ship a misleading walkthrough: byte-identical screenshots get rejected, and a dead backend blocks the run." },
   { sectionId: "mcp", label: "Console + MCP", text: "Third: Console plus MCP. Hangar shows the real services, models, memory budgets and calls across local machines. MCP exposes deliberate actions so an agent can drive a system and then read the result back. DoneOS starts at Connect, creates a task and shows it in Queue and Activity. Inner Quest now tells one continuous story: a real Codex question crosses assessments, values, feedback, behavior, career evidence and wellbeing, becomes a testable insight, saves a private reflection, and ends with that exact reflection in the app. Both walkthroughs are features of the products they belong to." },
   { sectionId: "meta", label: "The unit of reuse", text: "Underneath all three is one move: notice the workflow, package it as a skill with its rules and its scars, and give people one reliable place to find it." },
-  { sectionId: "cta", label: "Take them home", text: "One take-home page, no QR scavenger hunt. The event deck's only audience QR points to humanquest dot net slash A I patterns." },
+  { sectionId: "cta", label: "Take them home", text: "One take-home page, no QR scavenger hunt. The event deck's only audience QR points to humanquest dot net slash A I patterns. And a bonus: System Designer is free, open source, and ready for anyone who wants to learn the engineering underneath these patterns or improve the public curriculum." },
 ];
 
 /* ─── Root ────────────────────────────────────────────────────────────── */
