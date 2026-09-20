@@ -14,6 +14,19 @@ Live examples are available at [present.humanquest.net](https://present.humanque
 The AI Patterns talk is at
 [present.humanquest.net/ai-patterns](https://present.humanquest.net/ai-patterns).
 
+## See it working
+
+These frames were captured by Walkthrough Studio from the running product.
+
+[![Openstage presentation gallery](docs/media/openstage-gallery.webp)](https://present.humanquest.net)
+
+| Scroll presentation | Slide deck |
+| --- | --- |
+| [![A scroll presentation in Openstage](docs/media/openstage-scroll.webp)](https://present.humanquest.net/awwwards-flagship) | [![A slide deck in Openstage](docs/media/openstage-slides.webp)](https://present.humanquest.net/sample-slides) |
+
+[Watch the full authoring walkthrough](docs/media/openstage-authoring-walkthrough.mp4),
+from repository brief to the finished presentation.
+
 ## Run it locally
 
 Requirements: Node.js 20 or newer and npm.
