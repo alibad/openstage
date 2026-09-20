@@ -691,7 +691,7 @@ function McpSection() {
 
           <Reveal delay={0.28}>
             <a
-              href="https://walkthrough.humanquest.net/inner-quest/features/repaired-write-path"
+              href="https://walkthrough.humanquest.net/inner-quest/features/ask-your-personal-os"
               target="_blank"
               rel="noreferrer"
               aria-label="Open the Inner Quest MCP walkthrough in Walkthrough Studio"
