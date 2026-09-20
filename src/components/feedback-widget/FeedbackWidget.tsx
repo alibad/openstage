@@ -13,6 +13,7 @@ import {
   Camera,
   Video,
   Mic,
+  Speech,
   Trash2,
   ChevronDown,
   ImagePlus,
@@ -124,6 +125,7 @@ async function grabFrameFromStream(stream: MediaStream): Promise<ImageBitmap> {
 const MAX_RECORDING_SECONDS = 60;
 const MAX_AUDIO_RECORDING_SECONDS = 600;
 const MAX_ATTACHMENT_SIZE = 10 * 1024 * 1024; // 10MB
+const MAX_DESCRIPTION_LENGTH = 10_000;
 const CATEGORIES = ["Bug", "Enhancement", "UI/UX", "General"] as const;
 
 // ─── Component ───────────────────────────────────────────
@@ -143,6 +145,13 @@ export function FeedbackWidget() {
   const audioTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const mobileFileInputRef = useRef<HTMLInputElement>(null);
+  const recognitionRef = useRef<SpeechRecognitionLike | null>(null);
+  const transcriptionPrefixRef = useRef("");
+  const transcriptionFinalRef = useRef("");
+  const transcriptionStoppedRef = useRef(true);
+  const [isTranscribing, setIsTranscribing] = useState(false);
+  const [transcriptionMessage, setTranscriptionMessage] = useState("");
+  const transcriptionSupported = Boolean(getSpeechRecognition());
 
   // Element select state
   const [hoveredEl, setHoveredEl] = useState<{
@@ -356,6 +365,7 @@ export function FeedbackWidget() {
   // ─── Video Recording ─────────────────────────────────
 
   const startRecording = async () => {
+    stopTranscription(true);
     store.minimize();
     try {
       const displayStream = await withWidgetHidden(async () => {
@@ -438,9 +448,114 @@ export function FeedbackWidget() {
     useFeedbackStore.getState().setIsRecording(false);
   }, []);
 
+  // ─── Speech-to-text transcription ───────────────────
+
+  function updateDescription(value: string) {
+    const next = value.slice(0, MAX_DESCRIPTION_LENGTH);
+    store.setDescription(next);
+    if (value.length > MAX_DESCRIPTION_LENGTH) {
+      stopTranscription(true);
+      setTranscriptionMessage(
+        `Transcription stopped at the ${MAX_DESCRIPTION_LENGTH.toLocaleString()}-character limit. Review your text before sending.`
+      );
+    }
+  }
+
+  function stopTranscription(silent = false) {
+    transcriptionStoppedRef.current = true;
+    const recognition = recognitionRef.current;
+    recognitionRef.current = null;
+    if (recognition) {
+      try {
+        recognition.stop();
+      } catch {
+        // The browser may already have ended the recognition session.
+      }
+    }
+    setIsTranscribing(false);
+    if (!silent) setTranscriptionMessage(t.transcriptionStopped);
+  }
+
+  const startTranscription = () => {
+    const Recognition = getSpeechRecognition();
+    if (!Recognition) {
+      setTranscriptionMessage(t.transcriptionUnsupported);
+      return;
+    }
+    if (store.isAudioRecording) stopAudioRecording();
+    stopTranscription(true);
+
+    const recognition = new Recognition();
+    recognition.continuous = true;
+    recognition.interimResults = true;
+    recognition.lang =
+      document.documentElement.lang || navigator.language || "en";
+    recognition.maxAlternatives = 1;
+    transcriptionPrefixRef.current = store.description.trimEnd();
+    transcriptionFinalRef.current = "";
+    transcriptionStoppedRef.current = false;
+
+    recognition.onresult = (event) => {
+      let interim = "";
+      for (
+        let index = event.resultIndex;
+        index < event.results.length;
+        index += 1
+      ) {
+        const words = event.results[index]?.[0]?.transcript ?? "";
+        if (event.results[index]?.isFinal) {
+          transcriptionFinalRef.current =
+            `${transcriptionFinalRef.current} ${words}`.trim();
+        } else {
+          interim += words;
+        }
+      }
+      const spoken = `${transcriptionFinalRef.current} ${interim}`.trim();
+      const prefix = transcriptionPrefixRef.current;
+      updateDescription(
+        prefix && spoken ? `${prefix} ${spoken}` : prefix || spoken
+      );
+    };
+    recognition.onerror = (event) => {
+      transcriptionStoppedRef.current = true;
+      recognitionRef.current = null;
+      setIsTranscribing(false);
+      if (event.error === "not-allowed" || event.error === "service-not-allowed") {
+        setTranscriptionMessage(t.micDenied);
+      } else if (event.error === "no-speech") {
+        setTranscriptionMessage(t.transcriptionNoSpeech);
+      } else if (event.error === "network") {
+        setTranscriptionMessage(t.transcriptionOffline);
+      } else if (event.error === "audio-capture") {
+        setTranscriptionMessage(t.transcriptionNoMicrophone);
+      } else if (event.error !== "aborted") {
+        setTranscriptionMessage(t.transcriptionCouldNotStart);
+      }
+    };
+    recognition.onend = () => {
+      recognitionRef.current = null;
+      setIsTranscribing(false);
+      if (!transcriptionStoppedRef.current) {
+        setTranscriptionMessage(t.transcriptionPaused);
+      }
+    };
+
+    try {
+      recognition.start();
+      recognitionRef.current = recognition;
+      setIsTranscribing(true);
+      setTranscriptionMessage("");
+    } catch {
+      transcriptionStoppedRef.current = true;
+      setIsTranscribing(false);
+      setTranscriptionMessage(t.transcriptionCouldNotStart);
+    }
+  };
+
   // ─── Voice Recording ─────────────────────────────────
 
   const startAudioRecording = async () => {
+    stopTranscription(true);
     try {
       const micStream = await navigator.mediaDevices.getUserMedia({
         audio: true,
@@ -500,11 +615,24 @@ export function FeedbackWidget() {
     useFeedbackStore.getState().setIsAudioRecording(false);
   }, []);
 
+  function closeFeedback() {
+    stopTranscription(true);
+    stopAudioRecording();
+    store.close();
+  }
+
   // Cleanup on unmount
   useEffect(() => {
     return () => {
       stopRecording();
       stopAudioRecording();
+      transcriptionStoppedRef.current = true;
+      try {
+        recognitionRef.current?.stop();
+      } catch {
+        // The browser may already have ended the recognition session.
+      }
+      recognitionRef.current = null;
     };
   }, [stopRecording, stopAudioRecording]);
 
@@ -578,10 +706,11 @@ export function FeedbackWidget() {
   // ─── Submit ──────────────────────────────────────────
 
   const handleSubmit = async () => {
-    if (!store.title.trim()) {
-      toast.error(t.titleRequired);
+    if (!store.title.trim() && !store.description.trim()) {
+      toast.error(t.titleOrDescriptionRequired);
       return;
     }
+    stopTranscription(true);
     store.setIsSubmitting(true);
 
     try {
@@ -639,7 +768,7 @@ export function FeedbackWidget() {
               }
             : undefined,
         });
-        store.close();
+        closeFeedback();
       } else {
         toast.error(data.error || "Failed to submit");
       }
@@ -661,12 +790,21 @@ export function FeedbackWidget() {
       } else if (store.annotatingImg) {
         store.setAnnotatingImg(null);
       } else if (store.isOpen && !store.isMinimized) {
+        transcriptionStoppedRef.current = true;
+        try {
+          recognitionRef.current?.stop();
+        } catch {
+          // The browser may already have ended the recognition session.
+        }
+        recognitionRef.current = null;
+        setIsTranscribing(false);
+        stopAudioRecording();
         store.close();
       }
     };
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
-  }, [store]);
+  }, [store, stopAudioRecording]);
 
   // ─── Render ──────────────────────────────────────────
 
@@ -835,7 +973,7 @@ export function FeedbackWidget() {
                   </button>
                 )}
                 <button
-                  onClick={() => store.close()}
+                  onClick={closeFeedback}
                   className={`rounded-lg text-muted hover:text-foreground hover:bg-bg-light transition-colors ${isMobile ? "p-2" : "p-1.5"}`}
                   title={t.close}
                 >
@@ -869,21 +1007,83 @@ export function FeedbackWidget() {
                 placeholder={t.title}
                 value={store.title}
                 onChange={(e) => store.setTitle(e.target.value)}
+                maxLength={120}
                 className="w-full px-3 py-2 text-sm rounded-lg border border-border focus:border-brand-2/40 focus:ring-2 focus:ring-brand-2/20 outline-none transition-colors"
               />
 
               {/* Description */}
-              <textarea
-                placeholder={
-                  isMobile
-                    ? t.descriptionPlaceholderMobile
-                    : t.descriptionPlaceholder
-                }
-                value={store.description}
-                onChange={(e) => store.setDescription(e.target.value)}
-                rows={3}
-                className="w-full px-3 py-2 text-sm rounded-lg border border-border focus:border-brand-2/40 focus:ring-2 focus:ring-brand-2/20 outline-none transition-colors resize-none"
-              />
+              <div>
+                <div className="relative">
+                  <textarea
+                    placeholder={
+                      isTranscribing
+                        ? "Listening…"
+                        : isMobile
+                          ? t.descriptionPlaceholderMobile
+                          : t.descriptionPlaceholder
+                    }
+                    value={store.description}
+                    onChange={(e) => {
+                      if (isTranscribing) stopTranscription(true);
+                      updateDescription(e.target.value);
+                    }}
+                    maxLength={MAX_DESCRIPTION_LENGTH}
+                    rows={3}
+                    className="w-full px-3 py-2 pb-11 text-sm rounded-lg border border-border focus:border-brand-2/40 focus:ring-2 focus:ring-brand-2/20 outline-none transition-colors resize-none"
+                  />
+                  <button
+                    type="button"
+                    onClick={() =>
+                      isTranscribing ? stopTranscription() : startTranscription()
+                    }
+                    aria-pressed={isTranscribing}
+                    aria-describedby="feedback-transcription-status"
+                    disabled={!transcriptionSupported && !isTranscribing}
+                    title={
+                      transcriptionSupported
+                        ? isTranscribing
+                          ? t.stopListening
+                          : t.transcribe
+                        : t.transcriptionUnsupported
+                    }
+                    className={`absolute bottom-2.5 end-2.5 h-8 rounded-full px-2.5 flex items-center gap-1.5 text-[11px] font-medium border transition-colors disabled:cursor-not-allowed disabled:opacity-45 ${
+                      isTranscribing
+                        ? "bg-red-50 border-red-200 text-red-700 hover:bg-red-100"
+                        : "bg-bg-light border-border text-foreground hover:bg-accent-light"
+                    }`}
+                  >
+                    {isTranscribing ? (
+                      <StopIcon size={11} fill="currentColor" aria-hidden="true" />
+                    ) : (
+                      <Speech size={14} aria-hidden="true" />
+                    )}
+                    {isTranscribing
+                      ? t.stopListening
+                      : store.description
+                        ? t.resumeTranscription
+                        : t.transcribe}
+                  </button>
+                </div>
+                <div
+                  id="feedback-transcription-status"
+                  aria-live="polite"
+                  className={`mt-1.5 flex min-h-4 items-start gap-1.5 text-[10px] leading-4 ${
+                    isTranscribing ? "text-red-700" : "text-muted/70"
+                  }`}
+                >
+                  {isTranscribing && (
+                    <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-red-500 animate-pulse" />
+                  )}
+                  <span>
+                    {isTranscribing
+                      ? t.listening
+                      : transcriptionMessage ||
+                        (transcriptionSupported
+                          ? t.transcriptionDisclosure
+                          : t.transcriptionUnsupported)}
+                  </span>
+                </div>
+              </div>
 
               {/* Tools */}
               {isMobile ? (
@@ -1232,7 +1432,10 @@ export function FeedbackWidget() {
             <div className="px-4 py-3 border-t border-border">
               <button
                 onClick={handleSubmit}
-                disabled={store.isSubmitting || !store.title.trim()}
+                disabled={
+                  store.isSubmitting ||
+                  (!store.title.trim() && !store.description.trim())
+                }
                 className={`w-full flex items-center justify-center gap-2 py-2.5 text-sm font-medium rounded-xl text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
                   isMobile ? "min-h-12 text-base" : ""
                 } ${
@@ -1285,4 +1488,45 @@ export function FeedbackWidget() {
       />
     </div>
   );
+}
+
+function getSpeechRecognition(): SpeechRecognitionConstructor | undefined {
+  if (typeof window === "undefined") return undefined;
+  return window.SpeechRecognition ?? window.webkitSpeechRecognition;
+}
+
+type SpeechRecognitionConstructor = new () => SpeechRecognitionLike;
+
+interface SpeechRecognitionLike {
+  continuous: boolean;
+  interimResults: boolean;
+  lang: string;
+  maxAlternatives: number;
+  onresult: ((event: SpeechRecognitionResultEventLike) => void) | null;
+  onerror: ((event: SpeechRecognitionErrorEventLike) => void) | null;
+  onend: (() => void) | null;
+  start(): void;
+  stop(): void;
+}
+
+interface SpeechRecognitionResultEventLike {
+  resultIndex: number;
+  results: {
+    readonly length: number;
+    [index: number]: {
+      readonly isFinal: boolean;
+      [index: number]: { readonly transcript: string };
+    };
+  };
+}
+
+interface SpeechRecognitionErrorEventLike {
+  error: string;
+}
+
+declare global {
+  interface Window {
+    SpeechRecognition?: SpeechRecognitionConstructor;
+    webkitSpeechRecognition?: SpeechRecognitionConstructor;
+  }
 }

@@ -22,6 +22,19 @@ interface Translations {
   submitFeedback: string;
   submitting: string;
   titleRequired: string;
+  titleOrDescriptionRequired: string;
+  transcribe: string;
+  resumeTranscription: string;
+  stopListening: string;
+  listening: string;
+  transcriptionDisclosure: string;
+  transcriptionUnsupported: string;
+  transcriptionStopped: string;
+  transcriptionPaused: string;
+  transcriptionCouldNotStart: string;
+  transcriptionNoSpeech: string;
+  transcriptionOffline: string;
+  transcriptionNoMicrophone: string;
   feedbackSubmitted: string;
   viewIssue: string;
   failedToSubmit: string;
@@ -66,6 +79,26 @@ const en: Translations = {
   submitFeedback: "Submit Feedback",
   submitting: "Submitting...",
   titleRequired: "Title is required",
+  titleOrDescriptionRequired: "Add a title or description",
+  transcribe: "Transcribe",
+  resumeTranscription: "Resume transcription",
+  stopListening: "Stop listening",
+  listening: "Listening — words appear above as you speak.",
+  transcriptionDisclosure:
+    "Transcription may use your browser’s speech service. Audio is not attached; only the text you review is submitted.",
+  transcriptionUnsupported:
+    "Live transcription is unavailable in this browser. You can still type or add a voice note.",
+  transcriptionStopped: "Transcription stopped. Review or edit the text before sending.",
+  transcriptionPaused:
+    "Transcription paused after a quiet moment. Tap Resume transcription to continue.",
+  transcriptionCouldNotStart:
+    "Transcription could not start. You can still type or add a voice note.",
+  transcriptionNoSpeech:
+    "No speech was detected. Tap Resume transcription when you’re ready.",
+  transcriptionOffline:
+    "Your browser’s speech service is offline. Your existing text is safe.",
+  transcriptionNoMicrophone:
+    "No microphone was available. You can still type your feedback.",
   feedbackSubmitted: "Feedback submitted!",
   viewIssue: "View issue",
   failedToSubmit: "Failed to submit feedback",
@@ -117,6 +150,23 @@ const ar: Translations = {
   submitFeedback: "إرسال الملاحظات",
   submitting: "جارٍ الإرسال...",
   titleRequired: "العنوان مطلوب",
+  titleOrDescriptionRequired: "أضف عنواناً أو وصفاً",
+  transcribe: "تحويل إلى نص",
+  resumeTranscription: "متابعة التحويل إلى نص",
+  stopListening: "إيقاف الاستماع",
+  listening: "جارٍ الاستماع — ستظهر الكلمات أعلاه أثناء التحدث.",
+  transcriptionDisclosure:
+    "قد يستخدم التحويل إلى نص خدمة الكلام في متصفحك. لا يتم إرفاق الصوت؛ يُرسل فقط النص الذي تراجعه.",
+  transcriptionUnsupported:
+    "التحويل المباشر إلى نص غير متاح في هذا المتصفح. لا يزال بإمكانك الكتابة أو إضافة ملاحظة صوتية.",
+  transcriptionStopped: "تم إيقاف التحويل إلى نص. راجع النص أو عدّله قبل الإرسال.",
+  transcriptionPaused:
+    "توقف التحويل إلى نص بعد لحظة هدوء. اضغط للمتابعة عندما تكون جاهزاً.",
+  transcriptionCouldNotStart:
+    "تعذر بدء التحويل إلى نص. لا يزال بإمكانك الكتابة أو إضافة ملاحظة صوتية.",
+  transcriptionNoSpeech: "لم يتم اكتشاف كلام. اضغط للمتابعة عندما تكون جاهزاً.",
+  transcriptionOffline: "خدمة الكلام في متصفحك غير متصلة. النص الموجود محفوظ.",
+  transcriptionNoMicrophone: "لا يوجد ميكروفون متاح. لا يزال بإمكانك الكتابة.",
   feedbackSubmitted: "تم إرسال الملاحظات بنجاح!",
   viewIssue: "عرض المشكلة",
   failedToSubmit: "فشل إرسال الملاحظات",

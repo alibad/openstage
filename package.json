@@ -7,6 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
+    "test:feedback": "node scripts/test-widget-feedback-contract.mjs",
     "remotion:studio": "remotion studio remotion/index.ts",
     "remotion:render": "remotion render remotion/index.ts SlideVideo",
     "gen-images": "node scripts/gen-images.mjs"

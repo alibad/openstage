@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getOctokit, OWNER, REPO } from "@/lib/github";
 import { put } from "@vercel/blob";
 import { presentations } from "@/content/registry";
+import { normalizeWidgetFeedbackText } from "@/lib/feedback/normalize-widget-feedback";
 
 interface CapturePayload {
   id: string;
@@ -85,12 +86,14 @@ export async function POST(req: NextRequest) {
   try {
     const body: FeedbackBody = await req.json();
 
-    if (!body.title?.trim()) {
+    const normalizedText = normalizeWidgetFeedbackText(body);
+    if (!normalizedText.ok) {
       return NextResponse.json(
-        { error: "Title is required" },
+        { error: normalizedText.error },
         { status: 400 }
       );
     }
+    const { title, description } = normalizedText.value;
 
     const timestamp = Date.now();
     const prefix = `feedback/${timestamp}`;
@@ -228,9 +231,7 @@ export async function POST(req: NextRequest) {
     ];
     sections.push(contextLines.join("\n"));
 
-    if (body.description) {
-      sections.push(`## Description\n\n${body.description}`);
-    }
+    sections.push(`## Description\n\n${description}`);
 
     if (captureMarkdown.length) {
       sections.push(`## Captures\n\n${captureMarkdown.join("\n\n")}`);
@@ -256,7 +257,7 @@ export async function POST(req: NextRequest) {
     const octokit = getOctokit();
     const categoryLabel = CATEGORY_LABELS[body.category] || "feedback";
     const labels = ["feedback-widget", categoryLabel];
-    const issueTitle = `[Presentations] [${body.category}] ${body.title.trim().slice(0, 100)} — ${pageName}`;
+    const issueTitle = `[Presentations] [${body.category}] ${title.slice(0, 100)} — ${pageName}`;
 
     let issue;
     try {
