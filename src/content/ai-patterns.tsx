@@ -11,12 +11,10 @@ import {
   EditorialCell,
   WebGLHero,
   Marquee,
-  HorizontalPin,
   Spectrum,
   StickyMedia,
   MeshGradient,
   ParticleField,
-  GradientDivider,
   ScrollProgress,
 } from "@/components/animations";
 import { ChapterNav } from "@/components/chapter-nav";
@@ -25,9 +23,6 @@ import { ScrollNarrator, type NarrationSection } from "@/components/scroll-narra
 import { usePrintMode } from "@/lib/print-mode";
 import {
   MessageSquareWarning,
-  Theater,
-  Footprints,
-  Plug,
   Terminal,
   ArrowRight,
   CheckCircle2,
@@ -40,11 +35,8 @@ import {
  * AI Patterns — the talk for AI Tinkerers Doha Round 3 (Sep 21, 2026).
  *
  * The rule of that room is "demos, not decks — working code or nothing." So
- * this is not a deck about four patterns: three of the four are RUNNING
- * INSIDE it. The feedback widget in the control pill is pattern #1. The
- * presentation you are scrolling is pattern #2. The MCP panel at the end
- * discovers and invokes this app's own tool endpoint live. Only the
- * Walkthrough embeds a pre-generated artifact (it needs a Playwright run).
+ * the talk is organised as three live dives: Feedback (with a short Openstage
+ * aside), Walkthroughs, and Console + MCP.
  *
  * Every number below is verified, not vibes: 12 skills in ~/.claude/skills +
  * 6 in ~/.codex/skills; walkthrough skill v2.3.0 with 20 reference docs;
@@ -58,12 +50,11 @@ const TAGLINE = "Workflow · Skill · Domain · Rinse · Repeat";
 const CHAPTERS = [
   { id: "hero", label: "The pattern", dark: true },
   { id: "problem", label: "Rebuilt five times", dark: true },
-  { id: "feedback", label: "1 · Feedback", dark: false },
-  { id: "openstage", label: "2 · Openstage", dark: true },
-  { id: "walkthrough", label: "3 · Walkthrough", dark: false },
-  { id: "mcp", label: "4 · MCP", dark: true },
+  { id: "feedback", label: "1 · Feedback + Openstage", dark: false },
+  { id: "walkthrough", label: "2 · Walkthroughs", dark: false },
+  { id: "mcp", label: "3 · Console + MCP", dark: true },
   { id: "meta", label: "The unit of reuse", dark: false },
-  { id: "cta", label: "Use them", dark: true },
+  { id: "cta", label: "Take them home", dark: true },
 ] as const;
 
 /* ─── Section (w-full is load-bearing: see scroll-deck pitfalls) ────────── */
@@ -145,8 +136,8 @@ function HeroSection() {
               <span className="text-white/40">Running, not described.</span>
             </h1>
             <p className="text-lg md:text-2xl text-white/70 max-w-2xl leading-relaxed mb-8">
-              Four things I kept rebuilding in every app until I noticed they weren&rsquo;t features.
-              Three of them are running inside this page right now.
+              Three systems I kept rebuilding until the repeated work became visible:
+              capture the problem, prove what happened, and give the agent a controlled way to act.
             </p>
             <div
               className="inline-block text-sm md:text-base tracking-[0.2em] uppercase font-mono text-white/60"
@@ -267,65 +258,24 @@ function FeedbackSection() {
           The best bug report is the one the user files without knowing they filed one. The
           moment you make them open a form somewhere else, you&rsquo;ve lost the bug.
         </Callout>
-      </div>
-    </Section>
-  );
-}
 
-/* ─── 3. Openstage — pattern #2, the thing you're scrolling ───────────── */
-
-const CUES = [
-  { t: "Before doors", surface: "Lobby screen", body: "An ambient board on the projector. Countdown, check-in QR, who's arrived. Runs unattended." },
-  { t: "Kickoff", surface: "The deck", body: "This — scroll-driven, narrated, with a chapter rail. Print it and it's a PDF." },
-  { t: "Hand-off", surface: "Live demo", body: "The deck steps aside. Working code on the projector. The presenter's laptop shows Now / Next." },
-  { t: "Connect", surface: "Audience input", body: "Phones become inputs — file a claim, send a change — and the projector reacts." },
-  { t: "After", surface: "Recap", body: "A scroll page and a rendered reel, built from what actually happened." },
-];
-
-function OpenstageSection() {
-  return (
-    <Section id="openstage" dark className="py-32">
-      <MeshGradient speed="slow" intensity={0.1} colors={["#31439b", "#253274", "#6476ce", "#18214e"]} className="absolute inset-0" />
-      <div className="relative max-w-6xl mx-auto px-6 mb-12">
-        <Reveal>
-          <Kicker dark>03 · Pattern two · you are inside it</Kicker>
-          <h2 className="text-5xl md:text-6xl font-semibold tracking-tight leading-tight mb-4 max-w-3xl">
-            Openstage. <span className="text-white/40">A stage anyone can put software on.</span>
-          </h2>
-          <p className="text-lg text-white/60 max-w-2xl">
-            Every deck tool stops at &ldquo;during&rdquo; and treats the audience as viewers. This owns
-            before, during and after, and treats time and the audience as inputs. You don&rsquo;t
-            write slides. You write a cue sheet.
-          </p>
+        <Reveal delay={0.4}>
+          <div className="mt-12 rounded-2xl border-2 border-border bg-surface p-7 max-w-3xl">
+            <div className="text-xs uppercase tracking-[0.25em] text-muted mb-3">Presentations · Openstage</div>
+            <h3 className="text-2xl font-semibold mb-3">The presentation is part of the proof.</h3>
+            <p className="text-base text-muted leading-relaxed">
+              This page is Openstage: a presentation built as a running web app. It can carry the
+              feedback control, live data and the hand-off into the real demo. That is the useful
+              point; the demo still happens in the system itself.
+            </p>
+          </div>
         </Reveal>
       </div>
-
-      <HorizontalPin title="The cue sheet" panelWidth="min(78vw, 520px)" showProgress>
-        {CUES.map((c, i) => (
-          <div key={c.t} className="rounded-2xl border border-white/10 bg-white/[0.04] p-8 h-full flex flex-col gap-3">
-            <div className="flex items-center gap-3">
-              <span className="text-xs font-mono font-semibold px-2 py-1 rounded" style={{ background: "color-mix(in srgb, var(--color-brand-1) 14%, transparent)", color: "var(--color-brand-1)" }}>
-                cue {i + 1}
-              </span>
-              <span className="text-[11px] uppercase tracking-[0.2em] font-mono text-white/40">{c.t}</span>
-            </div>
-            <h3 className="text-2xl font-semibold leading-tight">{c.surface}</h3>
-            <p className="text-base text-white/60 leading-relaxed">{c.body}</p>
-          </div>
-        ))}
-      </HorizontalPin>
-
-      <div className="relative max-w-6xl mx-auto px-6 mt-16">
-        <Callout dark>
-          Tinkerstage — the AI Tinkerers site this room already uses — is an instance of Openstage.
-          The tool was hiding inside its first customer.
-        </Callout>
-      </div>
     </Section>
   );
 }
 
-/* ─── 4. Walkthrough — pattern #3, the artifact is the demo ───────────── */
+/* ─── 3. Walkthrough — the artifact is the demo ──────────────────────── */
 
 function WalkthroughSection() {
   // Two honest numbers from the real catalog: how many features were
@@ -361,7 +311,7 @@ function WalkthroughSection() {
     <Section id="walkthrough" className="py-32">
       <div className="max-w-6xl mx-auto px-6 mb-12">
         <Reveal>
-          <Kicker>04 · Pattern three · living documentation</Kicker>
+          <Kicker>03 · Living documentation</Kicker>
           <h2 className="text-5xl md:text-6xl font-semibold tracking-tight leading-tight mb-4 max-w-3xl">
             Walkthrough. <span className="text-foreground/40">Playwright drives it. You keep the proof.</span>
           </h2>
@@ -535,16 +485,37 @@ function McpSection() {
     <Section id="mcp" dark className="py-32">
       <div className="max-w-6xl mx-auto px-6">
         <Reveal>
-          <Kicker dark>05 · Pattern four · discovered and invoked on this page</Kicker>
+          <Kicker dark>04 · Console + MCP · operate, then expose</Kicker>
           <h2 className="text-5xl md:text-6xl font-semibold tracking-tight leading-tight mb-4 max-w-3xl">
-            MCP. <span className="text-white/40">Any app becomes a plugin surface.</span>
+            Console + MCP. <span className="text-white/40">One shows the system. One lets an agent drive it.</span>
           </h2>
           <p className="text-lg text-white/60 max-w-2xl mb-12">
-            The panel below asks this app what it can do, then does it. That&rsquo;s the whole
-            pattern: a thin layer that lets an agent discover and drive your product. I built it
-            four times — Inner Quest, Done OS, this presenter, the Codex plugins — before I
-            noticed it was one thing.
+            Hangar is the local console for the AI services running across my machines: what is
+            available, what fits in memory, what is running, and what every call did. MCP is the
+            controlled surface that lets an agent discover and invoke actions instead of requiring
+            a human to click every control.
           </p>
+        </Reveal>
+
+        <Reveal delay={0.1}>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-10">
+            <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-7">
+              <div className="text-xs uppercase tracking-[0.25em] text-white/40 mb-3">Console · Hangar</div>
+              <h3 className="text-2xl font-semibold mb-3">The operator sees the real machine.</h3>
+              <p className="text-sm text-white/60 leading-relaxed">
+                Services, models, memory budgets and call history live in one local control room.
+                The console stays local because its start and stop controls are powerful.
+              </p>
+            </div>
+            <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-7">
+              <div className="text-xs uppercase tracking-[0.25em] text-white/40 mb-3">MCP · controlled actions</div>
+              <h3 className="text-2xl font-semibold mb-3">The agent gets a steering wheel.</h3>
+              <p className="text-sm text-white/60 leading-relaxed">
+                A good MCP surface exposes deliberate actions with useful descriptions and clear
+                limits. The valuable half is writing to a system and reading the result back.
+              </p>
+            </div>
+          </div>
         </Reveal>
 
         <Reveal delay={0.15}>
@@ -553,8 +524,8 @@ function McpSection() {
 
         <div className="mt-12">
           <Callout dark>
-            An app without an MCP layer is a car with no steering wheel for the agent. It still
-            runs. It just can&rsquo;t be driven by anyone but you.
+            The console is observability for the human. MCP is agency for the machine. Neither is
+            safe unless the available actions match the authority you meant to grant.
           </Callout>
         </div>
       </div>
@@ -569,12 +540,12 @@ function MetaSection() {
     <Section id="meta" className="py-32">
       <div className="max-w-6xl mx-auto px-6">
         <Reveal>
-          <Kicker>06 · The move underneath all four</Kicker>
+          <Kicker>05 · The move underneath all three</Kicker>
           <h2 className="text-5xl md:text-6xl font-semibold tracking-tight leading-tight mb-4 max-w-3xl">
             The unit of reuse isn&rsquo;t a library anymore.
           </h2>
           <p className="text-lg text-muted max-w-2xl mb-16">
-            Every pattern here is the same three-step move. A library gives you code; a Skill gives
+            Every system here follows the same three-step move. A library gives you code; a Skill gives
             an agent the judgment to apply it — the rules, the pitfalls, the things that broke.
           </p>
         </Reveal>
@@ -620,13 +591,6 @@ function MetaSection() {
 
 /* ─── 7. CTA ──────────────────────────────────────────────────────────── */
 
-const LINKS = [
-  { Icon: MessageSquareWarning, t: "Feedback", h: "https://github.com/alibad/feedback-widget", s: "public · use it tonight" },
-  { Icon: Theater, t: "Openstage", h: "https://github.com/alibad/openstage", s: "this page's repo" },
-  { Icon: Footprints, t: "Walkthrough", h: "https://humanquest.net", s: "walkthrough.humanquest.net · soon" },
-  { Icon: Plug, t: "MCP", h: "https://humanquest.net", s: "mcp.humanquest.net · soon" },
-];
-
 function CtaSection() {
   return (
     <Section id="cta" dark className="min-h-screen flex items-center overflow-hidden">
@@ -634,34 +598,26 @@ function CtaSection() {
       <div className="absolute inset-0" style={{ background: "rgba(11,15,31,0.6)" }} />
       <div className="relative max-w-5xl mx-auto px-6 w-full py-32">
         <Reveal>
-          <Kicker dark>07 · Take them</Kicker>
+          <Kicker dark>06 · Take them home</Kicker>
           <h2 className="text-5xl md:text-7xl font-semibold tracking-tight leading-[0.98] mb-6 max-w-3xl">
-            Four patterns. <span className="text-white/40">Two are public already.</span>
+            One take-home page. <span className="text-white/40">No QR scavenger hunt.</span>
           </h2>
           <p className="text-lg text-white/60 max-w-2xl mb-12">
-            Everything here is being surfaced at humanquest.net/ai-patterns — one repo, one
-            subdomain, one logo each. The two that are done are done today.
+            Feedback + Openstage, Walkthroughs, and Console + MCP. The event deck has the only
+            audience QR, and it points to one page with the live references and honest availability.
           </p>
         </Reveal>
 
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-16">
-          {LINKS.map(({ Icon, t, h, s }, i) => (
-            <Reveal key={t} delay={0.1 + i * 0.08}>
-              <a
-                href={h}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="group block rounded-2xl border border-white/15 bg-white/[0.04] p-6 h-full transition-transform hover:-translate-y-1 hover:border-white/40"
-              >
-                <Icon className="w-6 h-6 mb-4" style={{ color: "var(--color-brand-1)" }} />
-                <div className="text-xl font-semibold mb-1 flex items-center gap-2">
-                  {t} <span aria-hidden className="text-white/40 group-hover:text-white/80">↗</span>
-                </div>
-                <div className="text-xs font-mono text-white/50">{s}</div>
-              </a>
-            </Reveal>
-          ))}
-        </div>
+        <Reveal delay={0.2}>
+          <a
+            href="https://www.humanquest.net/ai-patterns"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="chunky-brand inline-flex items-center gap-2 px-6 py-3 text-base font-semibold mb-16"
+          >
+            humanquest.net/ai-patterns <ArrowRight className="w-4 h-4" />
+          </a>
+        </Reveal>
 
         <Reveal delay={0.4}>
           <p style={{ fontFamily: "var(--font-marker)" }} className="text-3xl md:text-4xl text-center">
@@ -676,14 +632,13 @@ function CtaSection() {
 /* ─── Narration ───────────────────────────────────────────────────────── */
 
 const NARRATION_SECTIONS: NarrationSection[] = [
-  { sectionId: "hero", label: "The pattern", text: "This isn't a deck — your rule says it can't be. Four things I kept rebuilding in every app until I noticed they weren't features. Three of them are running inside this page right now." },
+  { sectionId: "hero", label: "The pattern", text: "Three systems I kept rebuilding until the repeated work became visible: capture the problem, prove what happened, and give the agent a controlled way to act." },
   { sectionId: "problem", label: "Rebuilt five times", text: "Eight domain MVPs in the fleet. Four separate times I built the MCP layer before noticing it was one thing. Eighteen skills across two skills directories. The fourth time you build something isn't a productivity failure — it's the first time the pattern is visible enough to name." },
-  { sectionId: "feedback", label: "Feedback", text: "Pattern one is in the control pill at the bottom of your screen. Hit the feedback button. Pick an element, annotate the screenshot, submit — and a GitHub issue lands in this repo, live. It's ported to web, React Native and Flutter, and the repo is public." },
-  { sectionId: "openstage", label: "Openstage", text: "Pattern two is the thing you're scrolling. Openstage owns before, during and after — lobby screen, deck, live hand-off, audience input, recap — and treats time and the audience as inputs. You don't write slides. You write a cue sheet. Tinkerstage is an instance of it." },
-  { sectionId: "walkthrough", label: "Walkthrough", text: "Pattern three drives any web app with Playwright — catalog, every feature in desktop and mobile with video, every persona, an admin dashboard. And it refuses to ship a misleading walkthrough: byte-identical screenshots get rejected, a dead backend blocks the run." },
-  { sectionId: "mcp", label: "MCP", text: "Pattern four: the panel asks this app what it can do, then does it. A thin layer so an agent can discover and drive your product. I built it four times before I noticed it was one thing." },
-  { sectionId: "meta", label: "The unit of reuse", text: "Underneath all four is one move: notice the workflow, package it as a skill with its rules and its scars, give it a domain. The unit of reuse isn't a library anymore — it's a skill." },
-  { sectionId: "cta", label: "Take them", text: "Two of these are public today. All four are being surfaced at humanquest dot net slash A I patterns. Take them." },
+  { sectionId: "feedback", label: "Feedback + Openstage", text: "First: Feedback. File a report from the running page and inspect the issue it creates. The presentation carrying the demo is Openstage — a web app that can hold live controls and then get out of the way when the real demo starts." },
+  { sectionId: "walkthrough", label: "Walkthroughs", text: "Second: Walkthroughs drives a real web app and keeps the evidence — catalog, desktop and mobile captures, video, journeys and findings. It refuses to ship a misleading walkthrough: byte-identical screenshots get rejected, and a dead backend blocks the run." },
+  { sectionId: "mcp", label: "Console + MCP", text: "Third: Console plus MCP. Hangar shows the real services, models, memory budgets and calls across local machines. MCP exposes deliberate actions so an agent can drive a system and then read the result back." },
+  { sectionId: "meta", label: "The unit of reuse", text: "Underneath all three is one move: notice the workflow, package it as a skill with its rules and its scars, and give people one reliable place to find it." },
+  { sectionId: "cta", label: "Take them home", text: "One take-home page, no QR scavenger hunt. The event deck's only audience QR points to humanquest dot net slash A I patterns." },
 ];
 
 /* ─── Root ────────────────────────────────────────────────────────────── */
@@ -699,16 +654,13 @@ export default function AiPatterns() {
       <HeroSection />
       <ProblemSection />
       <FeedbackSection />
-      <GradientDivider />
-      <OpenstageSection />
       <WalkthroughSection />
       <McpSection />
       <MetaSection />
       <Marquee speed={40} fade className="py-6 bg-bg-dark text-white/30 text-sm uppercase tracking-[0.3em] font-mono">
-        <span className="px-8">Feedback</span><span className="px-8">·</span>
-        <span className="px-8">Openstage</span><span className="px-8">·</span>
-        <span className="px-8">Walkthrough</span><span className="px-8">·</span>
-        <span className="px-8">MCP</span><span className="px-8">·</span>
+        <span className="px-8">Feedback + Openstage</span><span className="px-8">·</span>
+        <span className="px-8">Walkthroughs</span><span className="px-8">·</span>
+        <span className="px-8">Console + MCP</span><span className="px-8">·</span>
       </Marquee>
       <CtaSection />
     </main>
