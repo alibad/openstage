@@ -1,18 +1,18 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Image from "next/image";
 import { motion } from "framer-motion";
 import {
   Reveal,
   StaggerChildren,
   StaggerItem,
   FlipNumber,
-  EditorialGrid,
-  EditorialCell,
   WebGLHero,
   Marquee,
   Spectrum,
   StickyMedia,
+  VisualStage,
   MeshGradient,
   ParticleField,
   ScrollProgress,
@@ -25,10 +25,17 @@ import {
   MessageSquareWarning,
   Terminal,
   ArrowRight,
-  CheckCircle2,
   Repeat,
   Package,
   Globe,
+  Crosshair,
+  ScanSearch,
+  FileCheck2,
+  Activity,
+  ShieldCheck,
+  Cpu,
+  Database,
+  Layers3,
 } from "lucide-react";
 
 /**
@@ -49,7 +56,7 @@ const TAGLINE = "Workflow · Skill · Domain · Rinse · Repeat";
 
 const CHAPTERS = [
   { id: "hero", label: "The pattern", dark: true },
-  { id: "problem", label: "Rebuilt five times", dark: true },
+  { id: "problem", label: "The repeat signal", dark: true },
   { id: "feedback", label: "1 · Feedback + Openstage", dark: false },
   { id: "walkthrough", label: "2 · Walkthroughs", dark: false },
   { id: "mcp", label: "3 · Console + MCP", dark: true },
@@ -106,6 +113,45 @@ function Callout({ children, dark }: { children: React.ReactNode; dark?: boolean
   );
 }
 
+function StageCopy({
+  number,
+  label,
+  title,
+  muted,
+  body,
+  accent,
+}: {
+  number: string;
+  label: string;
+  title: string;
+  muted: string;
+  body: string;
+  accent: string;
+}) {
+  return (
+    <div className="mx-auto w-full max-w-7xl px-6 md:px-10">
+      <Reveal>
+        <div className="mb-7 flex items-center gap-4 font-mono text-[11px] uppercase tracking-[0.28em] text-white/60">
+          <span className="flex h-9 w-9 items-center justify-center rounded-full border border-white/20 text-white">
+            {number}
+          </span>
+          <span>{label}</span>
+        </div>
+        <h2 className="max-w-5xl text-5xl font-semibold leading-[0.94] tracking-[-0.05em] md:text-7xl lg:text-[6.5rem]">
+          {title}
+          <br />
+          <span className="editorial-italic font-normal" style={{ color: accent }}>
+            {muted}
+          </span>
+        </h2>
+        <p className="mt-8 max-w-xl text-base leading-relaxed text-white/68 md:text-xl">
+          {body}
+        </p>
+      </Reveal>
+    </div>
+  );
+}
+
 /* ─── 0. Hero ─────────────────────────────────────────────────────────── */
 
 function HeroSection() {
@@ -127,15 +173,16 @@ function HeroSection() {
       <div className="relative z-10 flex-1 flex items-center">
         <div className="max-w-6xl mx-auto px-6 w-full">
           <Reveal>
-            <div className="text-white/50 text-2xl md:text-3xl font-light mb-3">
-              This isn&rsquo;t a deck. Your rule says it can&rsquo;t be.
+            <div className="mb-5 flex items-center gap-3 font-mono text-xs uppercase tracking-[0.28em] text-white/55">
+              <span className="h-2 w-2 rounded-full bg-amber-300 shadow-[0_0_18px_rgba(252,211,77,.85)]" />
+              Three live systems · one repeated move
             </div>
-            <h1 className="text-5xl md:text-7xl lg:text-8xl font-semibold tracking-tight leading-[1.02] mb-8">
+            <h1 className="text-6xl md:text-8xl lg:text-[9.5rem] font-semibold tracking-[-0.065em] leading-[0.86] mb-10">
               AI Patterns.
               <br />
-              <span className="text-white/40">Running, not described.</span>
+              <span className="editorial-italic font-normal text-white/45">Running, not described.</span>
             </h1>
-            <p className="text-lg md:text-2xl text-white/70 max-w-2xl leading-relaxed mb-8">
+            <p className="text-lg md:text-2xl text-white/72 max-w-2xl leading-relaxed mb-9">
               Three systems I kept rebuilding until the repeated work became visible:
               capture the problem, prove what happened, and give the agent a controlled way to act.
             </p>
@@ -148,51 +195,69 @@ function HeroSection() {
           </Reveal>
         </div>
       </div>
-      <div className="relative z-10 pb-10">
-        <div className="max-w-6xl mx-auto px-6 w-full flex items-center gap-2 text-xs uppercase tracking-[0.3em] text-white/50">
-          <motion.span animate={{ y: [0, 6, 0] }} transition={{ duration: 1.6, repeat: Infinity, ease: "easeInOut" }} aria-hidden>
-            ↓
-          </motion.span>
-          <span>Scroll to begin</span>
+      <div className="relative z-10 pb-8">
+        <div className="max-w-6xl mx-auto px-6 w-full">
+          <div className="grid grid-cols-3 gap-4 border-t border-white/12 pt-5">
+            {[
+              ["01", "Feedback", "Feedback + Openstage", "#F5B942"],
+              ["02", "Walkthrough", "Walkthroughs", "#67E8F9"],
+              ["03", "Console", "Console + MCP", "#A78BFA"],
+            ].map(([n, short, label, color]) => (
+              <div key={n} className="flex items-center gap-3 min-w-0">
+                <span className="font-mono text-[10px] md:text-xs" style={{ color }}>{n}</span>
+                <span className="text-[9px] uppercase tracking-[0.14em] text-white/55 md:hidden">{short}</span>
+                <span className="hidden truncate text-xs uppercase tracking-[0.18em] text-white/55 md:inline">{label}</span>
+              </div>
+            ))}
+          </div>
+          <div className="mt-5 flex items-center gap-2 text-[10px] uppercase tracking-[0.3em] text-white/42">
+            <motion.span animate={{ y: [0, 5, 0] }} transition={{ duration: 1.6, repeat: Infinity, ease: "easeInOut" }} aria-hidden>↓</motion.span>
+            <span>Scroll to begin</span>
+          </div>
         </div>
       </div>
     </section>
   );
 }
 
-/* ─── 1. The problem — rebuilt five times ─────────────────────────────── */
+/* ─── The setup — repetition exposes the pattern ─────────────────────── */
 
 function ProblemSection() {
   return (
-    <Section id="problem" dark className="py-32">
-      <ParticleField preset="ambient" opacity={0.12} className="absolute inset-0" />
-      <div className="relative max-w-6xl mx-auto px-6">
-        <Reveal>
-          <Kicker dark>01 · The tell</Kicker>
-          <h2 className="text-5xl md:text-6xl font-semibold tracking-tight leading-tight mb-4 max-w-3xl">
-            I kept building the same five things.
-          </h2>
-          <p className="text-lg text-white/60 max-w-2xl mb-16">
-            Every app in the fleet needed a way to report bugs from inside it, a way to show it,
-            a way to test it end-to-end, and a way for an agent to drive it. I wrote each one
-            from scratch. Every time.
-          </p>
-        </Reveal>
+    <Section id="problem" dark className="overflow-hidden py-28 md:py-36">
+      <ParticleField preset="ambient" opacity={0.08} className="absolute inset-0" />
+      <div className="relative mx-auto max-w-7xl px-6 md:px-10">
+        <div className="grid gap-12 lg:grid-cols-[1.05fr_.95fr] lg:items-end">
+          <Reveal>
+            <Kicker dark>00 · The tell</Kicker>
+            <h2 className="max-w-4xl text-5xl font-semibold leading-[0.96] tracking-[-0.045em] md:text-7xl">
+              Repetition is the signal.
+              <span className="editorial-italic block font-normal text-white/40">The fourth build is evidence.</span>
+            </h2>
+          </Reveal>
+          <Reveal delay={0.15}>
+            <p className="max-w-xl text-lg leading-relaxed text-white/62">
+              Every app needed the same jobs: capture a problem from inside it, prove what happened,
+              and let an agent act through a controlled surface. Rebuilding them repo by repo hid the
+              system in plain sight.
+            </p>
+          </Reveal>
+        </div>
 
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-5 mb-16">
+        <div className="my-16 grid grid-cols-2 border-y border-white/12 md:grid-cols-4">
           {[
-            { v: 8, label: "domain MVPs in the fleet", sub: "each shipped with feedback baked in" },
-            { v: 4, label: "times I built the MCP layer", sub: "before noticing it was one thing" },
-            { v: 18, label: "skills in my skills dirs", sub: "12 in Claude Code · 6 in Codex" },
-            { v: 3, label: "platforms for the feedback widget", sub: "web · React Native · Flutter" },
+            { v: 8, label: "domain MVPs", sub: "feedback inside every one", color: "#F5B942" },
+            { v: 4, label: "MCP builds", sub: "before it became one layer", color: "#A78BFA" },
+            { v: 18, label: "agent skills", sub: "rules packaged with code", color: "#67E8F9" },
+            { v: 3, label: "feedback runtimes", sub: "web · React Native · Flutter", color: "#F97366" },
           ].map((s, i) => (
-            <Reveal key={i} delay={0.1 + i * 0.08}>
-              <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-6 h-full flex flex-col gap-2 min-w-0">
-                <div className="text-5xl md:text-6xl font-semibold tracking-tight leading-none" style={{ color: "var(--color-brand-1)" }}>
+            <Reveal key={s.label} delay={0.08 + i * 0.08}>
+              <div className="min-h-48 border-white/12 px-4 py-8 md:border-l md:px-7 first:border-l-0">
+                <div className="text-6xl font-semibold leading-none tracking-[-0.06em] md:text-7xl" style={{ color: s.color }}>
                   <FlipNumber value={s.v} />
                 </div>
-                <div className="text-sm font-semibold text-white">{s.label}</div>
-                <div className="text-xs text-white/50 leading-snug">{s.sub}</div>
+                <div className="mt-5 text-sm font-semibold uppercase tracking-[0.08em] text-white">{s.label}</div>
+                <div className="mt-1 text-xs leading-snug text-white/42">{s.sub}</div>
               </div>
             </Reveal>
           ))}
@@ -207,75 +272,102 @@ function ProblemSection() {
   );
 }
 
-/* ─── 2. Feedback — pattern #1, running in the corner ─────────────────── */
+/* ─── Live dive 1 — Feedback + Openstage ──────────────────────────────── */
 
 function FeedbackSection() {
   return (
-    <Section id="feedback" className="py-32">
-      <div className="max-w-6xl mx-auto px-6">
-        <Reveal>
-          <Kicker>02 · Pattern one · running in the control pill</Kicker>
-          <h2 className="text-5xl md:text-6xl font-semibold tracking-tight leading-tight mb-4 max-w-3xl">
-            Feedback. <span className="text-foreground/40">File a bug against this page.</span>
-          </h2>
-          <p className="text-lg text-muted max-w-2xl mb-12">
-            The feedback button in the pill at the bottom of your screen is the pattern. Hit it.
-            Pick an element, annotate the screenshot, add a voice note if you want, submit — and a
-            GitHub issue lands in the repo you&rsquo;re looking at, live.
-          </p>
-        </Reveal>
+    <section id="feedback" className="relative bg-[#070a12] text-white">
+      <VisualStage src="/generated/ai-patterns-feedback-stage.png" alt="" imageClassName="object-[64%_center] md:object-center">
+        <StageCopy
+          number="01"
+          label="Feedback + Openstage"
+          title="Catch the signal"
+          muted="before the context disappears."
+          body="The report begins inside the running product: select the broken thing, preserve the evidence, and send the issue to the repo that owns it."
+          accent="#F5B942"
+        />
+      </VisualStage>
 
-        <EditorialGrid className="mb-12">
-          <EditorialCell span="lede">
-            <Reveal>
-              <div className="rounded-2xl border-2 border-border bg-surface p-8 h-full">
-                <MessageSquareWarning className="w-8 h-8 mb-4" style={{ color: "var(--color-brand-2)" }} />
-                <h3 className="text-2xl font-semibold mb-3">Close the loop from inside the app</h3>
-                <p className="text-base text-muted leading-relaxed">
-                  DevTools-style element selection, native screenshots, canvas annotation, voice
-                  notes and screen recording — delivered as a GitHub or Linear issue with the
-                  element path, viewport and console attached. The reporter never leaves the page.
+      <div className="mx-auto max-w-7xl px-6 py-24 md:px-10 md:py-32">
+        <div className="grid gap-10 lg:grid-cols-[.78fr_1.22fr] lg:items-stretch">
+          <Reveal>
+            <div className="flex h-full flex-col justify-between border-t border-amber-300/35 pt-7">
+              <div>
+                <div className="mb-5 flex h-12 w-12 items-center justify-center rounded-full bg-amber-300 text-[#171007] shadow-[0_0_42px_rgba(245,185,66,.28)]">
+                  <MessageSquareWarning className="h-5 w-5" />
+                </div>
+                <Kicker dark>Live proof · bottom control pill</Kicker>
+                <h3 className="max-w-md text-4xl font-semibold leading-tight tracking-[-0.035em] md:text-5xl">
+                  File a bug against this page.
+                </h3>
+                <p className="mt-5 max-w-md text-base leading-relaxed text-white/58">
+                  Pick an element, mark the screenshot, add voice or video, submit. The issue lands
+                  with the element path, viewport and console attached.
                 </p>
               </div>
-            </Reveal>
-          </EditorialCell>
-          <EditorialCell span="aside">
-            <Reveal delay={0.15}>
-              <div className="rounded-2xl p-8 h-full text-white flex flex-col gap-4" style={{ background: "var(--color-brand-2)" }}>
-                <div className="text-xs uppercase tracking-[0.25em] font-mono text-white/70">Ported to</div>
-                {["Web · Next.js / React", "React Native · Expo", "Flutter"].map((p) => (
-                  <div key={p} className="flex items-center gap-2 text-base font-semibold">
-                    <CheckCircle2 className="w-4 h-4 shrink-0" /> {p}
-                  </div>
-                ))}
-                <div className="mt-auto text-xs text-white/70 font-mono">alibad/feedback-widget · public</div>
+              <div className="mt-12 font-mono text-xs uppercase tracking-[0.2em] text-amber-200/75">
+                Try it now ↘
               </div>
-            </Reveal>
-          </EditorialCell>
-        </EditorialGrid>
+            </div>
+          </Reveal>
 
-        <Callout>
-          The best bug report is the one the user files without knowing they filed one. The
-          moment you make them open a form somewhere else, you&rsquo;ve lost the bug.
-        </Callout>
+          <Reveal delay={0.12}>
+            <div className="relative min-h-[520px] overflow-hidden rounded-[2rem] border border-white/12 bg-[#0d111c] p-5 shadow-[0_40px_120px_rgba(0,0,0,.34)] md:p-8">
+              <div className="flex items-center justify-between border-b border-white/10 pb-4 font-mono text-[10px] uppercase tracking-[0.2em] text-white/35">
+                <span>capture session</span>
+                <span className="flex items-center gap-2 text-emerald-300/70"><span className="h-1.5 w-1.5 rounded-full bg-emerald-300" />live</span>
+              </div>
+              <div className="relative mt-6 h-64 overflow-hidden rounded-2xl border border-white/10 bg-[radial-gradient(circle_at_70%_20%,rgba(245,185,66,.18),transparent_32%),linear-gradient(135deg,#111827,#080b12)] md:h-72">
+                <div className="absolute left-[12%] top-[16%] h-[58%] w-[62%] rounded-xl border border-white/8 bg-white/[0.025]" />
+                <div className="absolute left-[20%] top-[31%] h-[32%] w-[42%] rounded-lg border-2 border-amber-300 shadow-[0_0_45px_rgba(245,185,66,.2)]" />
+                <div className="absolute left-[20%] top-[23%] rounded bg-amber-300 px-2 py-1 font-mono text-[9px] font-bold uppercase tracking-widest text-black">selected</div>
+                <Crosshair className="absolute left-[57%] top-[54%] h-6 w-6 text-amber-200" />
+                <div className="absolute bottom-5 right-5 flex items-center gap-2 rounded-full border border-white/10 bg-black/60 px-4 py-2 text-xs text-white/70 backdrop-blur-xl">
+                  <span className="h-2 w-2 rounded-full bg-amber-300" /> Evidence attached
+                </div>
+              </div>
+              <div className="mt-6 grid grid-cols-4 gap-2">
+                {[
+                  [Crosshair, "Select"],
+                  [ScanSearch, "Capture"],
+                  [Layers3, "Annotate"],
+                  [FileCheck2, "Issue"],
+                ].map(([Icon, label], i) => {
+                  const StepIcon = Icon as typeof Crosshair;
+                  return (
+                    <div key={label as string} className="border-t border-white/12 pt-4">
+                      <StepIcon className="mb-3 h-4 w-4" style={{ color: i === 3 ? "#F5B942" : "rgba(255,255,255,.42)" }} />
+                      <div className="font-mono text-[10px] uppercase tracking-[0.16em] text-white/55">{label as string}</div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </Reveal>
+        </div>
 
-        <Reveal delay={0.4}>
-          <div className="mt-12 rounded-2xl border-2 border-border bg-surface p-7 max-w-3xl">
-            <div className="text-xs uppercase tracking-[0.25em] text-muted mb-3">Presentations · Openstage</div>
-            <h3 className="text-2xl font-semibold mb-3">The presentation is part of the proof.</h3>
-            <p className="text-base text-muted leading-relaxed">
-              This page is Openstage: a presentation built as a running web app. It can carry the
-              feedback control, live data and the hand-off into the real demo. That is the useful
-              point; the demo still happens in the system itself.
-            </p>
+        <div className="my-16 border-y border-white/10 py-8">
+          <div className="grid gap-8 md:grid-cols-[.7fr_1.3fr] md:items-center">
+            <div className="font-mono text-xs uppercase tracking-[0.25em] text-white/38">Presentations · Openstage</div>
+            <div>
+              <h3 className="text-2xl font-semibold tracking-tight">The presentation is part of the proof.</h3>
+              <p className="mt-2 max-w-2xl text-sm leading-relaxed text-white/52">
+                This page carries the real feedback control, live data and the hand-off into the demo.
+                Openstage should make running software visible, then get out of its way.
+              </p>
+            </div>
           </div>
-        </Reveal>
+        </div>
+
+        <Callout dark>
+          The best bug report is captured before the reporter has time to translate the failure into a story.
+        </Callout>
       </div>
-    </Section>
+    </section>
   );
 }
 
-/* ─── 3. Walkthrough — the artifact is the demo ──────────────────────── */
+/* ─── Live dive 2 — Walkthroughs ─────────────────────────────────────── */
 
 function WalkthroughSection() {
   // Two honest numbers from the real catalog: how many features were
@@ -308,62 +400,79 @@ function WalkthroughSection() {
         : "features cataloged · walks pending";
 
   return (
-    <Section id="walkthrough" className="py-32">
-      <div className="max-w-6xl mx-auto px-6 mb-12">
-        <Reveal>
-          <Kicker>03 · Living documentation</Kicker>
-          <h2 className="text-5xl md:text-6xl font-semibold tracking-tight leading-tight mb-4 max-w-3xl">
-            Walkthrough. <span className="text-foreground/40">Playwright drives it. You keep the proof.</span>
-          </h2>
-          <p className="text-lg text-muted max-w-2xl">
-            Point it at any web app. It catalogs every feature, walks each one in desktop and
-            mobile with video, walks every persona&rsquo;s journey, verifies recent fixes, and
-            generates the admin dashboard. Twenty reference docs of hard-won rules, version 2.3.
-          </p>
-        </Reveal>
+    <section id="walkthrough" className="relative bg-[#07131a] text-white">
+      <VisualStage
+        src="/generated/ai-patterns-walkthrough-stage.png"
+        alt=""
+        imageClassName="object-[68%_center] md:object-center"
+        overlay="linear-gradient(90deg, rgba(4,13,19,.76) 0%, rgba(4,13,19,.42) 52%, rgba(4,13,19,.1) 78%, rgba(4,13,19,.34) 100%)"
+      >
+        <StageCopy
+          number="02"
+          label="Walkthroughs"
+          title="Drive the product."
+          muted="Keep the proof."
+          body="A walkthrough is a recorded claim about what the product actually did — across viewports, personas and recent fixes."
+          accent="#67E8F9"
+        />
+      </VisualStage>
+
+      <div className="border-y border-cyan-200/10 bg-[#08171f]">
+        <div className="mx-auto grid max-w-7xl grid-cols-2 divide-x divide-cyan-200/10 px-6 md:grid-cols-4 md:px-10">
+          {[
+            [features === null ? "—" : String(features), "features", caption],
+            ["2", "viewports", "desktop + mobile"],
+            ["20", "reference docs", "rules learned the hard way"],
+            ["2.3", "skill version", "repeatable, not improvised"],
+          ].map(([value, label, note]) => (
+            <div key={label} className="px-4 py-7 md:px-7">
+              <div className="text-3xl font-semibold tracking-[-0.04em] text-cyan-200 md:text-4xl">{value}</div>
+              <div className="mt-2 text-xs font-semibold uppercase tracking-[0.12em] text-white/80">{label}</div>
+              <div className="mt-1 text-[11px] leading-snug text-white/38">{note}</div>
+            </div>
+          ))}
+        </div>
       </div>
 
       <StickyMedia
         mediaPosition="left"
+        stepGap="18vh"
+        verticalPadding="20vh"
+        className="bg-[#07131a]"
         media={
-          <div className="w-full h-full min-h-[420px] rounded-2xl border-2 border-border bg-bg-dark text-white p-8 flex flex-col justify-between overflow-hidden relative">
-            <ParticleField preset="ambient" opacity={0.1} className="absolute inset-0" />
-            <div className="relative">
-              <div className="text-xs uppercase tracking-[0.25em] font-mono text-white/40 mb-3">Catalog</div>
-              <div className="text-6xl md:text-7xl font-semibold tracking-tight leading-none" style={{ color: "var(--color-brand-1)" }}>
-                {features === null ? "—" : <FlipNumber value={features} />}
-              </div>
-              <div className="text-sm text-white/60 mt-2">{caption}</div>
-            </div>
-            <div className="relative font-mono text-[11px] text-white/40 leading-relaxed">
-              catalog → capture → personas → dashboard → verify
+          <div className="relative h-full w-full overflow-hidden bg-[#0a1820]">
+            <Image src="/generated/ai-patterns-walkthrough-studio-proof.png" alt="Walkthrough Studio evidence wall" fill sizes="(min-width: 768px) 50vw, 100vw" className="object-cover opacity-80" />
+            <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(7,19,26,.08),rgba(7,19,26,.72))]" />
+            <div className="absolute inset-x-0 bottom-0 p-8 md:p-10">
+              <div className="font-mono text-[10px] uppercase tracking-[0.25em] text-cyan-200/70">Real artifact · Walkthrough Studio</div>
+              <div className="mt-3 max-w-md text-3xl font-semibold leading-tight tracking-[-0.03em]">The evidence wall is the product.</div>
             </div>
           </div>
         }
       >
         {[
-          { h: "It refuses to lie", b: "Three 'different' steps that hash identical are not documentation — the catalog rejects them. Frontend up with the backend down produces screenshots of empty states; the preflight blocks the run." },
-          { h: "It never edits your app", b: "Read-only on application source. If a feature throws on render, it records the failure and files the issue — it does not stub the page to unblock itself." },
-          { h: "The output is the demo", b: "MDX guides, a searchable catalog, per-feature videos, and an admin dashboard you can hand to a teammate or a customer." },
-        ].map((s, i) => (
-          <div key={i} className="rounded-2xl border-2 border-border bg-surface p-7 mb-5">
-            <h3 className="text-xl font-semibold mb-2">{s.h}</h3>
-            <p className="text-sm text-muted leading-relaxed">{s.b}</p>
+          { n: "01", h: "Catalog before capture", b: "Name every surface first. A walkthrough cannot prove completeness if it never states what the product contains." },
+          { n: "02", h: "Refuse false evidence", b: "Byte-identical steps, a dead backend or an empty render stop the run. A clean screenshot is not proof that the product worked." },
+          { n: "03", h: "Keep the artifact", b: "Guides, captures, video, journeys and findings survive the session. A teammate can inspect exactly what the automation saw." },
+        ].map((s) => (
+          <div key={s.n} className="border-l border-cyan-200/35 pl-6 md:pl-8">
+            <div className="font-mono text-[10px] uppercase tracking-[0.25em] text-cyan-200/55">{s.n}</div>
+            <h3 className="mt-3 text-3xl font-semibold tracking-[-0.03em] text-white">{s.h}</h3>
+            <p className="mt-4 max-w-md text-base leading-relaxed text-white/52">{s.b}</p>
           </div>
         ))}
       </StickyMedia>
 
-      <div className="max-w-6xl mx-auto px-6 mt-12">
-        <Callout>
-          A walkthrough that looks fine and is wrong is worse than no walkthrough, because it
-          teaches the reader the wrong product. So it would rather refuse than ship.
+      <div className="mx-auto max-w-7xl px-6 pb-28 md:px-10 md:pb-36">
+        <Callout dark>
+          A beautiful walkthrough that is wrong is more dangerous than no walkthrough, because people trust the artifact.
         </Callout>
       </div>
-    </Section>
+    </section>
   );
 }
 
-/* ─── 5. MCP — pattern #4, discovered and invoked live ────────────────── */
+/* ─── Live dive 3 — Console + MCP ─────────────────────────────────────── */
 
 type ToolDescriptor = {
   name: string;
@@ -430,7 +539,7 @@ function McpPanel() {
   const args = Object.keys(t?.inputSchema?.properties ?? t?.input_schema?.properties ?? {});
 
   return (
-    <div className="rounded-2xl border border-white/10 bg-black/40 backdrop-blur-sm p-6 md:p-8 font-mono text-sm">
+    <div className="overflow-hidden rounded-[1.75rem] border border-violet-300/15 bg-[#080a12]/90 p-6 font-mono text-sm shadow-[0_30px_100px_rgba(0,0,0,.35)] backdrop-blur-xl md:p-8">
       <div className="flex items-center gap-2 text-white/50 text-xs uppercase tracking-[0.25em] mb-4">
         <Terminal className="w-4 h-4" /> GET /api/mcp · live
       </div>
@@ -482,54 +591,81 @@ function McpPanel() {
 
 function McpSection() {
   return (
-    <Section id="mcp" dark className="py-32">
-      <div className="max-w-6xl mx-auto px-6">
-        <Reveal>
-          <Kicker dark>04 · Console + MCP · operate, then expose</Kicker>
-          <h2 className="text-5xl md:text-6xl font-semibold tracking-tight leading-tight mb-4 max-w-3xl">
-            Console + MCP. <span className="text-white/40">One shows the system. One lets an agent drive it.</span>
-          </h2>
-          <p className="text-lg text-white/60 max-w-2xl mb-12">
-            Hangar is the local console for the AI services running across my machines: what is
-            available, what fits in memory, what is running, and what every call did. MCP is the
-            controlled surface that lets an agent discover and invoke actions instead of requiring
-            a human to click every control.
-          </p>
-        </Reveal>
+    <section id="mcp" className="relative bg-[#070711] text-white">
+      <VisualStage
+        src="/generated/ai-patterns-console-mcp-stage.png"
+        alt=""
+        imageClassName="object-[70%_center] md:object-center"
+        overlay="linear-gradient(90deg, rgba(5,5,15,.94) 0%, rgba(5,5,15,.7) 38%, rgba(5,5,15,.1) 70%, rgba(5,5,15,.42) 100%)"
+      >
+        <StageCopy
+          number="03"
+          label="Console + MCP"
+          title="Observe the machine."
+          muted="Expose only the actions you mean."
+          body="Hangar gives the operator the whole machine. MCP gives the agent a narrow, described and reviewable way to act."
+          accent="#C4B5FD"
+        />
+      </VisualStage>
 
-        <Reveal delay={0.1}>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-10">
-            <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-7">
-              <div className="text-xs uppercase tracking-[0.25em] text-white/40 mb-3">Console · Hangar</div>
-              <h3 className="text-2xl font-semibold mb-3">The operator sees the real machine.</h3>
-              <p className="text-sm text-white/60 leading-relaxed">
-                Services, models, memory budgets and call history live in one local control room.
-                The console stays local because its start and stop controls are powerful.
-              </p>
-            </div>
-            <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-7">
-              <div className="text-xs uppercase tracking-[0.25em] text-white/40 mb-3">MCP · controlled actions</div>
-              <h3 className="text-2xl font-semibold mb-3">The agent gets a steering wheel.</h3>
-              <p className="text-sm text-white/60 leading-relaxed">
-                A good MCP surface exposes deliberate actions with useful descriptions and clear
-                limits. The valuable half is writing to a system and reading the result back.
-              </p>
+      <div className="mx-auto max-w-7xl px-6 py-24 md:px-10 md:py-32">
+        <Reveal>
+          <div className="relative overflow-hidden rounded-[2.25rem] border border-white/10 bg-white/[0.025]">
+            <div className="grid lg:grid-cols-[1fr_180px_1fr]">
+              <div className="p-8 md:p-11">
+                <div className="mb-8 flex items-center justify-between">
+                  <span className="font-mono text-[10px] uppercase tracking-[0.25em] text-violet-200/55">Console · Hangar</span>
+                  <Activity className="h-5 w-5 text-cyan-200/65" />
+                </div>
+                <h3 className="text-4xl font-semibold tracking-[-0.04em]">The human sees everything.</h3>
+                <p className="mt-4 max-w-md text-sm leading-relaxed text-white/52">
+                  Services, models, memory budgets and call history live in one local control room.
+                  Start and stop controls stay local because they are powerful.
+                </p>
+                <div className="mt-9 grid grid-cols-3 gap-3">
+                  {[[Cpu, "models"], [Database, "memory"], [Activity, "calls"]].map(([Icon, label]) => {
+                    const StatIcon = Icon as typeof Cpu;
+                    return <div key={label as string} className="border-t border-white/10 pt-4"><StatIcon className="h-4 w-4 text-cyan-200/65" /><div className="mt-3 font-mono text-[9px] uppercase tracking-[0.18em] text-white/42">{label as string}</div></div>;
+                  })}
+                </div>
+              </div>
+
+              <div className="relative flex min-h-52 items-center justify-center border-y border-white/10 bg-black/20 lg:min-h-full lg:border-x lg:border-y-0">
+                <div className="absolute inset-y-0 left-1/2 w-px -translate-x-1/2 bg-gradient-to-b from-transparent via-amber-300/60 to-transparent" />
+                <div className="relative flex h-20 w-20 items-center justify-center rounded-full border border-amber-200/40 bg-[#0b0a12] shadow-[0_0_60px_rgba(245,185,66,.18)]">
+                  <ShieldCheck className="h-7 w-7 text-amber-200" />
+                </div>
+              </div>
+
+              <div className="p-8 md:p-11">
+                <div className="mb-8 flex items-center justify-between">
+                  <span className="font-mono text-[10px] uppercase tracking-[0.25em] text-violet-200/55">MCP · controlled actions</span>
+                  <Terminal className="h-5 w-5 text-violet-200/65" />
+                </div>
+                <h3 className="text-4xl font-semibold tracking-[-0.04em]">The agent gets a narrow surface.</h3>
+                <p className="mt-4 max-w-md text-sm leading-relaxed text-white/52">
+                  Useful tool descriptions, explicit arguments and read-back after every write. The
+                  interface carries only the authority the agent actually needs.
+                </p>
+                <div className="mt-9 flex flex-wrap gap-2 font-mono text-[10px] uppercase tracking-[0.14em] text-violet-100/65">
+                  {['discover', 'invoke', 'read back'].map((item) => <span key={item} className="rounded-full border border-violet-200/15 bg-violet-300/[0.06] px-3 py-2">{item}</span>)}
+                </div>
+              </div>
             </div>
           </div>
         </Reveal>
 
-        <Reveal delay={0.15}>
-          <McpPanel />
-        </Reveal>
+        <div className="mt-10">
+          <Reveal delay={0.15}><McpPanel /></Reveal>
+        </div>
 
-        <div className="mt-12">
+        <div className="mt-14">
           <Callout dark>
-            The console is observability for the human. MCP is agency for the machine. Neither is
-            safe unless the available actions match the authority you meant to grant.
+            Observability without agency leaves the agent blind. Agency without boundaries leaves the operator exposed.
           </Callout>
         </div>
       </div>
-    </Section>
+    </section>
   );
 }
 
@@ -537,20 +673,22 @@ function McpSection() {
 
 function MetaSection() {
   return (
-    <Section id="meta" className="py-32">
-      <div className="max-w-6xl mx-auto px-6">
+    <Section id="meta" dark className="overflow-hidden py-28 md:py-36">
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_80%_20%,rgba(103,232,249,.08),transparent_28%),radial-gradient(circle_at_15%_80%,rgba(167,139,250,.1),transparent_30%)]" />
+      <div className="relative mx-auto max-w-7xl px-6 md:px-10">
         <Reveal>
-          <Kicker>05 · The move underneath all three</Kicker>
-          <h2 className="text-5xl md:text-6xl font-semibold tracking-tight leading-tight mb-4 max-w-3xl">
-            The unit of reuse isn&rsquo;t a library anymore.
+          <Kicker dark>04 · The move underneath all three</Kicker>
+          <h2 className="max-w-4xl text-5xl font-semibold leading-[0.98] tracking-[-0.045em] md:text-7xl">
+            The reusable unit is judgment.
+            <span className="editorial-italic block font-normal text-white/40">Code is only the payload.</span>
           </h2>
-          <p className="text-lg text-muted max-w-2xl mb-16">
+          <p className="mb-16 mt-6 max-w-2xl text-lg leading-relaxed text-white/58">
             Every system here follows the same three-step move. A library gives you code; a Skill gives
             an agent the judgment to apply it — the rules, the pitfalls, the things that broke.
           </p>
         </Reveal>
 
-        <div className="mb-16">
+        <div className="mb-20 rounded-[2rem] border border-white/10 bg-white/[0.025] p-6 md:p-10">
           <Spectrum
             axis={{ left: "a snippet you paste", right: "a product with a domain" }}
             items={[
@@ -558,28 +696,31 @@ function MetaSection() {
               { label: "Skill", position: 0.55, highlight: true },
               { label: "Pattern", position: 0.85 },
             ]}
-            light
             scrub
           />
         </div>
 
-        <StaggerChildren className="grid grid-cols-1 md:grid-cols-3 gap-5 mb-16">
+        <StaggerChildren className="mb-20 grid md:grid-cols-[1fr_auto_1fr_auto_1fr] md:items-start">
           {[
-            { Icon: Repeat, t: "Workflow", b: "Notice the thing you've done three times. The fourth is when it becomes visible." },
-            { Icon: Package, t: "Skill", b: "Package it — not just the code, the rules and the scars. That's what an agent needs to run it unattended." },
-            { Icon: Globe, t: "Domain", b: "Give it a name and a URL. A pattern nobody can point to is a pattern nobody reuses." },
-          ].map(({ Icon, t, b }) => (
+            { Icon: Repeat, n: "01", t: "Workflow", b: "Notice the job repeated across products." },
+            { Icon: Package, n: "02", t: "Skill", b: "Package the rules, failures and judgment with the code." },
+            { Icon: Globe, n: "03", t: "Domain", b: "Give the pattern a stable name, place and owner." },
+          ].flatMap(({ Icon, n, t, b }, index) => [
             <StaggerItem key={t}>
-              <div className="rounded-2xl border-2 border-border bg-surface p-7 h-full flex flex-col gap-3">
-                <Icon className="w-6 h-6" style={{ color: "var(--color-brand-2)" }} />
-                <h3 className="text-2xl font-semibold">{t}</h3>
-                <p className="text-sm text-muted leading-relaxed">{b}</p>
+              <div className="border-t border-white/18 pt-6">
+                <div className="flex items-center justify-between">
+                  <Icon className="h-5 w-5 text-violet-200" />
+                  <span className="font-mono text-[10px] text-white/32">{n}</span>
+                </div>
+                <h3 className="mt-8 text-4xl font-semibold tracking-[-0.04em]">{t}</h3>
+                <p className="mt-3 max-w-xs text-sm leading-relaxed text-white/48">{b}</p>
               </div>
-            </StaggerItem>
-          ))}
+            </StaggerItem>,
+            index < 2 ? <ArrowRight key={`${t}-arrow`} className="mx-7 mt-8 hidden h-5 w-5 text-white/18 md:block" /> : null,
+          ])}
         </StaggerChildren>
 
-        <Callout>
+        <Callout dark>
           Twelve of these live in a folder called <code>skills</code>. That folder is now more
           valuable than any single repo I own, because it&rsquo;s the only thing that makes the next
           app cheaper than the last.
@@ -598,7 +739,7 @@ function CtaSection() {
       <div className="absolute inset-0" style={{ background: "rgba(11,15,31,0.6)" }} />
       <div className="relative max-w-5xl mx-auto px-6 w-full py-32">
         <Reveal>
-          <Kicker dark>06 · Take them home</Kicker>
+          <Kicker dark>05 · Take them home</Kicker>
           <h2 className="text-5xl md:text-7xl font-semibold tracking-tight leading-[0.98] mb-6 max-w-3xl">
             One take-home page. <span className="text-white/40">No QR scavenger hunt.</span>
           </h2>
@@ -633,7 +774,7 @@ function CtaSection() {
 
 const NARRATION_SECTIONS: NarrationSection[] = [
   { sectionId: "hero", label: "The pattern", text: "Three systems I kept rebuilding until the repeated work became visible: capture the problem, prove what happened, and give the agent a controlled way to act." },
-  { sectionId: "problem", label: "Rebuilt five times", text: "Eight domain MVPs in the fleet. Four separate times I built the MCP layer before noticing it was one thing. Eighteen skills across two skills directories. The fourth time you build something isn't a productivity failure — it's the first time the pattern is visible enough to name." },
+  { sectionId: "problem", label: "The repeat signal", text: "Eight domain MVPs in the fleet. Four separate times I built the MCP layer before noticing it was one thing. Eighteen skills across two skills directories. The fourth time you build something isn't a productivity failure — it's the first time the pattern is visible enough to name." },
   { sectionId: "feedback", label: "Feedback + Openstage", text: "First: Feedback. File a report from the running page and inspect the issue it creates. The presentation carrying the demo is Openstage — a web app that can hold live controls and then get out of the way when the real demo starts." },
   { sectionId: "walkthrough", label: "Walkthroughs", text: "Second: Walkthroughs drives a real web app and keeps the evidence — catalog, desktop and mobile captures, video, journeys and findings. It refuses to ship a misleading walkthrough: byte-identical screenshots get rejected, and a dead backend blocks the run." },
   { sectionId: "mcp", label: "Console + MCP", text: "Third: Console plus MCP. Hangar shows the real services, models, memory budgets and calls across local machines. MCP exposes deliberate actions so an agent can drive a system and then read the result back." },

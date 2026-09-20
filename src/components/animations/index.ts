@@ -51,4 +51,5 @@ export {
   InteractionZone,
   PathDraw,
   HorizontalPin,
+  VisualStage,
 } from "../scrollytelling";

@@ -55,11 +55,18 @@ async function generate(slug, prompt, opts = {}) {
 // Quality: "low" (~$0.006), "medium" (~$0.053, default), "high" (~$0.211)
 
 const images = [
-  // Example — replace with your own:
-  // {
-  //   slug: "deck-hero",
-  //   prompt: `A cinematic editorial illustration of [concept]. Glowing cyan currents flow through a dark navy field, with warm amber accents at the focal point. Anatomical / scientific aesthetic — not illustrated-clipart.`,
-  // },
+  {
+    slug: "ai-patterns-feedback-stage",
+    prompt: `A cinematic editorial technical visualization showing a small amber signal captured directly from a live interface, traveling through precise translucent capture and evidence layers, and resolving into one concrete issue artifact. Wide landscape with a strong left-to-right diagonal flow, deep near-black navy stage, tactile glass and light, amber and coral focal points with tiny cyan accents. No people, no generic circuit boards.`,
+  },
+  {
+    slug: "ai-patterns-walkthrough-stage",
+    prompt: `A cinematic editorial technical visualization of an automated path moving through desktop and mobile product surfaces and leaving behind a precise evidence trail of captured frames and verified checkpoints. One failed checkpoint visibly stops rather than being faked. Wide landscape, deep near-black blue stage, cool cyan investigative light, crisp and trustworthy. No people, robots or circuit boards.`,
+  },
+  {
+    slug: "ai-patterns-console-mcp-stage",
+    prompt: `A cinematic editorial technical visualization with a human-controlled local machine observability surface on the left and a tightly controlled agent action gateway on the right, joined by a narrow illuminated bridge with deliberate permission gates. Wide balanced composition, deep near-black violet stage, tactile glass, violet and cyan light with small amber permission accents. No humans, robots, brains or cyberpunk clutter.`,
+  },
 ];
 
 for (const img of images) {

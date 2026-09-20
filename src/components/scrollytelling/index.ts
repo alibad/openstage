@@ -9,3 +9,4 @@ export { AnnotatedText } from "./annotated-text";
 export { InteractionZone } from "./interaction-zone";
 export { PathDraw } from "./path-draw";
 export { HorizontalPin } from "./horizontal-pin";
+export { VisualStage } from "./visual-stage";

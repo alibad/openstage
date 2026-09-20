@@ -20,6 +20,10 @@ interface StickyMediaProps {
   mediaFit?: "cover" | "contain";
   /** Video instead of image */
   video?: boolean;
+  /** Vertical distance between narrative steps. Defaults to 40vh. */
+  stepGap?: string;
+  /** Space before the first and after the last step. Defaults to 40vh. */
+  verticalPadding?: string;
   className?: string;
   children: ReactNode;
 }
@@ -43,6 +47,8 @@ export function StickyMedia({
   overlay = 0,
   mediaFit = "contain",
   video = false,
+  stepGap = "40vh",
+  verticalPadding = "40vh",
   className,
   children,
 }: StickyMediaProps) {
@@ -97,7 +103,10 @@ export function StickyMedia({
           </div>
         </div>
 
-        <div className="relative z-10 flex w-full flex-col gap-[40vh] px-6 py-[40vh] md:w-1/2 md:px-12 lg:px-16">
+        <div
+          className="relative z-10 flex w-full flex-col px-6 md:w-1/2 md:px-12 lg:px-16"
+          style={{ gap: stepGap, paddingTop: verticalPadding, paddingBottom: verticalPadding }}
+        >
           {steps.map((step, i) => (
             <StepBlock key={i} index={i} total={steps.length} progress={progress}>
               {step}
