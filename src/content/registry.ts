@@ -22,6 +22,20 @@ export interface PresentationMeta {
 
 export const presentations: PresentationMeta[] = [
   {
+    slug: "mobile-inference",
+    title: "The Model in Your Pocket",
+    subtitle: "How to deploy AI inference on the mobile GPU",
+    author: "Ali Badereddin",
+    date: "September 2026",
+    description:
+      "A practical field guide to exporting, compressing, accelerating, profiling, and shipping AI models on iOS and Android.",
+    type: "slides",
+    slideCount: 13,
+    accentColor: "#67E8F9",
+    customer: "Human Quest",
+    status: "live",
+  },
+  {
     slug: "proof-before-promise",
     title: "Proof Before Promise",
     subtitle: "How credible product walkthroughs are made",
