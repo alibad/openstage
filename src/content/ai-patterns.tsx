@@ -693,10 +693,10 @@ function McpSection() {
 
           <Reveal delay={0.28}>
             <a
-              href="https://walkthrough.humanquest.net/inner-quest/features/ask-your-personal-os"
+              href="https://mcp-humanquest.vercel.app/#inner-quest"
               target="_blank"
               rel="noreferrer"
-              aria-label="Open the Inner Quest MCP walkthrough in Walkthrough Studio"
+              aria-label="Open the Inner Quest MCP product story"
               className="group block h-full overflow-hidden rounded-[1.75rem] border border-violet-300/25 bg-[radial-gradient(circle_at_85%_10%,rgba(236,72,153,.18),transparent_34%),#10101d] p-6 transition hover:-translate-y-1 hover:border-violet-300/55 hover:shadow-[0_24px_70px_rgba(139,92,246,.16)] md:p-8"
             >
               <div className="flex items-start gap-5">
@@ -704,7 +704,7 @@ function McpSection() {
                   <Image src="/logos/inner-quest.svg" alt="Inner Quest" width={76} height={76} className="h-14 w-14" />
                 </div>
                 <div className="min-w-0 flex-1">
-                  <div className="font-mono text-[10px] uppercase tracking-[0.24em] text-violet-200">Studio walkthrough · Inner Quest MCP</div>
+                  <div className="font-mono text-[10px] uppercase tracking-[0.24em] text-violet-200">MCP product story · Inner Quest</div>
                   <h3 className="mt-2 text-3xl font-semibold tracking-[-0.035em] text-white">Ask the whole Personal OS. Save the insight.</h3>
                 </div>
               </div>
@@ -716,7 +716,7 @@ function McpSection() {
                 {['real Codex question', 'cross-surface evidence', 'reflection in app'].map((item) => <span key={item} className="rounded-full border border-white/10 px-3 py-2">{item}</span>)}
               </div>
               <div className="mt-7 inline-flex items-center gap-2 text-sm font-semibold text-violet-200">
-                Open the evidence <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+                Open the product story <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
               </div>
             </a>
           </Reveal>
