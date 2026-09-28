@@ -51,6 +51,8 @@ A weak deck is all card grids with one hero image — pedagogically sound but vi
 - `FlowDiagram` — when the relationship between nodes matters more than the nodes themselves.
 - `ScoreMatrix`, `DataTable` — for structured comparisons.
 
+**Stage** (Phase 4 — see "Stage & 3D" below): `ParticleMorph` for a hero that spells its title and flows into the argument, `NeuralField` for anything about models, all through one shared `<Stage>`. Prefer these over a flat `ParticleField` for the deck's signature moment.
+
 **Atmosphere** (used sparingly — one per deck max):
 - `WebGLHero`, `MeshGradient`, `AuroraBackground` — premium hero feel.
 - `ParticleField` — ambient texture; keep `opacity ≤ 0.15`.
@@ -176,6 +178,56 @@ async function generateSlideImage(slug: string, concept: string) {
   writeFileSync(`public/generated/${slug}.png`, Buffer.from(b64, "base64"));
 }
 ```
+
+---
+
+## Stage & 3D (Phase 4) — the deck is the stage
+
+3D in a deck goes through one shared WebGL canvas, never a `<Canvas>` per section. Live in [`src/components/stage/`](src/components/stage/); the showcase is [`src/content/stagecraft.tsx`](src/content/stagecraft.tsx) at `/stagecraft` — open it before building a 3D moment.
+
+| Primitive | Use for |
+|---|---|
+| `<Stage className="bg-…">` | Deck root. Paints the deck background, then the canvas, then the content. One per deck. |
+| `<StageView poster={…}>` | A window into the stage. Size it like a div; its 3D draws exactly inside, **behind** the section's text. |
+| `<StageCamera>` | Exactly one inside every StageView. |
+| `<ParticleMorph targets progress>` | The signature moment: 7k–42k GPU particles flowing between text, images and shapes. Text is rasterised by the browser, so **any script works** (Arabic joins, Devanagari stacks). |
+| `useHeldProgress(scrollYProgress, n)` | Maps scroll onto morph targets with a rest at each one, so every shape is readable. |
+| `<NeuralField activity wave>` | Procedural neural network, no model file. `activity` = how much fires; `wave` = random (0) vs forward pass (1). |
+
+Targets: `{ text, weight, rtl }`, `{ image }`, or `{ shape }` — `scatter`, `sphere`, `globe`, `torus`, `helix`, `galaxy`, `wave`, `cube`, `snowflake`, `ring`. Start a hero at `scatter` and animate in to the first real target so the opening frame is an arrival.
+
+### Hard rules
+
+- **Never mount a raw `<Canvas>` in a deck.** Each costs a WebGL context (browsers cap them at ~16) and keeps rendering off screen. Use `<StageView>`.
+- **A section hosting a StageView has a transparent background.** The Stage paints the deck background under the canvas; an opaque section hides the view. Vignette gradients go *in* the section, on top of the 3D.
+- **Give a view a `poster` whenever its scene carries meaning** — the headline a morph spells, a still of the scene. Posters are what print, what PDFs show, and what a device without WebGL sees. A view without one prints as empty space, never as a grey placeholder.
+- **Collapse scroll runways in print.** A `height: "500vh"` sticky section must become `100vh` under `usePrintMode()`, or the PDF gets pages of nothing.
+- **One ParticleMorph hero per deck.** Smaller morphs elsewhere are fine; a second full-screen swarm dilutes the first.
+- **Colours come from the deck palette,** passed as props. Semantic, like everywhere else.
+
+### Quality tiers (automatic)
+
+| Tier | When | Budget |
+|---|---|---|
+| `high` | Apple Silicon, discrete GPUs | 42,000 particles, 2× pixel ratio |
+| `mid` | Decent integrated GPUs | 20,000, 1.5× |
+| `low` | Mobile, older Intel, software renderers | 7,000, 1× |
+| `off` | `?print`, no WebGL | Posters only |
+
+Detection reads the local WebGL renderer string — no network, so it works on a venue laptop offline. A `PerformanceMonitor` drops the pixel ratio if frames fall. `prefers-reduced-motion` holds scenes still and makes morphs cut instead of flow. **Presenter override:** `?stage=low` (or `mid`/`high`/`off`) for a struggling projector laptop.
+
+### Writing a new scene component
+
+- Read `useStageView()` and **skip `useFrame` work when `!visible`** — drei's `View` stops drawing an off-screen view but keeps running its frame callbacks.
+- Damp by elapsed time with `maath/easing` (`damp`, `damp3`), never a per-frame `lerp(a, b, 0.08)` — that runs twice as fast on 120 Hz displays.
+- Mutate uniforms and buffers through a ref to the rendered object (`pointsRef.current.material.uniforms…`). `react-hooks/immutability` rejects mutating a `useMemo` or `useState` value, even inside `useFrame`.
+- Glow on the transparent canvas uses `ADDITIVE_ON_TRANSPARENT` from [`glsl.ts`](src/components/stage/glsl.ts). Plain `THREE.AdditiveBlending` squares alpha and the page composites every particle too dim.
+- Key memos on primitive values (`colors.join("|")`), not on a literal array prop — a fresh array every render rebuilds the geometry every render.
+- The pointer: the canvas is `pointer-events: none`, so read `stagePointer` / `pointerInRect()` from [`pointer.ts`](src/components/stage/pointer.ts).
+
+### Verifying a 3D deck
+
+A hidden browser tab pauses `requestAnimationFrame` — a screenshot of a hidden pane shows an empty stage and proves nothing. Verify in a visible or headless browser, and check `?print` separately.
 
 ---
 
@@ -655,4 +707,5 @@ A scroll deck without `<DeckControls>` ships without theme switcher, feedback af
 
 ---
 
-*Last updated: 2026-09-17 — consolidated from presenter, cc-presenter and tinkerer-presenter into the canonical Openstage ruleset.*
+*Last updated: 2026-09-28 — added Stage & 3D (Phase 4): one shared canvas, ParticleMorph, NeuralField, quality tiers and posters.*
+*2026-09-17 — consolidated from presenter, cc-presenter and tinkerer-presenter into the canonical Openstage ruleset.*

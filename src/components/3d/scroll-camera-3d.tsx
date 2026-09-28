@@ -1,10 +1,11 @@
 "use client";
 
-import { ReactNode, useMemo, useRef } from "react";
+import { ReactNode, useEffect, useMemo, useRef, useState } from "react";
 import { Canvas, useFrame } from "@react-three/fiber";
 import { Environment } from "@react-three/drei";
-import { useScroll, useMotionValueEvent } from "framer-motion";
-import type { Group, PerspectiveCamera } from "three";
+import { useScroll, useMotionValueEvent, useReducedMotion } from "framer-motion";
+import { easing } from "maath";
+import { Vector3, type Group, type PerspectiveCamera } from "three";
 import { cn } from "@/lib/cn";
 import { usePrintMode } from "@/lib/print-mode";
 
@@ -32,6 +33,11 @@ interface ScrollCamera3DProps {
   backgroundColor?: string;
   /** Optional overlay content that scrolls with the section */
   overlay?: ReactNode;
+  /**
+   * What prints in place of the live scene — a still of it. Without one the
+   * section prints only its overlay, never a grey placeholder box.
+   */
+  poster?: ReactNode;
   className?: string;
 }
 
@@ -88,23 +94,30 @@ function interpolateKeyframes(
 function CameraRig({
   progressRef,
   keyframes,
+  reduced,
 }: {
   progressRef: React.MutableRefObject<number>;
   keyframes: CameraKeyframe[];
+  reduced: boolean;
 }) {
-  useFrame(({ camera }) => {
-    const p = progressRef.current;
-    const { position, lookAt, fov } = interpolateKeyframes(keyframes, p);
-
+  const scratch = useRef({ position: new Vector3(), lookAt: new Vector3(), look: new Vector3(), fov: { value: 45 } });
+  useFrame(({ camera }, delta) => {
+    const target = scratch.current;
+    const { position, lookAt, fov } = interpolateKeyframes(keyframes, progressRef.current);
     const cam = camera as PerspectiveCamera;
-    // Ease the camera with a small follow factor for smoothness
-    cam.position.x = lerp(cam.position.x, position[0], 0.08);
-    cam.position.y = lerp(cam.position.y, position[1], 0.08);
-    cam.position.z = lerp(cam.position.z, position[2], 0.08);
-    cam.lookAt(lookAt[0], lookAt[1], lookAt[2]);
-
-    if (cam.fov !== fov) {
-      cam.fov = lerp(cam.fov, fov, 0.08);
+    const dt = Math.min(delta, 0.05);
+    target.position.set(...position);
+    target.lookAt.set(...lookAt);
+    // Damped by elapsed time, not per frame: the same speed on 60 Hz and
+    // 120 Hz displays. (The old per-frame lerp ran twice as fast on ProMotion.)
+    const smooth = reduced ? 0.0001 : 0.35;
+    easing.damp3(cam.position, target.position, smooth, dt);
+    easing.damp3(target.look, target.lookAt, smooth, dt);
+    cam.lookAt(target.look);
+    if (Math.abs(cam.fov - fov) > 0.01) {
+      target.fov.value = cam.fov;
+      easing.damp(target.fov, "value", fov, smooth, dt);
+      cam.fov = target.fov.value;
       cam.updateProjectionMatrix();
     }
   });
@@ -143,11 +156,22 @@ export function ScrollCamera3D({
   environment = "city",
   backgroundColor = "transparent",
   overlay,
+  poster,
   className,
 }: ScrollCamera3DProps) {
   const print = usePrintMode();
+  const reduced = useReducedMotion() ?? false;
   const containerRef = useRef<HTMLDivElement>(null);
   const progressRef = useRef(0);
+  // Stop rendering entirely while the section is off screen.
+  const [inView, setInView] = useState(false);
+  useEffect(() => {
+    const node = containerRef.current;
+    if (!node || print) return;
+    const observer = new IntersectionObserver(([e]) => setInView(e.isIntersecting), { rootMargin: "20% 0px" });
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, [print]);
 
   const { scrollYProgress } = useScroll({
     target: containerRef,
@@ -165,16 +189,9 @@ export function ScrollCamera3D({
 
   if (print) {
     return (
-      <div
-        className={cn(
-          "flex items-center justify-center bg-bg-dark rounded-2xl",
-          className,
-        )}
-        style={{ height: "80vh" }}
-      >
-        <p className="text-muted text-sm">
-          3D Scroll Scene (interactive in browser)
-        </p>
+      <div className={cn("relative w-full", className)}>
+        {poster}
+        {overlay && <div className="relative">{overlay}</div>}
       </div>
     );
   }
@@ -187,6 +204,7 @@ export function ScrollCamera3D({
     >
       <div className="sticky top-0 w-full h-screen overflow-hidden">
         <Canvas
+          frameloop={inView ? "always" : "never"}
           camera={{
             position: initial.position,
             fov: initial.fov,
@@ -195,7 +213,7 @@ export function ScrollCamera3D({
           style={{ background: backgroundColor }}
         >
           <Environment preset={environment} />
-          <CameraRig progressRef={progressRef} keyframes={keyframes} />
+          <CameraRig progressRef={progressRef} keyframes={keyframes} reduced={reduced} />
           <SceneRoot>{children}</SceneRoot>
         </Canvas>
         {overlay && (

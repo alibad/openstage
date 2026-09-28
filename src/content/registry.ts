@@ -22,6 +22,17 @@ export interface PresentationMeta {
 
 export const presentations: PresentationMeta[] = [
   {
+    slug: "stagecraft",
+    title: "Stagecraft",
+    subtitle: "The deck is the stage",
+    author: "Ali Badereddin",
+    date: "September 2026",
+    description:
+      "Openstage Phase 4: one shared WebGL stage, GPU particle morphs in any script, a procedural neural field — and a deck that still prints well.",
+    type: "scroll",
+    accentColor: "#A78BFA",
+  },
+  {
     slug: "mobile-inference",
     title: "The Model in Your Pocket",
     subtitle: "How to deploy AI inference on the mobile GPU",

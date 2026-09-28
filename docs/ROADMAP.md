@@ -1,7 +1,7 @@
 # Presentations Framework — Roadmap
 
 Living document tracking planned features, integrations, and visual investments.
-Updated: 2026-04-08
+Updated: 2026-09-28
 
 ---
 
@@ -199,3 +199,34 @@ of the dependency tree.
 | 2026-04-08 | AI context upgrade + showcase | Rewrote ai-context.ts with full 30+ component library (was only 7 basic components). Built `/showcase-visuals` presentation demonstrating all new visual effects, charts, 3D, and data components. Fixed API docs for TextSplit, ParticleField, MeshGradient to match actual prop types |
 | 2026-04-08 | Share integration + data-story template | Wired `ScrollExportBar` (share + PDF) into all 6 scroll presentations. Added share icon to slide toolbar. Built 5th template: `data-story` for data-driven narratives and fixed a presentation type error. |
 | 2026-04-08 | OG metadata + gallery upgrade | Dynamic OG image API (`/api/og`) with branded social preview cards. `buildPresentationMetadata()` helper applied to all 9 route pages. Gallery index page with filter tabs (All/Scroll/Slides), type badges, customer tags, presentation count. Search across presentations |
+
+---
+
+## Phase 4: The Deck Is the Stage (Q4 2026)
+
+Phase 1 made 3D possible; almost no deck used it, because every 3D section
+cost its own WebGL context, rendered off screen, and printed as a grey box.
+Phase 4 makes 3D the default material of a deck. Showcase: `/stagecraft`.
+
+### 4.1 Shared stage ✅
+
+| Component | Status |
+|-----------|--------|
+| `Stage` / `StageView` / `StageCamera` | Done — one canvas behind the deck; drei `View` windows per section; off-screen views free |
+| Quality tiers | Done — local GPU detection, `PerformanceMonitor` DPR fallback, reduced motion, `?stage=` override, posters for print |
+
+### 4.2 Signature primitives ✅
+
+| Component | Status |
+|-----------|--------|
+| `ParticleMorph` | Done — GPU particles flowing between text (any script), images and 10 procedural shapes; scroll- or step-driven; cursor parts the cloud |
+| `NeuralField` | Done — procedural network; activity and forward-pass wave are scroll-drivable |
+| `ScrollCamera3D` | Fixed — time-based damping, off-screen pause, poster fallback |
+
+### 4.3 Next
+
+| Item | Why |
+|------|-----|
+| Stage-aware slide decks | Keep one scene alive across slide changes instead of remounting |
+| Remotion `ThreeCanvas` export | Particle heroes in rendered video, frame-deterministic |
+| `ScrollCamera3D` / `Globe3D` onto the Stage | Retire their private canvases |
