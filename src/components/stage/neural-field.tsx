@@ -114,6 +114,9 @@ export function NeuralField({
   const { quality } = useStage();
   const view = useStageView();
   const group = useRef<THREE.Group>(null);
+  // The pulse and node materials share one uniforms object; reach it through
+  // the rendered points so the frame loop never mutates a memoised value.
+  const pulsePoints = useRef<THREE.Points<THREE.BufferGeometry, THREE.ShaderMaterial>>(null);
   const live = useRef({ activity: 0, wave: 0, tiltX: 0, tiltY: 0 });
   // Key memos on the colour *values* — a literal array is a new object every render.
   const [colorIn, colorOut] = colors;
@@ -277,10 +280,10 @@ export function NeuralField({
   );
 
   useFrame((state, delta) => {
-    if (!view.visible || !group.current) return;
+    if (!view.visible || !group.current || !pulsePoints.current) return;
     const dt = Math.min(delta, 0.05);
     const reduced = quality.reducedMotion;
-    const u = materials.shared;
+    const u = pulsePoints.current.material.uniforms;
 
     easing.damp(live.current, "activity", read(activity), 0.35, dt);
     easing.damp(live.current, "wave", read(wave), 0.5, dt);
@@ -295,10 +298,10 @@ export function NeuralField({
       : pointerInRect(view.el?.getBoundingClientRect() ?? null);
     easing.damp(live.current, "tiltY", ndc ? ndc[0] * 0.35 : 0, 0.6, dt);
     easing.damp(live.current, "tiltX", ndc ? -ndc[1] * 0.2 : 0, 0.6, dt);
-    group.current.rotation.y =
-      (reduced ? 0 : state.clock.elapsedTime * 0.06) +
-      live.current.tiltY -
-      0.35;
+    // Sway, don't spin: a full turn shows the layers end-on and the network
+    // stops reading as layers at all.
+    const sway = reduced ? 0 : Math.sin(state.clock.elapsedTime * 0.12) * 0.42;
+    group.current.rotation.y = sway + live.current.tiltY - 0.35;
     group.current.rotation.x = live.current.tiltX + 0.12;
   });
 
@@ -311,6 +314,7 @@ export function NeuralField({
           frustumCulled={false}
         />
         <points
+          ref={pulsePoints}
           geometry={pulses}
           material={materials.pulse}
           frustumCulled={false}

@@ -203,7 +203,7 @@ Targets: `{ text, weight, rtl }`, `{ image }`, or `{ shape }` — `scatter`, `sp
 - **Give a view a `poster` whenever its scene carries meaning** — the headline a morph spells, a still of the scene. Posters are what print, what PDFs show, and what a device without WebGL sees. A view without one prints as empty space, never as a grey placeholder.
 - **Collapse scroll runways in print.** A `height: "500vh"` sticky section must become `100vh` under `usePrintMode()`, or the PDF gets pages of nothing.
 - **One ParticleMorph hero per deck.** Smaller morphs elsewhere are fine; a second full-screen swarm dilutes the first.
-- **Colours come from the deck palette,** passed as props. Semantic, like everywhere else.
+- **Colours come from the deck palette, and must be bright against the stage.** Pass literal hex. Don't hand a particle system brand tokens unchecked: a deck's runtime brand can derive a dark ramp from its accent — Tinkerstage's Round 4 route resolves `--color-brand-5` to `#101632`, and a swarm in that colour is invisible on a navy stage.
 
 ### Quality tiers (automatic)
 

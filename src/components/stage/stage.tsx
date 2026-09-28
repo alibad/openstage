@@ -194,6 +194,9 @@ export function StageView({
       style={style}
       index={index}
     >
+      {/* A stable mutable object, never replaced — a channel from the DOM
+          observer into the render loop, not render state. */}
+      {/* eslint-disable-next-line react-hooks/refs */}
       <StageViewContext.Provider value={viewState.current}>
         {children}
       </StageViewContext.Provider>

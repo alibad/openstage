@@ -38,7 +38,10 @@ export type MorphTarget =
       text: string;
       /** CSS font-weight. Heavy weights sample into crisper particles. */
       weight?: number;
-      /** CSS font-family. Defaults to the page's body font. */
+      /**
+       * CSS font-family. Defaults to the page's body font. `var(--font-arabic)`
+       * style tokens are resolved, so a deck can point at its next/font face.
+       */
       font?: string;
       rtl?: boolean;
       lineHeight?: number;
@@ -312,13 +315,20 @@ function sampleCanvas(
   return { points, aspect: bh / bw };
 }
 
+/** A canvas can't read CSS variables in `ctx.font`, so resolve `var(--x)` first. */
+function resolveFontFamily(font: string | undefined): string {
+  const body = getComputedStyle(document.body);
+  if (!font) return body.fontFamily;
+  return font.replace(/var\((--[^),\s]+)\)/g, (_, name: string) => body.getPropertyValue(name).trim() || "sans-serif");
+}
+
 async function sampleText(
   target: Extract<MorphTarget, { text: string }>,
   count: number,
   rng: () => number,
 ) {
   const size = 180;
-  const family = target.font ?? getComputedStyle(document.body).fontFamily;
+  const family = resolveFontFamily(target.font);
   const font = `${target.weight ?? 700} ${size}px ${family}`;
   try {
     await document.fonts.load(font, target.text);
