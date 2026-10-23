@@ -42,7 +42,7 @@ function DividerSlide({ title, subtitle }: { title: string; subtitle?: string })
   return (
     <div className="flex flex-col h-full justify-center items-center text-center gap-5">
       <h2 className="text-6xl md:text-7xl font-bold tracking-tight leading-[1.1] max-w-4xl">
-        <span className="scale-gradient-text">{title}</span>
+        <span className="brand-gradient-text">{title}</span>
       </h2>
       {subtitle && (
         <p className="text-xl text-muted font-light max-w-2xl leading-relaxed">
@@ -55,7 +55,7 @@ function DividerSlide({ title, subtitle }: { title: string; subtitle?: string })
 ```
 
 Key principles:
-- **Use `scale-gradient-text` for the title** — this is the framework's signature accent.
+- **Use `brand-gradient-text` for the title** — this follows the active brand palette.
 - **No background overrides** — let the slide deck's dark theme be the background.
 - **No icons in circles** — keep it clean typographic. The title IS the visual.
 - **Large text (6xl-7xl)** that fills the viewport communicates the transition.

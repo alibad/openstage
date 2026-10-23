@@ -102,11 +102,11 @@ Use the CSS custom properties defined in `globals.css`:
 - `bg-bg-dark`, `bg-bg-surface`, `bg-bg-elevated` — dark backgrounds
 - `bg-bg-light`, `bg-bg-light-surface` — light backgrounds
 - `text-foreground`, `text-muted` — text colors
-- `text-scale-cyan`, `text-scale-blue`, `text-scale-purple`, `text-scale-pink` — brand accent
+- `text-brand-1` through `text-brand-5` — active brand palette
 - `bg-accent`, `bg-accent-light` — UI accents
 - `border-border` — borders
 
-Use `scale-gradient-bar`, `scale-gradient-text`, `scale-gradient-bg` utility classes.
+Use `brand-gradient-bar`, `brand-gradient-text`, `brand-gradient-bg` utility classes.
 
 If the presentation has a custom `accentColor`, use it for key highlights (section numbers, CTAs, stat values) while keeping the brand gradient for the top bar and structural elements.
 
@@ -279,7 +279,7 @@ Six shapes available.
   <img src="/hero.jpg" className="w-full" />
 </MaskReveal>
 <MaskReveal shape="diagonal-left" duration={0.8}>
-  <div className="bg-scale-purple p-12">Revealed diagonally</div>
+  <div className="bg-brand-3 p-12">Revealed diagonally</div>
 </MaskReveal>
 ```
 
@@ -391,7 +391,7 @@ Annotation types: `label` (pill), `circle`, `arrow`, `pulse` (animated ring), `b
 Words/chars/sentences reveal as the user scrolls or enters the viewport.
 
 ```tsx
-<ScrollRevealText scrub highlight highlightColor="var(--scale-cyan)">
+<ScrollRevealText scrub highlight highlightColor="var(--color-brand-1)">
   This sentence reveals word by word as you scroll, with a marker-pen highlight.
 </ScrollRevealText>
 ```
@@ -432,7 +432,7 @@ Horizontal axis with labeled dots for qualitative comparisons.
   items={[
     { label: "Legacy", position: 15 },
     { label: "Current", position: 55, highlight: true },
-    { label: "Target", position: 90, color: "var(--scale-cyan)" },
+    { label: "Target", position: 90, color: "var(--color-brand-1)" },
   ]}
   scrub
   showConnectors

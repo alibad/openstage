@@ -194,7 +194,7 @@ Fixed right-side dot nav with labeled chapters for long presentations. Pattern:
 1. Define a `CHAPTERS` array: `{ id: string, label: string }[]` matching section IDs.
 2. `ChapterNav` component uses `IntersectionObserver` per chapter with
    `rootMargin: "-20% 0px -20% 0px"` to track the topmost visible section.
-3. Active dot gets `bg-scale-cyan` with a glow `box-shadow`; inactive dots are
+3. Active dot gets `bg-brand-1` with a glow `box-shadow`; inactive dots are
    `bg-white/20` with hover reveal of the label text.
 4. Hidden on mobile (`hidden lg:flex`), hidden in print (`print-hidden`).
 
@@ -245,7 +245,7 @@ For architecture, pipeline, or flow diagrams:
 
 1. Use `<svg viewBox="..." className="w-full">` with responsive width.
 2. Apply Framer Motion entrance animations via `useM()`.
-3. Use CSS custom property colors (`var(--scale-cyan)` etc.) or Tailwind colors.
+3. Use CSS custom property colors (`var(--color-brand-1)` etc.) or Tailwind colors.
 4. Wrap in a container with `backdrop-blur`, `border-border`, `rounded-2xl`.
 5. Keep text labels short; use `font-family` matching the presentation font.
 

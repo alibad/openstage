@@ -5,10 +5,10 @@ export const runtime = "edge";
 
 export async function GET(req: NextRequest) {
   const { searchParams } = req.nextUrl;
-  const title = searchParams.get("title") || "Presenter";
+  const title = searchParams.get("title") || "Openstage";
   const subtitle = searchParams.get("subtitle") || "";
   const type = searchParams.get("type") || "";
-  const author = searchParams.get("author") || "Presenter";
+  const author = searchParams.get("author") || "Openstage";
   const customer = searchParams.get("customer") || "";
 
   return new ImageResponse(
@@ -164,7 +164,7 @@ export async function GET(req: NextRequest) {
                 color: "transparent",
               }}
             >
-              scale
+              Openstage
             </div>
             <div
               style={{
