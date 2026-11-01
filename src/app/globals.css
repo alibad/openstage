@@ -558,3 +558,16 @@ main.print-mode .brand-gradient-text,
     overflow-x: clip;
   }
 }
+
+/* Shared Human Quest footer band (https://www.humanquest.net/embed/hq-footer.js), in Openstage's colours. */
+hq-footer {
+  display: block;
+  --hq-bg: var(--color-surface);
+  --hq-surface: var(--color-accent-light);
+  --hq-ink: var(--color-foreground);
+  --hq-muted: var(--color-muted);
+  --hq-border: var(--color-border);
+  --hq-accent: var(--color-brand-1);
+  --hq-font: var(--font-sans);
+}
+hq-footer:not(:defined) { min-height: 150px; }

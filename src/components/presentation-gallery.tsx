@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Script from "next/script";
 import { presentations } from "@/content/registry";
 import { Settings } from "lucide-react";
 import { GalleryFilters } from "@/components/gallery-filters";
@@ -84,7 +85,14 @@ export default function HomePage() {
           slideCount={slideCount}
         />
 
-        <footer className="mt-20 pt-8 border-t border-border flex flex-wrap items-center justify-between gap-4 text-xs text-muted">
+        <div className="mt-20">
+          <hq-footer current="openstage" theme="light">
+            <a href="https://www.humanquest.net/?ref=openstage">A Human Quest AI pattern · humanquest.net</a>
+          </hq-footer>
+          <Script src="https://www.humanquest.net/embed/hq-footer.js" strategy="afterInteractive" />
+        </div>
+
+        <footer className="mt-10 pt-8 border-t border-border flex flex-wrap items-center justify-between gap-4 text-xs text-muted">
           <span className="brand-gradient-text font-semibold">
             {brand.defaults.footerText}
           </span>
