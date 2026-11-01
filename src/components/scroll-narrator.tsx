@@ -104,24 +104,19 @@ export function ScrollNarrator({
     return () => observers.forEach((o) => o.disconnect());
   }, [sections]);
 
-  // Stop audio when section changes
-  useEffect(() => {
-    if (audioRef.current && playerState === "playing") {
-      audioRef.current.pause();
-      audioRef.current.currentTime = 0;
-      audioRef.current = null;
-      setPlayerState("idle");
-
-      // Auto-play next section if enabled
-      if (autoPlayRef.current && activeSectionId) {
-        const idx = sections.findIndex((s) => s.sectionId === activeSectionId);
-        if (idx >= 0) {
-          requestAnimationFrame(() => playSection(activeSectionId));
+  const advanceToNext = useCallback(
+    (currentId: string) => {
+      const idx = sections.findIndex((s) => s.sectionId === currentId);
+      if (idx < sections.length - 1) {
+        const nextSection = sections[idx + 1];
+        const el = document.getElementById(nextSection.sectionId);
+        if (el) {
+          el.scrollIntoView({ behavior: "smooth", block: "start" });
         }
       }
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeSectionId]);
+    },
+    [sections],
+  );
 
   const playSection = useCallback(
     async (sectionId: string) => {
@@ -173,23 +168,27 @@ export function ScrollNarrator({
         setPlayerState("idle");
       }
     },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [sections, voice, playerState],
+    [sections, voice, playerState, advanceToNext],
   );
 
-  const advanceToNext = useCallback(
-    (currentId: string) => {
-      const idx = sections.findIndex((s) => s.sectionId === currentId);
-      if (idx < sections.length - 1) {
-        const nextSection = sections[idx + 1];
-        const el = document.getElementById(nextSection.sectionId);
-        if (el) {
-          el.scrollIntoView({ behavior: "smooth", block: "start" });
+  // Stop audio when section changes
+  useEffect(() => {
+    if (audioRef.current && playerState === "playing") {
+      audioRef.current.pause();
+      audioRef.current.currentTime = 0;
+      audioRef.current = null;
+      setPlayerState("idle");
+
+      // Auto-play next section if enabled
+      if (autoPlayRef.current && activeSectionId) {
+        const idx = sections.findIndex((s) => s.sectionId === activeSectionId);
+        if (idx >= 0) {
+          requestAnimationFrame(() => playSection(activeSectionId));
         }
       }
-    },
-    [sections],
-  );
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeSectionId]);
 
   const handlePlayPause = useCallback(() => {
     if (!activeSectionId) return;
