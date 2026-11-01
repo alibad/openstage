@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { SITE_URL, SITE_TITLE, SITE_DESCRIPTION } from "@/lib/site";
 import { Inter, JetBrains_Mono, Noto_Sans_Arabic, Instrument_Serif } from "next/font/google";
 import { Suspense } from "react";
 import { FeedbackWidgetLoader } from "@/components/feedback-widget/FeedbackWidgetLoader";
@@ -35,17 +36,14 @@ const notoSansArabic = Noto_Sans_Arabic({
   display: "swap",
 });
 
-const baseUrl = process.env.VERCEL_PROJECT_PRODUCTION_URL
-  ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
-  : "http://localhost:3000";
-
 export const metadata: Metadata = {
-  metadataBase: new URL(baseUrl),
+  metadataBase: new URL(SITE_URL),
   title: {
-    default: "Openstage",
+    default: SITE_TITLE,
     template: "%s — Openstage",
   },
-  description: "Immersive, scroll-based presentations powered by React",
+  description: SITE_DESCRIPTION,
+  manifest: "/manifest.webmanifest",
   icons: {
     icon: "/favicon.ico",
     apple: "/apple-touch-icon.png",

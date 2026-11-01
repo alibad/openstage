@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import type { PresentationMeta } from "@/content/registry";
+import { SITE_URL } from "@/lib/site";
 
 export function buildPresentationMetadata(p: {
   title: string;
@@ -23,7 +23,9 @@ export function buildPresentationMetadata(p: {
   return {
     title: p.title,
     description: p.description,
+    alternates: { canonical: `${SITE_URL}/${p.slug}` },
     openGraph: {
+      url: `${SITE_URL}/${p.slug}`,
       title: p.title,
       description: p.description,
       type: "article",
