@@ -22,6 +22,22 @@ export interface PresentationMeta {
 
 export const presentations: PresentationMeta[] = [
   {
+    slug: "can-an-ai-play",
+    title: "Can an AI Play Our Game?",
+    subtitle: "Four brains, the same 16 games, and who really won",
+    author: "Ali Badereddin",
+    date: "November 16, 2026",
+    description:
+      "The AI Tinkerers Doha Round 5 talk: three AI models and a page of rules play the same real-time strategy games. Why the rules won, how they got good one switch at a time, where models do help, and who wrote the rules.",
+    type: "slides",
+    slideCount: 43,
+    accentColor: "#F2C14E",
+    customer: "Human Quest",
+    status: "live",
+    // Off the public gallery and sitemap until the talk has been given.
+    visibility: "unlisted",
+  },
+  {
     slug: "stagecraft",
     title: "Stagecraft",
     subtitle: "The deck is the stage",
