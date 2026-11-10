@@ -27,6 +27,7 @@ import { ThemeSwitcher } from "@/components/brand/theme-switcher";
 import { PerDeckOverrides } from "@/components/brand/per-deck-overrides";
 import { POPULAR_FONTS } from "@/lib/brand/fonts";
 import { toast } from "sonner";
+import { OpenstageSiteFonts } from "@/components/home/openstage-site";
 
 function Section({
   title,
@@ -113,7 +114,8 @@ export default function SettingsPage() {
 
   if (!isLoaded) {
     return (
-      <div className="min-h-screen bg-bg-light flex items-center justify-center">
+      <div className="os-site min-h-screen bg-bg-light flex items-center justify-center" data-hqp-t="pattern">
+        <OpenstageSiteFonts />
         <div className="w-8 h-8 border-2 border-accent border-t-transparent rounded-full animate-spin" />
       </div>
     );
@@ -139,7 +141,8 @@ export default function SettingsPage() {
   ];
 
   return (
-    <div className="min-h-screen bg-bg-light text-foreground">
+    <div className="os-site min-h-screen bg-bg-light text-foreground" data-hqp-t="pattern">
+      <OpenstageSiteFonts />
       <div className="brand-gradient-bar" />
 
       <div className="max-w-2xl mx-auto px-6 pt-10 pb-20">

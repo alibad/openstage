@@ -6,6 +6,7 @@ import { FeedbackWidgetLoader } from "@/components/feedback-widget/FeedbackWidge
 import { Toaster } from "sonner";
 import { BrandProvider } from "@/lib/brand";
 import { BrandScopeForRoute } from "@/components/brand/brand-scope-for-route";
+import { HqThemeScript } from "@/components/hq-path/hq-path";
 import "./globals.css";
 
 const inter = Inter({
@@ -73,7 +74,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
+      <head>
+        {/* Human Quest day/night, set before first paint (only the home page uses it). */}
+        <HqThemeScript />
+      </head>
       <body className={`${inter.variable} ${jetbrainsMono.variable} ${instrumentSerif.variable} ${notoSansArabic.variable} antialiased`}>
         <BrandProvider>
           <Suspense>

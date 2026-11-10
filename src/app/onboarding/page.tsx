@@ -22,6 +22,7 @@ import { ColorPicker, GradientBuilder } from "@/components/brand/color-picker";
 import { FontSelector } from "@/components/brand/font-selector";
 import { LogoUpload } from "@/components/brand/logo-upload";
 import { POPULAR_FONTS } from "@/lib/brand/fonts";
+import { OpenstageSiteFonts } from "@/components/home/openstage-site";
 
 const STEPS = [
   { id: "company", label: "Company", icon: Building2 },
@@ -570,15 +571,16 @@ export default function OnboardingPage() {
   const isLast = step === STEPS.length - 1;
 
   return (
-    <div className="min-h-screen bg-bg-light flex flex-col">
+    <div className="os-site min-h-screen bg-bg-light flex flex-col" data-hqp-t="pattern">
+      <OpenstageSiteFonts />
       <div className="brand-gradient-bar" />
 
       <div className="flex-1 flex flex-col items-center justify-center px-6 py-12">
         <div className="w-full max-w-lg">
-          <div className="flex items-center justify-between mb-10">
+          <div className="os-site-head flex items-center justify-between mb-10">
             <div className="flex items-center gap-3">
               <Sparkles className="w-6 h-6 text-accent" />
-              <span className="text-lg font-semibold text-foreground">
+              <span className="os-site-title text-lg font-semibold text-foreground">
                 Set Up Your Brand
               </span>
             </div>

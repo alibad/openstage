@@ -1,0 +1,114 @@
+/* Openstage home in The Path look. Page-only styles, prefixed os-; the family kit is hq-path.css. */
+
+.os-home { overflow-x: clip; }
+.os-home [id] { scroll-margin-top: 84px; }
+.os-home a:focus-visible, .os-home button:focus-visible, .os-home summary:focus-visible { outline: 2px solid var(--hqp-ember); outline-offset: 3px; }
+/* The Openstage icon file carries a grey checkerboard around the play card; show only the card. */
+.os-home .hqp-mark img { padding: 0; background: none; clip-path: inset(30.5% 25.5% 30.5% 25.5% round 2px); transform: scale(1.9); margin: 0 4px; }
+:root[data-theme="night"] .os-home .hqp-mark img { padding: 0; background: none; }
+
+/* ---------- Hero: a scroll deck on the screen, a slide deck on the phone ---------- */
+.os-home h1.hqp-display { text-wrap: balance; }
+.os-meta { margin: 26px 0 0; font: 500 12px/1.2 var(--hqp-mono); letter-spacing: .14em; text-transform: uppercase; color: var(--hqp-ink-3); }
+.os-hero-art { position: relative; padding: 0 9% 0 0; }
+.os-hero-screen { display: block; position: relative; z-index: 1; border-radius: 18px; transition: transform .25s ease; }
+.os-hero-screen:hover { transform: translateY(-4px); }
+.os-hero-screen .hqp-screen { box-shadow: 0 50px 90px -40px rgba(40, 20, 8, .75); }
+.os-hero-phone { position: absolute; z-index: 3; right: 0; bottom: -24%; width: 26%; display: block; transform: rotate(3deg); transition: transform .25s ease; }
+.os-hero-phone:hover { transform: translateY(-6px) rotate(1deg); }
+.os-hero-phone .hqp-phone { width: 100%; padding: 6px; border-radius: 26px; box-shadow: 0 30px 60px -24px rgba(40, 20, 8, .8); }
+.os-hero-phone .hqp-phone img { border-radius: 20px; }
+.os-hero-tag { position: absolute; z-index: 3; left: 0; bottom: -46px; margin: 0; padding: 8px 14px; border-radius: 999px; background: var(--hqp-card); border: 1px solid var(--hqp-line); font: 500 11px/1 var(--hqp-mono); letter-spacing: .1em; text-transform: uppercase; color: var(--hqp-ink-2); white-space: nowrap; box-shadow: 0 12px 30px -18px rgba(40, 20, 8, .5); }
+.os-hero-tag span { color: var(--hqp-ember); }
+
+/* ---------- Live decks: the night band ---------- */
+.os-stage .hqp-lede { max-width: 30ch; }
+.os-deck-cards { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 20px; }
+.os-deck-card .hqp-shot { background: #120907; }
+.os-deck-card .hqp-shot img { display: block; transition: transform .5s ease; }
+.os-deck-card:hover .hqp-shot img { transform: scale(1.04); }
+.os-deck-card h3 { color: var(--hqp-ink); }
+.os-kind { margin: 0 0 8px !important; font: 500 11px/1.2 var(--hqp-mono) !important; letter-spacing: .12em; text-transform: uppercase; color: var(--hqp-td) !important; }
+:root[data-theme="night"] .os-stage { background: #140d09; border-block: 1px solid var(--hqp-line); }
+.os-swipe { display: none; margin: 10px 0 0; font: 500 11px/1.2 var(--hqp-mono); letter-spacing: .14em; text-transform: uppercase; color: #a8937d; }
+
+/* ---------- Every deck: the existing gallery, coloured by the family tokens ---------- */
+.os-decks-section { padding-bottom: clamp(48px, 7vw, 88px); }
+.os-settings { display: inline-flex; align-items: center; gap: 8px; padding: 10px 16px; border-radius: 999px; border: 1px solid var(--hqp-line); text-decoration: none; font: 600 14px/1 var(--hqp-text); color: var(--hqp-ink-2) !important; transition: background .15s ease, color .15s ease, transform .15s ease; }
+.os-settings:hover { background: var(--hqp-paper-2); color: var(--hqp-ink) !important; transform: translateY(-1px); }
+.os-settings svg { width: 16px; height: 16px; }
+.os-decks {
+  --color-surface: var(--hqp-card);
+  --color-border: var(--hqp-line);
+  --color-foreground: var(--hqp-ink);
+  --color-muted: var(--hqp-ink-2);
+  --color-bg-light: var(--hqp-paper-2);
+  --color-accent-light: color-mix(in srgb, var(--hqp-ember) 14%, transparent);
+  color-scheme: light;
+  font-size: 16px;
+}
+:root[data-theme="night"] .os-decks { color-scheme: dark; }
+.os-decks select option { background: var(--hqp-card); color: var(--hqp-ink); }
+
+/* ---------- Last call ---------- */
+.os-last { text-align: center; }
+.os-last .hqp-ctas { justify-content: center; margin-top: 32px; }
+
+@media (max-width: 1100px) {
+  .os-deck-cards { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 860px) {
+  .os-hero-art { padding: 0 14% 0 0; margin-top: 12px; }
+  .os-hero-phone { bottom: -20%; width: 30%; }
+  .os-hero-tag { display: none; }
+}
+@media (max-width: 560px) {
+  /* Phone: the live decks become a row you swipe through, not four screens of cards. */
+  .os-deck-cards { grid-template-columns: none; grid-auto-flow: column; grid-auto-columns: 80%; gap: 14px; overflow-x: auto; scroll-snap-type: x mandatory; margin-inline: calc(-1 * var(--hqp-gutter)); padding: 4px var(--hqp-gutter) 14px; scrollbar-width: none; }
+  .os-deck-cards::-webkit-scrollbar { display: none; }
+  .os-deck-card { scroll-snap-align: center; }
+  .os-swipe { display: block; }
+  .os-hero-art { padding-right: 20%; }
+  .os-hero-phone { width: 33%; bottom: -26%; }
+}
+
+/* ---------- Site pages beyond the home (8 Nov 2026) ----------
+   Brand setup, brand settings and the password gate wrap themselves in
+   .os-site (see openstage-site.tsx). The site's own tokens are re-pointed at the Path palette only
+   inside that wrapper, so they follow day and night; deck pages never carry it and keep their look.
+   --color-accent stays the visitor's chosen brand colour (BrandProvider sets it). */
+.os-site {
+  --color-background: var(--hqp-paper);
+  --color-bg-light: var(--hqp-paper);
+  --color-bg-light-surface: var(--hqp-card);
+  --color-surface: var(--hqp-card);
+  --color-border: var(--hqp-line);
+  --color-foreground: var(--hqp-ink);
+  --color-muted: var(--hqp-ink-2);
+  --color-accent-light: color-mix(in srgb, var(--color-accent) 14%, transparent);
+  background: var(--hqp-paper);
+  color: var(--hqp-ink);
+  color-scheme: light;
+  transition: background .6s ease, color .6s ease;
+}
+:root[data-theme="night"] .os-site { color-scheme: dark; }
+.os-site select option { background: var(--hqp-card); color: var(--hqp-ink); }
+.os-site h1, .os-site h2, .os-site .os-site-title {
+  font-family: var(--hqp-display);
+  font-weight: 400;
+  letter-spacing: -0.01em;
+  font-variation-settings: "SOFT" 50;
+  text-wrap: balance;
+}
+.os-site h1 { font-size: 28px; line-height: 1.1; }
+.os-site h2 { font-size: 27px; line-height: 1.12; }
+.os-site .os-site-title { font-size: 24px; line-height: 1.1; }
+/* Brand setup: the title and the six steps share a row only when there is room for both. */
+.os-site .os-site-head { flex-wrap: wrap; gap: 16px 24px; }
+
+/* The password gate's card is narrow: a smaller title keeps "Protected Presentation" on one line. */
+.os-site .max-w-sm h1 { font-size: 22px; line-height: 1.15; }
+@media (max-width: 480px) {
+  /* Phone: shorter links between the six step dots, so the row fits beside the gutter. */
+  .os-site .os-site-head .h-px { width: 12px; }
+}

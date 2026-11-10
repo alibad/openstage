@@ -22,7 +22,7 @@ import type { PresentationMeta } from "@/content/registry";
 
 type Filter = "all" | "scroll" | "slides";
 type ViewMode = "list" | "grid";
-type GroupBy = "none" | "type" | "customer" | "author" | "date";
+export type GroupBy = "none" | "type" | "customer" | "author" | "date";
 type SortKey = "title" | "author" | "date" | "type" | "customer";
 type SortDir = "asc" | "desc";
 
@@ -52,17 +52,20 @@ interface GalleryFiltersProps {
   presentations: PresentationMeta[];
   scrollCount: number;
   slideCount: number;
+  /** Initial grouping. The public home groups by type so visitors never see a "No Customer" bucket. */
+  defaultGroupBy?: GroupBy;
 }
 
 export function GalleryFilters({
   presentations,
   scrollCount,
   slideCount,
+  defaultGroupBy = "customer",
 }: GalleryFiltersProps) {
   const [filter, setFilter] = useState<Filter>("all");
   const [query, setQuery] = useState("");
   const [view, setView] = useState<ViewMode>("list");
-  const [groupBy, setGroupBy] = useState<GroupBy>("customer");
+  const [groupBy, setGroupBy] = useState<GroupBy>(defaultGroupBy);
   const [sortKey, setSortKey] = useState<SortKey>("title");
   const [sortDir, setSortDir] = useState<SortDir>("asc");
 

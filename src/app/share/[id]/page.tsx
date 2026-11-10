@@ -37,7 +37,7 @@ export default async function SharePage({
 
   if (new Date(meta.expiresAt) < new Date()) {
     return (
-      <div className="min-h-screen bg-bg-dark flex items-center justify-center p-8">
+      <div className="slide-dark min-h-screen bg-bg-dark flex items-center justify-center p-8">
         <div className="text-center max-w-md">
           <h1 className="text-2xl font-bold text-foreground mb-2">
             Share Expired

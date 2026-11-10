@@ -3,6 +3,7 @@
 import { useState, Suspense } from "react";
 import { useRouter, useSearchParams, useParams } from "next/navigation";
 import { Lock, ArrowRight, AlertCircle } from "lucide-react";
+import { OpenstageSiteFonts } from "@/components/home/openstage-site";
 
 function AuthForm() {
   const { slug } = useParams<{ slug: string }>();
@@ -42,7 +43,8 @@ function AuthForm() {
   }
 
   return (
-    <div className="min-h-screen bg-bg-light flex items-center justify-center px-6">
+    <div className="os-site min-h-screen bg-bg-light flex items-center justify-center px-6" data-hqp-t="pattern">
+      <OpenstageSiteFonts />
       <div className="w-full max-w-sm">
         <div className="flex items-center justify-center gap-3 mb-10">
           <div className="w-9 h-9 rounded-xl brand-gradient-bg flex items-center justify-center text-white font-bold text-sm">
