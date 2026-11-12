@@ -521,16 +521,19 @@ function SixteenGames() {
 
 /* ─── 01 · What we built ────────────────────────────────────────────────── */
 
-// Counted on 12 Nov 2026 with `git log --no-merges` in RTSAI-Mod, RTSAI-WebGame, RTSAI-Web and RTSAI-Art; "with an
-// agent" means the commit names Claude or Codex as co-author. The clips are cut by the talk folder's built-clips.sh.
-const BUILT_COUNT = { commits: 1517, withAgent: 939, day: "12 Nov 2026" };
-const BUILT: { key: string; name: string; line: string }[] = [
-  { key: "desktop", name: "Desktop game", line: "A Windows game with three games inside: Classic, RA2 and our own RTS." },
-  { key: "web", name: "Web game", line: "The isometric game in a browser tab, at rtsai.net/play. Nothing to install." },
-  { key: "simulator", name: "Battle simulator", line: "Pick any two armies, drop them on a map and press Fight." },
-  { key: "places", name: "Real places", line: "Pick any place on Earth. It becomes a map you can play." },
-  { key: "studio", name: "Faction Studio", line: "Where every unit is made and checked: design, 3D model, sprite, animation, sound, cost." },
+// Counted on 12 Nov 2026 with `git log --no-merges` in RTSAI-Mod, RTSAI-WebGame, RTSAI-Web and RTSAI-Art; "signed"
+// means the commit names Claude as co-author (Codex adds no such line to its commits, so its share is in the rest).
+// The clips are cut by the talk folder's built-clips.sh. `where` is the address a visitor opens; each was opened
+// signed out on 12 Nov: the download needs no account, the others ask for the one free account.
+const BUILT_COUNT = { commits: 1520, signed: 942, day: "12 Nov 2026" };
+const BUILT: { key: string; name: string; line: string; where: string; href: string }[] = [
+  { key: "desktop", name: "Desktop game", line: "A Windows game with three games inside: Classic, RA2 and our own RTS.", where: "rtsai.net/download", href: "https://rtsai.net/download" },
+  { key: "web", name: "Web game", line: "The isometric game in a browser tab. Nothing to install.", where: "rtsai.net/play", href: "https://rtsai.net/play/" },
+  { key: "simulator", name: "Battle simulator", line: "Pick any two armies, drop them on a map and press Fight.", where: "rtsai.net/play › Battle simulator", href: "https://rtsai.net/play/?mode=simulator" },
+  { key: "places", name: "Real places", line: "Pick any place on Earth. It becomes a map you can play.", where: "rtsai.net/play › Map editor", href: "https://rtsai.net/play/?mode=earth" },
+  { key: "studio", name: "Faction Studio", line: "Where every unit is made and checked: design, 3D model, sprite, animation, sound, cost.", where: "rtsai.net/faction-studio", href: "https://rtsai.net/faction-studio" },
 ];
+const WHERE_PILL = "rounded-full bg-black/70 px-3.5 py-1.5 font-mono text-[clamp(0.8rem,1.05vw,1.1rem)] font-semibold backdrop-blur-sm";
 
 // One thing at a time, big: the scroll steps through the five clips. Only the clip on screen plays.
 function BuiltTour() {
@@ -559,6 +562,7 @@ function BuiltTour() {
                 <video src={`${MEDIA}/built-${b.key}.mp4`} poster={`${MEDIA}/built-${b.key}.jpg`} autoPlay muted loop playsInline preload="metadata" className="aspect-video w-full rounded-2xl bg-black" />
                 <div className={`${TYPE.kicker} mt-4`} style={{ color: OURS }}>0{i + 1} · {b.name}</div>
                 <p className="mt-2 text-[clamp(1.1rem,2vw,1.6rem)] font-semibold leading-snug">{b.line}</p>
+                <a href={b.href} target="_blank" rel="noreferrer" className="mt-2 inline-block font-mono text-sm font-semibold underline underline-offset-4" style={{ color: OURS }}>{b.where} →</a>
               </div>
             ))}
           </div>
@@ -579,6 +583,10 @@ function BuiltTour() {
                 <video key={b.key} ref={(el) => { videos.current[i] = el; }} src={`${MEDIA}/built-${b.key}.mp4`} poster={`${MEDIA}/built-${b.key}.jpg`} muted loop playsInline preload="metadata"
                   aria-hidden={i !== at} className="absolute inset-0 h-full w-full object-cover transition-opacity duration-500" style={{ opacity: i === at ? 1 : 0 }} />
               ))}
+              {/* Where to open the thing on screen: readable from the room, a link for whoever reads this page later. */}
+              <a href={BUILT[at].href} target="_blank" rel="noreferrer" data-built-where className={`${WHERE_PILL} absolute bottom-3 left-3 z-10`} style={{ color: OURS }}>
+                {BUILT[at].where} →
+              </a>
             </div>
             <p className="mt-4 min-h-[2.7em] max-w-4xl text-[clamp(1.15rem,2.3vw,2.2rem)] font-semibold leading-snug">{BUILT[at].line}</p>
           </Wrap>
@@ -588,8 +596,8 @@ function BuiltTour() {
         <Claim>We built all of this with coding agents. So the next question was obvious: can an AI also play it?</Claim>
         <Evidence>
           Counted on {BUILT_COUNT.day} with git log, merges left out: {num(BUILT_COUNT.commits)} commits in four repositories (game, web game, website, art);{" "}
-          {num(BUILT_COUNT.withAgent)} name Claude or Codex as co-author. On screen: screenshots of the 1 Nov Windows release, the website’s trailer, the live web
-          game filmed on 11 and 12 Nov, and the Faction Studio on our own machine.
+          {num(BUILT_COUNT.signed)} are signed by Claude as co-author; Codex does not sign its commits, so its share is in the rest. On screen: screenshots of the
+          1 Nov Windows release, the website’s trailer, the live web game filmed on 11 and 12 Nov, and the Faction Studio on our own machine.
         </Evidence>
       </Wrap>
     </Part>
@@ -940,6 +948,14 @@ function WhoPart() {
 
 /* ─── 07 · Take it home ─────────────────────────────────────────────────── */
 
+// Where the room can open what the talk showed. Checked signed out on 12 Nov 2026: play asks for one free account
+// (Google in one click), the installer downloads straight from the public GitHub release, the repository is public.
+const TRY: [string, string, string, string][] = [
+  ["Play in your browser", "rtsai.net/play", "https://rtsai.net/play/", "One free account, one click with Google. Best on a laptop."],
+  ["Download for Windows", "rtsai.net/download", "https://rtsai.net/download", "288 MB, no account. An unsigned alpha: Windows asks before it runs."],
+  ["Read the rules that won", "github.com/alibad/RTSAI-WebGame", "https://github.com/alibad/RTSAI-WebGame/tree/main/tools/arena", "The rules brain, its notebook of experiments and the bench that ran every game: tools/arena."],
+];
+
 function HomePart() {
   const withModel = H.runs.filter((r) => r.how === "both");
   const tips: [string, string, string][] = [
@@ -964,10 +980,22 @@ function HomePart() {
             </Reveal>
           ))}
         </div>
+        <div className="mt-20" data-try-it>
+          <div className={`${TYPE.kicker}`} style={{ color: OURS }}>Try it tonight</div>
+          <div className="mt-5 grid gap-x-10 gap-y-8 md:grid-cols-3">
+            {TRY.map(([what, where, href, note]) => (
+              <a key={where} href={href} target="_blank" rel="noreferrer" className="group block border-t border-border pt-5">
+                <h3 className="text-[clamp(1.15rem,1.6vw,1.6rem)] font-semibold leading-tight">{what}</h3>
+                <div className="mt-2 font-mono text-[clamp(0.95rem,1.25vw,1.3rem)] font-semibold underline-offset-4 group-hover:underline" style={{ color: OURS }}>{where} →</div>
+                <p className="mt-2 text-[clamp(0.9rem,1.05vw,1.05rem)] leading-relaxed text-muted">{note}</p>
+              </a>
+            ))}
+          </div>
+        </div>
         <div className="mt-20 flex flex-col items-start gap-8 md:flex-row md:items-end md:justify-between">
           <div>
             <div className={`${TYPE.kicker} text-white/70`}>{TAGLINE}</div>
-            <p className="mt-4 max-w-xl text-sm text-muted">Every game in this talk is in our AI Arena, with its decision log and its replay. Ali Badereddin · AI Tinkerers Doha · 16 Nov 2026.</p>
+            <p className="mt-4 max-w-xl text-sm text-muted">The model games were played on our own machine on 3 to 5 Nov 2026; the numbers on these pages come from those games’ logs. Ali Badereddin · AI Tinkerers Doha · 16 Nov 2026.</p>
           </div>
           <div className="flex items-center gap-4 rounded-2xl bg-white p-4 text-[#120907]">
             <QRCodeSVG value="https://present.humanquest.net/can-an-ai-play" size={104} />
