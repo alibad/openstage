@@ -34,7 +34,6 @@ import { usePrintMode } from "@/lib/print-mode";
 import data from "./data/can-an-ai-play.json";
 
 const WIN = "#2f9e44";
-const DRAW = "#5d5c57";
 const LOSS = "#c9423f";
 const OURS = "#F2C14E";
 const GREY = "#8f8e88";
@@ -120,8 +119,6 @@ function useMedia(query: string) {
 }
 // Below 768 px wide, or under 600 px tall, pinned scroll boards would be cut off: show them as plain sections instead.
 const useCompact = () => useMedia("(max-width: 767px), (max-height: 600px)");
-// A projector (1700 px and up, 1000 px tall): bigger board tiles.
-const useProjector = () => useMedia("(min-width: 1700px) and (min-height: 1000px)");
 
 // Every part sits on the same dark ground. w-full is load-bearing.
 function Part({ id, className = "", children }: { id?: string; className?: string; children: ReactNode }) {
@@ -202,14 +199,21 @@ function Code({ src, marks = [], where }: { src: string; marks?: number[]; where
 
 type Cell = { seed: number; result: string; minutes: number } | null;
 
-function Tile({ g, size, ring = false, tip }: { g: Cell; size: number; ring?: boolean; tip?: string }) {
-  const base: CSSProperties = { width: size, height: size, fontSize: size * 0.5, outline: `3px solid ${ring ? OURS : "transparent"}`, outlineOffset: 2, transition: "outline-color .4s" };
-  if (!g) return <span className="inline-block shrink-0" style={base} />;
-  const stopped = g.result === "stopped";
-  const bg = g.result === "win" ? WIN : g.result === "loss" ? LOSS : g.result === "draw" ? DRAW : "transparent";
+// One game is one square. A win lights up (gold on our own lane); a loss stays a quiet slot, so a lane reads as
+// "how much is lit". With no `size` the square fills its grid column.
+function Tile({ g, size, ring = false, tip, ours = false }: { g: Cell; size?: number; ring?: boolean; tip?: string; ours?: boolean }) {
+  const box: CSSProperties = { ...(size ? { width: size } : {}), containerType: "inline-size", outline: `3px solid ${ring ? OURS : "transparent"}`, outlineOffset: 2, transition: "outline-color .4s" };
+  const cls = `${size ? "inline-grid shrink-0" : "grid w-full"} aspect-square place-items-center rounded-[18%] font-bold leading-none`;
+  if (!g) return <span className={cls} style={box} />;
+  const look: Record<string, CSSProperties> = {
+    win: ours ? { background: OURS, color: "#221a05" } : { background: WIN, color: "#fff" },
+    draw: { background: "rgba(255,255,255,.17)", color: "rgba(255,255,255,.78)" },
+    loss: { background: "rgba(255,255,255,.04)", color: "rgba(255,255,255,.24)", boxShadow: "inset 0 0 0 1px rgba(255,255,255,.08)" },
+    stopped: { color: GREY, border: `2px dashed ${GREY}` },
+  };
   return (
-    <span title={tip} className="inline-grid shrink-0 place-items-center rounded-[5px] font-bold leading-none" style={{ ...base, background: bg, color: stopped ? GREY : "#fff", border: stopped ? `2px dashed ${GREY}` : undefined }}>
-      {GLYPH[g.result] ?? "?"}
+    <span title={tip} className={cls} style={{ ...box, ...look[g.result] }}>
+      <span style={{ fontSize: "46cqw" }}>{GLYPH[g.result] ?? "?"}</span>
     </span>
   );
 }
@@ -225,64 +229,73 @@ function Legend() {
 
 type BoardRow = { key: string; label: ReactNode; sub?: ReactNode; games: Cell[][]; total: number; of: string; accent?: boolean };
 
-// One row per brain; per opponent, one tile per start; the wins on the right. Rows past `shown` wait, faded out.
-// From 1280 px it is one table; below that, one card per row with the four opponents side by side.
+// One lane per brain: its name and its wins on one line, its games below as big squares, four per opponent, with the
+// opponents named once above. The squares fill the width and shrink on a short window, so a pinned board always
+// fits its screen. A board with more than four lanes puts the name beside the squares from 1024 px. Lanes past
+// `shown` wait, faded out.
 function Board({ rows, seeds, shown, ringed }: { rows: BoardRow[]; seeds: number[]; shown: number; ringed?: Set<string> }) {
-  const big = useProjector();
   const opponents = RL.opponents;
+  const side = rows.length > 4;
   const tip = (g: Cell, oi: number, si: number) => (g ? `${LEVELS[opponents[oi]]} (${LEVEL_HINT[opponents[oi]]}), start ${seeds[si] - 999} as ${FACTION[seeds[si]]}: ${WORD[g.result]} at ${clock(g.minutes)}` : undefined);
-  const hidden = (ri: number) => (ri >= shown ? "opacity-0 translate-y-2" : "");
-  const tiles = (r: BoardRow, oi: number, size: number) => (
-    <div className="flex gap-1">
-      {r.games[oi].map((g, si) => <Tile key={si} g={g} size={size} ring={ringed?.has(`${r.key}|${opponents[oi]}|${seeds[si]}`)} tip={tip(g, oi, si)} />)}
-    </div>
-  );
+  // How tall a square may be. On a pinned screen it is measured: the room the window leaves, shared by the lanes, so
+  // the board fills the screen it has and never runs past it. Until measured (and unpinned) a safe guess from the
+  // window height stands in, and the width caps it either way.
+  const root = useRef<HTMLDivElement>(null);
+  const [fit, setFit] = useState<number | null>(null);
+  const lanes = rows.length;
+  useEffect(() => {
+    const el = root.current;
+    if (!el) return;
+    const measure = () => {
+      const pin = el.closest<HTMLElement>("[data-pinned]"), inner = pin?.firstElementChild as HTMLElement | null | undefined, sq = el.querySelector<HTMLElement>("[title]");
+      if (!pin || !inner || !sq) { setFit(null); return; }
+      const free = pin.clientHeight - parseFloat(getComputedStyle(pin).paddingBottom) - inner.offsetHeight - 12;
+      const next = Math.round(Math.max(16, Math.min(side ? 48 : 64, sq.offsetHeight + free / lanes)));
+      setFit((cur) => (cur === next ? cur : next));
+    };
+    measure();
+    const ro = new ResizeObserver(measure);
+    if (el.parentElement) ro.observe(el.parentElement);
+    window.addEventListener("resize", measure);
+    return () => { ro.disconnect(); window.removeEventListener("resize", measure); };
+  }, [lanes, side]);
+  const square = fit !== null ? `${fit}px` : side ? `min(3rem, max(1.1rem, (100svh - 420px) / ${lanes * 1.6}))` : `min(4rem, max(1.1rem, (100svh - 640px) / ${lanes}))`;
+  const group: CSSProperties = { maxWidth: `calc(4 * ${square} + 3 * 0.4rem)` };
+  const lane = side
+    ? "grid grid-cols-[1fr_auto] items-center gap-x-4 gap-y-2 lg:grid-cols-[minmax(11rem,15rem)_1fr_5rem] lg:gap-x-6"
+    : "grid grid-cols-[1fr_auto] items-end gap-x-4 gap-y-[clamp(0.35rem,1vh,0.6rem)]";
+  const pad = "px-[clamp(0.75rem,1.3vw,1.4rem)]";
+  const games = "grid grid-cols-4 gap-x-[clamp(0.6rem,2.2vw,2rem)]";
   return (
-    <>
-      <div className="hidden items-center gap-x-6 xl:grid" style={{ gridTemplateColumns: `minmax(14rem,19rem) repeat(${opponents.length}, auto) 5rem` }}>
-        <div />
-        {opponents.map((o) => <div key={o} className="pb-2 text-[clamp(0.85rem,0.75vw,1.1rem)] font-semibold text-muted">vs {LEVELS[o]}</div>)}
-        <div className="pb-2 text-right text-sm font-semibold text-muted">won</div>
-        {rows.flatMap((r, ri) => {
-          const cls = `border-t border-border py-2.5 transition-all duration-500 ${hidden(ri)}`;
-          return [
-            <div key={`${r.key}-l`} className={cls}>
-              <b className="block text-[clamp(1.2rem,1.1vw,1.6rem)] leading-tight" style={r.accent ? { color: OURS } : undefined}>{r.label}</b>
-              {r.sub && <span className="block text-[clamp(0.85rem,0.72vw,1.05rem)] leading-snug text-muted">{r.sub}</span>}
-            </div>,
-            ...opponents.map((_, oi) => <div key={`${r.key}-${oi}`} className={cls}>{tiles(r, oi, big ? 38 : 30)}</div>),
-            <div key={`${r.key}-t`} className={`${cls} text-right`}>
-              <b className="block text-[clamp(2.25rem,2.4vw,3.25rem)] font-bold leading-none" style={r.accent ? { color: OURS } : undefined}>{r.total}</b>
-              <span className="text-xs text-muted">{r.of}</span>
-            </div>,
-          ];
-        })}
+    <div ref={root} className="grid gap-[clamp(0.35rem,1vh,0.65rem)]">
+      <div className={`${lane} ${pad}`}>
+        <div className={side ? "hidden lg:block" : "hidden"} />
+        <div className={`${games} col-span-2 ${side ? "lg:col-span-1" : ""}`}>
+          {opponents.map((o) => <div key={o} className="text-[clamp(0.7rem,0.95vw,1.05rem)] font-semibold text-muted"><span className="hidden sm:inline">vs </span>{LEVELS[o]}</div>)}
+        </div>
+        <div className={side ? "hidden lg:block" : "hidden"} />
       </div>
-      <div className="grid gap-3 xl:hidden">
-        {rows.map((r, ri) => (
-          <div key={r.key} className={`rounded-xl border bg-white/[0.03] p-4 transition-all duration-500 ${hidden(ri)}`} style={{ borderColor: r.accent ? OURS : "var(--color-border)" }}>
-            <div className="mb-3 flex items-start justify-between gap-4">
-              <div className="min-w-0">
-                <b className="block text-lg leading-tight" style={r.accent ? { color: OURS } : undefined}>{r.label}</b>
-                {r.sub && <span className="block text-xs leading-snug text-muted sm:text-sm">{r.sub}</span>}
-              </div>
-              <div className="shrink-0 text-right">
-                <b className="block text-3xl font-bold leading-none" style={r.accent ? { color: OURS } : undefined}>{r.total}</b>
-                <span className="text-xs text-muted">{r.of}</span>
-              </div>
-            </div>
-            <div className="grid grid-cols-4 gap-2">
-              {opponents.map((o, oi) => (
-                <div key={o}>
-                  <div className="mb-1 text-[11px] font-semibold uppercase tracking-wide text-muted">{LEVELS[o]}</div>
-                  {tiles(r, oi, 19)}
-                </div>
-              ))}
-            </div>
+      {rows.map((r, ri) => (
+        <div key={r.key} className={`${lane} ${pad} rounded-2xl py-[clamp(0.45rem,1.1vh,0.9rem)] transition-all duration-500 ${ri >= shown ? "translate-y-2 opacity-0" : ""}`}
+          style={{ background: r.accent ? "rgba(242,193,78,.09)" : "rgba(255,255,255,.03)", boxShadow: `inset 0 0 0 ${r.accent ? `1.5px ${OURS}` : "1px rgba(255,255,255,.06)"}` }}>
+          <div className="order-1 min-w-0">
+            <b className={`${side ? "block" : "mr-3 inline-block"} text-[clamp(1.1rem,1.55vw,1.8rem)] leading-tight`} style={r.accent ? { color: OURS } : undefined}>{r.label}</b>
+            {r.sub && <span className={`${side ? "block" : "inline-block"} text-[clamp(0.8rem,0.95vw,1.05rem)] leading-snug text-muted`}>{r.sub}</span>}
           </div>
-        ))}
-      </div>
-    </>
+          <div className={`order-2 shrink-0 whitespace-nowrap text-right ${side ? "lg:order-3" : ""}`}>
+            <b className="text-[clamp(1.75rem,2.6vw,3rem)] font-bold leading-none" style={r.accent ? { color: OURS } : undefined}>{r.total}</b>
+            <span className="ml-1.5 text-[clamp(0.75rem,0.9vw,1rem)] text-muted">{r.of}</span>
+          </div>
+          <div className={`${games} order-3 col-span-2 ${side ? "lg:order-2 lg:col-span-1" : ""}`}>
+            {opponents.map((o, oi) => (
+              <div key={o} className="grid grid-cols-4 gap-[clamp(3px,0.45vw,0.4rem)]" style={group}>
+                {r.games[oi].map((g, si) => <Tile key={si} g={g} ours={r.accent} ring={ringed?.has(`${r.key}|${o}|${seeds[si]}`)} tip={tip(g, oi, si)} />)}
+              </div>
+            ))}
+          </div>
+        </div>
+      ))}
+    </div>
   );
 }
 
