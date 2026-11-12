@@ -1,7 +1,13 @@
 "use client";
 
 /*
- * "Can an AI play our game?" — the AI Tinkerers Doha Round 5 talk (Monday 16 Nov 2026, 15 minutes), as a scroll story.
+ * "Can an AI play our game?" — the AI Tinkerers Doha Round 5 talk (Monday 16 Nov 2026, 15 minutes).
+ *
+ * Click-first (12 Nov 2026, the owner's ask: "make things clickable instead of scrollable", "show the 3D models",
+ * "open the actual web experience"). One Next button (or → / Space / a clicker) moves the whole talk: it shows the
+ * next step of the block on screen (the next product, a board's next row), then glides to the next stop. The page
+ * still scrolls. Every product picture is a link that opens the real thing in its own tab: the game needs a sign-in
+ * and its own browser isolation, so it cannot run inside this page. The unit models are real files you can turn.
  *
  * One line: AI made building cheap. What got expensive was knowing what is true.
  *
@@ -20,7 +26,7 @@
  *
  * One theme throughout: the dark ground, one gold accent for our rules, grey for the models, green/red only for won/lost.
  * One type family (sans) for words; mono only for code and small labels. Every part reflows from a phone to a projector:
- * below 768 px wide (or under 600 px tall) the scroll-pinned boards become plain sections with everything shown.
+ * below 768 px wide (or under 600 px tall) the stepped boards show everything at once.
  *
  * Every number comes from ./data/can-an-ai-play.json: real games in the RTS AI Arena, the voice-order bench and the
  * git history of the rules, exported by tools/to-openstage.mjs from the talk folder
@@ -29,12 +35,14 @@
  * evidence. Pictures that are only the original game's sprites stay out (the project keeps them out of its repos).
  */
 
-import { Fragment, useEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
-import { motion, useMotionValueEvent } from "framer-motion";
+import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
+import dynamic from "next/dynamic";
+import { motion } from "framer-motion";
 import { QRCodeSVG } from "qrcode.react";
-import { Reveal, ScrollProgress, ScrollRevealText, useSectionProgress } from "@/components/animations";
+import { Reveal, ScrollProgress, ScrollRevealText } from "@/components/animations";
 import { ChapterNav } from "@/components/chapter-nav";
 import { DeckControls } from "@/components/deck-controls";
+import { DeckNext, useStepped } from "@/components/deck-stepper";
 import { PresentationTimer } from "@/components/presentation-timer";
 import { usePrintMode } from "@/lib/print-mode";
 import data from "./data/can-an-ai-play.json";
@@ -45,6 +53,8 @@ const OURS = "#F2C14E";
 const GREY = "#8f8e88";
 const LIGHT = "#c3c2b7";
 const MEDIA = "/talks/can-an-ai-play";
+// Three.js loads only in the browser, and only once a model is asked for.
+const UnitModel = dynamic(() => import("@/components/3d/unit-model").then((m) => m.UnitModel), { ssr: false });
 const TAGLINE = "Read · Switch · Play · Keep · Repeat";
 
 const CHAPTERS = [
@@ -113,7 +123,7 @@ function useMedia(query: string) {
   }, [query]);
   return on;
 }
-// Below 768 px wide, or under 600 px tall, pinned scroll boards would be cut off: show them as plain sections instead.
+// Below 768 px wide, or under 600 px tall, a stepped board is a reading page: show every row at once.
 const useCompact = () => useMedia("(max-width: 767px), (max-height: 600px)");
 
 // Every part sits on the same dark ground. w-full is load-bearing.
@@ -225,7 +235,7 @@ function Board({ rows, seeds, shown, ringed }: { rows: BoardRow[]; seeds: number
     window.addEventListener("resize", measure);
     return () => { ro.disconnect(); window.removeEventListener("resize", measure); };
   }, [lanes, side]);
-  const square = fit !== null ? `${fit}px` : side ? `min(3rem, max(1.1rem, (100svh - 420px) / ${lanes * 1.6}))` : `min(4rem, max(1.1rem, (100svh - 640px) / ${lanes}))`;
+  const square = fit !== null ? `${fit}px` : side ? `min(3rem, max(1.1rem, (100svh - 500px) / ${lanes * 1.6}))` : `min(4rem, max(1.1rem, (100svh - 640px) / ${lanes}))`;
   const group: CSSProperties = { maxWidth: `calc(4 * ${square} + 3 * 0.4rem)` };
   const lane = side
     ? "grid grid-cols-[1fr_auto] items-center gap-x-4 gap-y-2 lg:grid-cols-[minmax(11rem,15rem)_1fr_5rem] lg:gap-x-6"
@@ -265,23 +275,14 @@ function Board({ rows, seeds, shown, ringed }: { rows: BoardRow[]; seeds: number
   );
 }
 
-// A section that pins its content for `runway` of scroll and turns the scroll into a whole-number step.
-// Compact screens and print show every step at once, unpinned.
-function useSteps(steps: number) {
-  const { ref, progress, print } = useSectionProgress(["start start", "end end"]);
+// A block shown one step at a time: Next, a key or a click moves it on. In print every step is shown; so it is on a
+// phone, unless the block is a set of tabs (`tabs`), which works the same at every size.
+function useSteps(count: number, tabs = false) {
+  const print = usePrintMode();
   const compact = useCompact();
-  const [step, setStep] = useState(0);
-  useMotionValueEvent(progress, "change", (v) => setStep(Math.min(steps, Math.floor(v * (steps + 0.6)))));
-  const flat = print || compact;
-  return { ref, flat, step: flat ? steps : step };
-}
-
-function Pinned({ innerRef, runway, flat, children }: { innerRef: React.RefObject<HTMLDivElement | null>; runway: string; flat: boolean; children: ReactNode }) {
-  return (
-    <div ref={innerRef} className="relative" style={{ height: flat ? "auto" : runway }}>
-      <div data-pinned={flat ? undefined : ""} className={flat ? "py-12" : "sticky top-0 flex h-[100svh] flex-col justify-center overflow-hidden pb-16"}>{children}</div>
-    </div>
-  );
+  const flat = print || (compact && !tabs);
+  const { ref, at, setAt } = useStepped(flat ? 1 : count);
+  return { ref, flat, print, at: flat ? count - 1 : Math.min(at, count - 1), setAt, last: count - 1 };
 }
 
 // Plain bars: bold label, the bar, the value. The label column shrinks on a phone.
@@ -307,7 +308,26 @@ function Bars({ items, max }: { items: { label: string; value: number; display: 
   );
 }
 
-/* ─── The title, and the first win (part 02) ──────────────────────────────────────────────────────── */
+// Under a stepped block's heading: what a click does, and a way to see it all at once.
+function StepHint({ flat, done, onNext, onAll, what }: { flat: boolean; done: boolean; onNext: () => void; onAll: () => void; what: string }) {
+  if (flat) return <p className="mb-6 text-[clamp(0.95rem,1.15vw,1.15rem)] text-muted">Each row is one {what}.</p>;
+  return (
+    <p className="mb-4 flex min-h-[2.2em] flex-wrap items-center gap-x-4 gap-y-1 text-[clamp(0.95rem,1.15vw,1.15rem)] text-muted">
+      <span>One {what} at a time.</span>
+      {!done && <button type="button" onClick={onNext} className="rounded-full px-3.5 py-1 font-semibold" style={{ color: OURS, boxShadow: `inset 0 0 0 1px ${OURS}77` }}>Next {what} ›</button>}
+      {!done && <button type="button" onClick={onAll} className="underline underline-offset-4 hover:text-white">Show all</button>}
+    </p>
+  );
+}
+
+// The stepped thing itself: while steps remain, a click anywhere on it shows the next one (the button above and
+// the keys do the same, so nothing depends on the mouse).
+function StepArea({ flat, done, onNext, children }: { flat: boolean; done: boolean; onNext: () => void; children: ReactNode }) {
+  if (flat || done) return <div>{children}</div>;
+  return <div role="presentation" onClick={onNext} className="cursor-pointer">{children}</div>;
+}
+
+/* ─── The title ─────────────────────────────────────────────────────────── */
 
 const PARTS = ["What we built", "It said done", "Give it a ruler", "The game plays itself", "Can an AI play it?", "What no ruler catches", "Take it home"];
 
@@ -322,17 +342,23 @@ function Hero() {
       </div>
       <div className="flex flex-1 items-center py-12">
         <Wrap>
-          <Reveal>
-            <div className={`${TYPE.kicker} mb-6`} style={{ color: OURS }}>One person · coding agents · one real-time strategy game</div>
-            <h1 className={`${TYPE.h1} mb-8`}>Can an AI play<br />our game?</h1>
-            <p data-spine className="mb-6 max-w-4xl text-[clamp(1.35rem,2.6vw,2.6rem)] font-semibold leading-snug tracking-[-0.015em]">
-              AI made building cheap. <span style={{ color: OURS }}>What got expensive was knowing what is true.</span>
-            </p>
-            <p className={`${TYPE.lede} max-w-3xl`}>
-              We built a real-time strategy game with coding agents, learned to check their work the hard way, and then asked whether an AI could play it.
-              Every number here comes from the project’s own logs and history.
-            </p>
-          </Reveal>
+          <div className="grid items-center gap-x-8 gap-y-6 lg:grid-cols-[minmax(0,1.25fr)_minmax(0,0.9fr)]">
+            <Reveal>
+              <div className={`${TYPE.kicker} mb-6`} style={{ color: OURS }}>One person · coding agents · one real-time strategy game</div>
+              <h1 className="mb-8 text-[clamp(2.75rem,6.3vw,6.75rem)] font-semibold leading-[0.92] tracking-[-0.05em]">Can an AI play<br />our game?</h1>
+              <p data-spine className="mb-6 max-w-4xl text-[clamp(1.3rem,2.2vw,2.3rem)] font-semibold leading-snug tracking-[-0.015em]">
+                AI made building cheap. <span style={{ color: OURS }}>What got expensive was knowing what is true.</span>
+              </p>
+              <p className={`${TYPE.lede} max-w-3xl`}>
+                We built a real-time strategy game with coding agents, learned to check their work the hard way, and then asked whether an AI could play it.
+                Every number here comes from the project’s own logs and history.
+              </p>
+            </Reveal>
+            <div data-hero-model className="mx-auto w-full max-w-[26rem] lg:max-w-none">
+              <UnitModel src={`${MEDIA}/models/qilin.glb`} poster={`${MEDIA}/models/qilin.jpg`} label="Our Qilin battle tank as a 3D model, turning slowly" className="aspect-[4/3] w-full" />
+              <p className="mt-1 text-center font-mono text-[11px] uppercase tracking-[0.22em] text-white/45">Our Qilin tank · a generated 3D model · drag to turn</p>
+            </div>
+          </div>
         </Wrap>
       </div>
       <div className="pb-8 md:pb-24">
@@ -347,7 +373,7 @@ function Hero() {
           </div>
           <div className="mt-5 flex items-center gap-2 text-[11px] uppercase tracking-[0.3em] text-white/45">
             <motion.span animate={{ y: [0, 5, 0] }} transition={{ duration: 1.6, repeat: Infinity, ease: "easeInOut" }} aria-hidden>↓</motion.span>
-            <span>Scroll to begin</span>
+            <span>Press Next, or scroll</span>
           </div>
         </Wrap>
       </div>
@@ -359,7 +385,7 @@ const cost = (b: (typeof R.brains)[number]) => (b.provider === "scripted" || b.p
 const speed = (b: (typeof R.brains)[number]) => (b.msPerTurn < 10 ? "under 0.01 s a turn" : `${(b.msPerTurn / 1000).toFixed(1)} s a turn`);
 
 function SixteenGames() {
-  const { ref, flat, step } = useSteps(R.brains.length + 1);
+  const { ref, flat, at, setAt, last } = useSteps(R.brains.length + 1);
   const rows: BoardRow[] = R.brains.map((b) => ({
     key: b.provider, label: b.name, sub: <>{b.what} · {cost(b)} · {speed(b)}</>, accent: b.provider === "scripted",
     games: b.games.map((list) => R.seeds.map((s) => list.find((g) => g.seed === s) ?? null)), total: b.wins, of: `of ${b.played}`,
@@ -375,22 +401,24 @@ function SixteenGames() {
             <p className={`${TYPE.lede} mt-4 max-w-3xl`}>Each plays our side against the game’s own AI, Normal to Brutal, on the same four starts: 16 games each.</p>
           </Reveal>
           <Reveal delay={0.1}>
-            <video src={`${MEDIA}/four-brains.mp4`} poster={`${MEDIA}/four-brains.jpg`} autoPlay muted loop playsInline className="mt-10 w-full rounded-2xl bg-black" />
+            <video src={`${MEDIA}/four-brains.mp4`} poster={`${MEDIA}/four-brains.jpg`} autoPlay muted loop playsInline className="mt-8 aspect-video rounded-2xl bg-black" style={{ width: "min(100%, calc((100svh - 12vh - 19rem) * 16 / 9))" }} />
             <p className="mt-3 text-sm text-muted">Brutal, start 1 (China): the four games side by side, clocks in step.</p>
           </Reveal>
         </Block>
       </Wrap>
-      <Pinned innerRef={ref} runway="300vh" flat={flat}>
-        <Wrap>
+      <Wrap className="py-[clamp(3rem,8vh,6rem)]">
+        <div ref={ref} data-stop="6" data-board="games" data-step={at}>
           <h3 className={`${TYPE.h3} mb-1`}>Same 16 games. Four brains.</h3>
-          <p className="mb-6 text-[clamp(0.95rem,1.15vw,1.15rem)] text-muted">{flat ? "Each row is one brain." : "Scroll: one brain at a time."}</p>
-          <Board rows={rows} seeds={R.seeds} shown={step + 1} />
+          <StepHint flat={flat} done={at >= last} onNext={() => setAt(Math.min(last, at + 1))} onAll={() => setAt(last)} what="brain" />
+          <StepArea flat={flat} done={at >= last} onNext={() => setAt(at + 1)}>
+            <Board rows={rows} seeds={R.seeds} shown={at + 1} />
+          </StepArea>
           <div className="mt-5"><Legend /></div>
-          <div className="mt-8 transition-opacity duration-500" style={{ opacity: step >= R.brains.length ? 1 : 0 }}>
+          <div className="mt-8 transition-opacity duration-500" style={{ opacity: at >= R.brains.length ? 1 : 0 }}>
             <Claim>The hype isn’t what you need. Plain rules won {oursWins}; the best model won {bestModel}.</Claim>
           </div>
-        </Wrap>
-      </Pinned>
+        </div>
+      </Wrap>
       <Wrap className="pb-[clamp(3.5rem,9vh,8rem)]">
         <Evidence>
           Real games in our AI Arena, {day(R.madeAt)} 2026, on the live web game{page ? ` (page ${page.page})` : ""}. Map {R.map}, mirror factions, starts 1–4 = China, Iran, Turkey, Saudi. The game pauses
@@ -408,35 +436,37 @@ function SixteenGames() {
 // The clips are cut by the talk folder's built-clips.sh. `where` is the address a visitor opens; each was opened
 // signed out on 12 Nov: the download needs no account, the others ask for the one free account.
 const BUILT_COUNT = { commits: 1520, signed: 942, day: "12 Nov 2026" };
-const BUILT: { key: string; name: string; line: string; where: string; href: string }[] = [
-  { key: "desktop", name: "Desktop game", line: "A Windows game with three games inside: Classic, RA2 and our own RTS.", where: "rtsai.net/download", href: "https://rtsai.net/download" },
-  { key: "web", name: "Web game", line: "The isometric game in a browser tab. Nothing to install.", where: "rtsai.net/play", href: "https://rtsai.net/play/" },
-  { key: "simulator", name: "Battle simulator", line: "Pick any two armies, drop them on a map and press Fight.", where: "rtsai.net/play › Battle simulator", href: "https://rtsai.net/play/?mode=simulator" },
-  { key: "places", name: "Real places", line: "Pick any place on Earth. It becomes a map you can play.", where: "rtsai.net/play › Map editor", href: "https://rtsai.net/play/?mode=earth" },
-  { key: "studio", name: "Faction Studio", line: "Where every unit is made and checked: design, 3D model, sprite, animation, sound, cost.", where: "rtsai.net/faction-studio", href: "https://rtsai.net/faction-studio" },
+// `open` is the label of the button that opens the real thing. The web parts open live in their own tab (they need
+// the one free account, and the game needs a browser tab of its own to run); the Windows game is a download.
+const BUILT: { key: string; name: string; line: string; where: string; href: string; open: string }[] = [
+  { key: "desktop", name: "Desktop game", line: "A Windows game with three games inside: Classic, RA2 and our own RTS.", where: "rtsai.net/download", href: "https://rtsai.net/download", open: "Get it for Windows" },
+  { key: "web", name: "Web game", line: "The isometric game in a browser tab. Nothing to install.", where: "rtsai.net/play", href: "https://rtsai.net/play/", open: "Play it live" },
+  { key: "simulator", name: "Battle simulator", line: "Pick any two armies, drop them on a map and press Fight.", where: "rtsai.net/play › Battle simulator", href: "https://rtsai.net/play/?mode=simulator", open: "Open it live" },
+  { key: "places", name: "Real places", line: "Pick any place on Earth. It becomes a map you can play.", where: "rtsai.net/play › Map editor", href: "https://rtsai.net/play/?mode=earth", open: "Open it live" },
+  { key: "studio", name: "Faction Studio", line: "Where every unit is made and checked: design, 3D model, sprite, animation, sound, cost.", where: "rtsai.net/faction-studio", href: "https://rtsai.net/faction-studio", open: "Open it live" },
 ];
 const WHERE_PILL = "rounded-full bg-black/70 px-3.5 py-1.5 font-mono text-[clamp(0.8rem,1.05vw,1.1rem)] font-semibold backdrop-blur-sm";
 
-// One thing at a time, big: the scroll steps through the five clips. Only the clip on screen plays.
+// One thing at a time, big. Click a name (or press Next) to change it; click the picture to open the real thing.
 function BuiltTour() {
-  const { ref, flat, step } = useSteps(BUILT.length - 1);
-  const at = Math.min(step, BUILT.length - 1);
+  const { ref, print, at, setAt } = useSteps(BUILT.length, true);
   const videos = useRef<(HTMLVideoElement | null)[]>([]);
   useEffect(() => {
-    if (flat) return;
+    if (print) return;
     videos.current.forEach((v, i) => {
       if (!v) return;
       if (i === at) { v.currentTime = 0; void v.play().catch(() => {}); } else v.pause();
     });
-  }, [at, flat]);
+  }, [at, print]);
+  const now = BUILT[at];
   return (
     <Part>
       <Wrap>
-        <Block className="pb-0">
-          <PartHead n="01" label="What we built" title="First, what we built." lede="Five things you can open today. All of it made with coding agents." />
+        <Block className="pb-[20vh]">
+          <PartHead n="01" label="What we built" title="First, what we built." lede="Five things you can open today. Click one, then click its picture to open the real thing." />
         </Block>
       </Wrap>
-      {flat ? (
+      {print ? (
         <Wrap className="py-12">
           <div className="grid gap-x-8 gap-y-12 md:grid-cols-2">
             {BUILT.map((b, i) => (
@@ -450,29 +480,33 @@ function BuiltTour() {
           </div>
         </Wrap>
       ) : (
-        <Pinned innerRef={ref} runway="340vh" flat={false}>
-          <Wrap>
-            <div className="flex flex-wrap gap-x-[clamp(1rem,2.4vw,2.5rem)] gap-y-1">
+        <Wrap className="pb-[18vh]">
+          <div ref={ref} data-stop="5" data-built-tour data-step={at}>
+            <div role="tablist" aria-label="What we built" className="flex flex-wrap gap-x-[clamp(0.4rem,1.2vw,1.25rem)] gap-y-2">
               {BUILT.map((b, i) => (
-                <span key={b.key} className="border-b-2 pb-1.5 text-[clamp(0.95rem,1.45vw,1.5rem)] font-semibold transition-colors duration-300"
-                  style={{ color: i === at ? OURS : "rgba(255,255,255,.42)", borderColor: i === at ? OURS : "transparent" }}>
+                <button key={b.key} type="button" role="tab" aria-selected={i === at} onClick={() => setAt(i)}
+                  className="rounded-full px-[clamp(0.7rem,1.2vw,1.2rem)] py-2 text-[clamp(0.9rem,1.35vw,1.4rem)] font-semibold transition-colors duration-200 hover:text-white"
+                  style={i === at ? { background: OURS, color: "#221a05" } : { color: "rgba(255,255,255,.55)", boxShadow: "inset 0 0 0 1px rgba(255,255,255,.14)" }}>
                   {b.name}
-                </span>
+                </button>
               ))}
             </div>
-            <div className="relative mt-5 aspect-video overflow-hidden rounded-2xl bg-black" style={{ width: "min(100%, calc((100svh - 19rem) * 16 / 9))" }}>
+            {/* The picture is the door: one click opens the real thing in its own tab. */}
+            <a href={now.href} target="_blank" rel="noreferrer" data-built-stage aria-label={`${now.open}: ${now.where}`}
+              className="group relative mt-5 block aspect-video overflow-hidden rounded-2xl bg-black ring-1 ring-white/10 transition hover:ring-2 hover:ring-[#F2C14E]"
+              style={{ width: "min(100%, calc((100svh - 5vh - 17rem) * 16 / 9))" }}>
               {BUILT.map((b, i) => (
                 <video key={b.key} ref={(el) => { videos.current[i] = el; }} src={`${MEDIA}/built-${b.key}.mp4`} poster={`${MEDIA}/built-${b.key}.jpg`} muted loop playsInline preload="metadata"
                   aria-hidden={i !== at} className="absolute inset-0 h-full w-full object-cover transition-opacity duration-500" style={{ opacity: i === at ? 1 : 0 }} />
               ))}
-              {/* Where to open the thing on screen: readable from the room, a link for whoever reads this page later. */}
-              <a href={BUILT[at].href} target="_blank" rel="noreferrer" data-built-where className={`${WHERE_PILL} absolute bottom-3 left-3 z-10`} style={{ color: OURS }}>
-                {BUILT[at].where} →
-              </a>
-            </div>
-            <p className="mt-4 min-h-[2.7em] max-w-4xl text-[clamp(1.15rem,2.3vw,2.2rem)] font-semibold leading-snug">{BUILT[at].line}</p>
-          </Wrap>
-        </Pinned>
+              <span data-built-where className={`${WHERE_PILL} absolute bottom-3 left-3 z-10`} style={{ color: OURS }}>{now.where}</span>
+              <span data-built-open className="absolute bottom-3 right-3 z-10 flex items-center gap-2 rounded-full px-[clamp(0.9rem,1.4vw,1.4rem)] py-2 text-[clamp(0.9rem,1.25vw,1.3rem)] font-bold shadow-lg transition group-hover:scale-105" style={{ background: OURS, color: "#221a05" }}>
+                {now.open} <span aria-hidden>↗</span>
+              </span>
+            </a>
+            <p className="mt-4 min-h-[2.7em] max-w-4xl text-[clamp(1.15rem,2.3vw,2.2rem)] font-semibold leading-snug">{now.line}</p>
+          </div>
+        </Wrap>
       )}
       <Wrap className="pb-[clamp(3.5rem,9vh,8rem)]">
         <Claim>All of it was built with coding agents. The web game was playable 8½ hours after its first commit. Building was not the hard part.</Claim>
@@ -480,7 +514,7 @@ function BuiltTour() {
           Counted on {BUILT_COUNT.day} with git log, merges left out: {num(BUILT_COUNT.commits)} commits in four repositories (game, web game, website, art);{" "}
           {num(BUILT_COUNT.signed)} are signed by Claude as co-author; Codex does not sign its commits, so its share is in the rest. On screen: screenshots of the
           1 Nov Windows release, the website’s trailer, the live web game filmed on 11 and 12 Nov, and the Faction Studio on our own machine. The web game:
-          first commit at 02:28 and a playable skirmish at 11:03 on 7 Oct.
+          first commit at 02:28 and a playable skirmish at 11:03 on 7 Oct. The live pages open in their own tab and ask for the one free account.
         </Evidence>
       </Wrap>
     </Part>
@@ -512,18 +546,48 @@ const RECEIPTS: { when: string; said: string; saidNote: string; had: string; had
     had: "9 of 15", hadNote: "checks failed, once the tank stood beside the original game’s tanks." },
 ];
 
+// Eight of the generated designs (cut from the art repository's review sheet of 4 Oct) and the 3D model each one got.
+// The models here are talk-sized copies: 10,000 of their 30,000 triangles and smaller textures, to load quickly.
+const MODELS: [string, string][] = [
+  ["qilin", "Qilin Battle Tank"], ["seadragon", "Sea Dragon IFV"], ["lynx", "Lynx Command Scout"], ["mantis", "Mantis Air Defense"],
+  ["longbow", "Longbow Rocket Artillery"], ["skyspear", "Skyspear Interceptor"], ["cloud", "Cloud Recon Drone"], ["crane", "Crane Airlift"],
+];
+
+// Click a design; its generated 3D model loads on the stage, and you can turn it. In print the designs stand alone.
+function ModelShelf() {
+  const [pick, setPick] = useState(0);
+  const [id, name] = MODELS[pick];
+  return (
+    <div data-stop="8" data-model-shelf className="mt-[22vh]">
+      <div className="relative overflow-hidden rounded-2xl bg-white/[0.035] ring-1 ring-white/10" style={{ height: "min(54vh, 36rem)" }}>
+        <UnitModel key={id} src={`${MEDIA}/models/${id}.glb`} poster={`${MEDIA}/models/${id}.jpg`} label={`${name}: the generated 3D model, turning slowly`} className="h-full w-full" />
+        <div className={`${TYPE.kicker} absolute left-5 top-4`} style={{ color: OURS }}>{name} · generated 3D model</div>
+        <div className="absolute bottom-3 right-5 font-mono text-[11px] uppercase tracking-[0.2em] text-white/45">Drag to turn</div>
+      </div>
+      <div className="mt-3 grid grid-cols-4 gap-2.5 sm:grid-cols-8">
+        {MODELS.map(([mid, mname], i) => (
+          <button key={mid} type="button" aria-pressed={i === pick} aria-label={`Show the 3D model of the ${mname}`} title={mname} onClick={() => setPick(i)}
+            className="overflow-hidden rounded-xl transition hover:opacity-100" style={{ boxShadow: `0 0 0 ${i === pick ? `3px ${OURS}` : "1px rgba(255,255,255,.12)"}`, opacity: i === pick ? 1 : 0.7 }}>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={`${MEDIA}/models/${mid}.jpg`} alt="" className="aspect-[4/3] w-full object-cover" />
+          </button>
+        ))}
+      </div>
+      <p className="mt-3 text-sm text-muted">
+        Eight of the 122 unit designs the agents generated on 4 Oct, and the 3D model each one got. Click a design, then turn its model. They looked finished.
+      </p>
+    </div>
+  );
+}
+
 function DonePart() {
   return (
     <Part id="done">
       <Wrap><Block>
         <PartHead n="02" label="The catch" title="It said done. It wasn’t."
           lede="Three reports from the agents. Every number in them was true. None of the three jobs was finished." />
-        <Reveal delay={0.1}>
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={`${MEDIA}/done-designs.jpg`} alt="Eight generated unit designs for one faction: a tank, a troop carrier, a scout car, an air-defence vehicle, rocket artillery, a jet, a drone and a helicopter" className="mt-10 w-full rounded-2xl" />
-          <p className="mt-3 text-sm text-muted">Eight of the 122 unit designs the agents generated on 4 Oct. Each also got a 3D model. They looked finished.</p>
-        </Reveal>
-        <div className="mt-12">
+        <ModelShelf />
+        <div data-stop="8" className="mt-[22vh]">
           {RECEIPTS.map((r, i) => (
             <Reveal key={r.said} delay={i * 0.08}>
               <div data-receipt className="grid items-start gap-x-6 gap-y-5 border-t border-border py-7 md:grid-cols-[minmax(0,1fr)_3rem_minmax(0,1fr)]">
@@ -654,11 +718,13 @@ function SelfPlayPart() {
       <Wrap><Block>
         <PartHead n="04" label="Self-play" title="Let the game play itself."
           lede="A 30-minute battle runs in about a minute with nobody watching. So the game played itself, thousands of times." />
-        <Reveal delay={0.1}>
-          <video data-bots src={`${MEDIA}/bots.mp4`} poster={`${MEDIA}/bots.jpg`} autoPlay muted loop playsInline preload="metadata" className="mt-10 aspect-video w-full rounded-2xl bg-black" />
-          <p className="mt-3 text-sm text-muted">AI against AI, 21 and 22 Oct: three of the 350 games. Nobody is playing.</p>
-        </Reveal>
-        <div className="mt-12 grid gap-x-8 gap-y-8 sm:grid-cols-3">
+        <div data-stop="5" className="mt-[18vh]">
+          <Reveal delay={0.1}>
+            <video data-bots src={`${MEDIA}/bots.mp4`} poster={`${MEDIA}/bots.jpg`} autoPlay muted loop playsInline preload="metadata" className="aspect-video rounded-2xl bg-black" style={{ width: "min(100%, calc((100svh - 5vh - 10rem) * 16 / 9))" }} />
+            <p className="mt-3 text-sm text-muted">AI against AI, 21 and 22 Oct: three of the 350 games. Nobody is playing.</p>
+          </Reveal>
+        </div>
+        <div data-stop className="mt-[18vh] grid gap-x-8 gap-y-8 sm:grid-cols-3">
           {SELF_PLAY.map(([n, t], i) => (
             <Reveal key={t} delay={i * 0.08}>
               <div className="border-t-2 border-border pt-4">
@@ -668,7 +734,7 @@ function SelfPlayPart() {
             </Reveal>
           ))}
         </div>
-        <h3 className={`${TYPE.h3} mb-6 mt-20`}>Three of the seven</h3>
+        <h3 className={`${TYPE.h3} mb-6 mt-[9vh]`}>Three of the seven</h3>
         <div className="grid gap-0">
           {SELF_BUGS.map(([n, t]) => (
             <div key={n} className="grid items-baseline gap-x-8 gap-y-1 border-t border-border py-5 md:grid-cols-[minmax(0,17rem)_1fr]">
@@ -739,8 +805,8 @@ const ruleRow = (r: RuleRow): BoardRow => ({
 });
 
 function Switches() {
-  const { ref, flat, step } = useSteps(RL.flags.rows.length + 1);
-  const ringed = new Set(step >= RL.flags.rows.length ? RL.together.flatMap((t) => ["counters", "hunt", "both"].map((k) => `${k}|${t.opponent}|${t.seed}`)) : []);
+  const { ref, flat, at, setAt, last } = useSteps(RL.flags.rows.length + 1);
+  const ringed = new Set(at >= RL.flags.rows.length ? RL.together.flatMap((t) => ["counters", "hunt", "both"].map((k) => `${k}|${t.opponent}|${t.seed}`)) : []);
   return (
     <Part>
       <Wrap><Block className="pb-0">
@@ -750,16 +816,18 @@ function Switches() {
           rule had hurt. So each idea became one switch, tested on the same 16 games.
         </p>
       </Block></Wrap>
-      <Pinned innerRef={ref} runway="320vh" flat={flat}>
-        <Wrap>
+      <Wrap className="pb-[clamp(2rem,5vh,4rem)] pt-[22vh]">
+        <div ref={ref} data-stop="2" data-board="switches" data-step={at}>
           <h3 className={`${TYPE.h3} mb-1`}>One switch at a time, the same 16 games</h3>
-          <p className="mb-6 text-[clamp(0.95rem,1.15vw,1.15rem)] text-muted">24 Oct. Each row is the rules with one switch on.{flat ? "" : " Scroll: one switch at a time."}</p>
-          <Board rows={RL.flags.rows.map(ruleRow)} seeds={RL.flags.seeds} shown={step + 1} ringed={ringed} />
-          <p className="mt-6 text-[clamp(1.1rem,1.8vw,1.75rem)] font-semibold transition-opacity duration-500" style={{ color: OURS, opacity: step >= RL.flags.rows.length ? 1 : 0 }}>
+          <StepHint flat={flat} done={at >= last} onNext={() => setAt(Math.min(last, at + 1))} onAll={() => setAt(last)} what="switch" />
+          <StepArea flat={flat} done={at >= last} onNext={() => setAt(at + 1)}>
+            <Board rows={RL.flags.rows.map(ruleRow)} seeds={RL.flags.seeds} shown={at + 1} ringed={ringed} />
+          </StepArea>
+          <p className="mt-4 text-[clamp(1.05rem,1.7vw,1.75rem)] font-semibold transition-opacity duration-500" style={{ color: OURS, opacity: at >= RL.flags.rows.length ? 1 : 0 }}>
             Each switch alone lost the ringed games. Together they won {RL.together.length === 2 ? "both" : "them all"}.
           </p>
-        </Wrap>
-      </Pinned>
+        </div>
+      </Wrap>
       <Wrap><Block className="pt-6">
         <Claim>Our rules aren’t clever. They were tested, one switch at a time.</Claim>
         <p data-caution className="mt-8 max-w-4xl text-[clamp(1rem,1.3vw,1.35rem)] leading-relaxed text-muted">
@@ -794,8 +862,8 @@ function Twist() {
             <span className="text-xl text-muted" aria-hidden>↺</span>
           </div>
         </Reveal>
-        <div className="mt-20 max-w-5xl">
-          <ScrollRevealText mode="word" scrub className={`${TYPE.h2} text-white`}>
+        <div data-stop className="mt-[26vh] max-w-5xl pb-[10vh]">
+          <ScrollRevealText mode="word" stagger={0.09} className={`${TYPE.h2} text-white`}>
             The AI that wins isn’t the one playing. It’s the one that wrote the player.
           </ScrollRevealText>
         </div>
@@ -941,7 +1009,7 @@ function HomePart() {
     <Part id="home">
       <Wrap><Block className="md:pb-36">
         <PartHead n="07" label="Take it home" title="Four things to try on Monday." />
-        <div className="mt-12 grid gap-x-10 gap-y-10 md:grid-cols-2">
+        <div data-nostop className="mt-12 grid gap-x-10 gap-y-10 md:grid-cols-2">
           {tips.map(([h, n, b], i) => (
             <Reveal key={h} delay={i * 0.08}>
               <div className="border-t border-border pt-5">
@@ -953,7 +1021,7 @@ function HomePart() {
             </Reveal>
           ))}
         </div>
-        <div className="mt-20" data-try-it>
+        <div className="mt-[22vh]" data-try-it data-stop data-nostop>
           <div className={`${TYPE.kicker}`} style={{ color: OURS }}>Try it tonight</div>
           <div className="mt-5 grid gap-x-10 gap-y-8 md:grid-cols-3">
             {TRY.map(([what, where, href, note]) => (
@@ -988,6 +1056,7 @@ export default function CanAnAiPlay() {
     <main className={`relative bg-background ${print ? "print-mode" : ""}`}>
       <ScrollProgress />
       <ChapterNav chapters={CHAPTERS} />
+      <DeckNext accent={OURS} />
       {/* On a phone the timer and controls would sit on the words: they show from 768 px. */}
       <div className="hidden md:block">
         <DeckControls />
