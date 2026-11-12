@@ -24,11 +24,11 @@ export const presentations: PresentationMeta[] = [
   {
     slug: "can-an-ai-play",
     title: "Can an AI Play Our Game?",
-    subtitle: "Four brains, the same 16 games, and who really won",
+    subtitle: "What building a game with coding agents taught us, and who really won",
     author: "Ali Badereddin",
     date: "November 16, 2026",
     description:
-      "The AI Tinkerers Doha Round 5 talk: three AI models and a page of rules play the same real-time strategy games. Why the rules won, how they got good one switch at a time, where models do help, and who wrote the rules.",
+      "The AI Tinkerers Doha Round 5 talk: a real-time strategy game built with coding agents. What they reported against what was true, the rulers that told us, and what happened when three AI models and a page of rules played the game.",
     type: "scroll",
     accentColor: "#F2C14E",
     customer: "Human Quest",

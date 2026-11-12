@@ -3,15 +3,20 @@
 /*
  * "Can an AI play our game?" — the AI Tinkerers Doha Round 5 talk (Monday 16 Nov 2026, 15 minutes), as a scroll story.
  *
- * Seven parts, one arc (rebuilt 10 Nov 2026 from ten chapters: the owner found the old one wandered, changed theme from
- * chapter to chapter and didn't fit a laptop window; 12 Nov: the owner missed the product itself, so it now opens on it):
- *   built  What we built: the desktop game, the web game, the battle simulator, real-place maps, the Faction Studio.
- *   bet    The bet: three AI models and a page of plain rules play the same 16 games. The first win, then the board.
- *   loop   How it plays: one loop, and one function decides who plays.
- *   why    Why the models lost: they did what we told them ("Economy first"); better advice fixed only the easy games.
- *   rules  How the rules got good: one switch at a time.
- *   who    The twist: who wrote the rules.
- *   home   Take it home: four tips, each with its number (the voice-order bench is tip 4).
+ * One line: AI made building cheap. What got expensive was knowing what is true.
+ *
+ * Seven parts (rebuilt 12 Nov 2026 from the full history of the project, on the owner's ask: the talk had told only the
+ * "models against rules" experiment and showed none of the product or of what building it with agents was like):
+ *   built     What we built: the desktop game, the web game, the battle simulator, real-place maps, the Faction Studio.
+ *   done      It said done. It wasn't: three reports whose numbers were true while the job was not finished.
+ *   ruler     Give it a ruler: generated art beside the original game's; then check the ruler itself.
+ *   selfplay  Let the game play itself: thousands of bot games, and the bugs only they found.
+ *   play      So: can an AI play it? Three models and a page of rules on the same 16 games; why; one switch at a
+ *             time; who wrote the rules. (The experiment that used to be five parts.)
+ *   human     What no ruler catches: taste and attention, and what the owner built for themself.
+ *   home      Take it home: four tips, each with its number, and where to play tonight.
+ *
+ * The new parts' numbers are constants beside each part, each with its source file or commit in a comment.
  *
  * One theme throughout: the dark ground, one gold accent for our rules, grey for the models, green/red only for won/lost.
  * One type family (sans) for words; mono only for code and small labels. Every part reflows from a phone to a projector:
@@ -20,14 +25,14 @@
  * Every number comes from ./data/can-an-ai-play.json: real games in the RTS AI Arena, the voice-order bench and the
  * git history of the rules, exported by tools/to-openstage.mjs from the talk folder
  * (D:\Generated\RTSAI\talk-brains-match-up-20261104 on the owner's PC). Change the data there and export again.
- * The imagery is the game's own replay footage, not generated art: the talk is about what really happened.
+ * The imagery is real: the game's own footage, the project's own art, and the agents' generated designs shown as
+ * evidence. Pictures that are only the original game's sprites stay out (the project keeps them out of its repos).
  */
 
 import { Fragment, useEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import { motion, useMotionValueEvent } from "framer-motion";
 import { QRCodeSVG } from "qrcode.react";
-import { Reveal, StaggerChildren, StaggerItem, ScrollProgress, Spectrum, ScrollRevealText, useSectionProgress } from "@/components/animations";
-import { AnimatedTimeline } from "@/components/charts";
+import { Reveal, ScrollProgress, ScrollRevealText, useSectionProgress } from "@/components/animations";
 import { ChapterNav } from "@/components/chapter-nav";
 import { DeckControls } from "@/components/deck-controls";
 import { PresentationTimer } from "@/components/presentation-timer";
@@ -44,22 +49,22 @@ const TAGLINE = "Read · Switch · Play · Keep · Repeat";
 
 const CHAPTERS = [
   { id: "built", label: "Built", dark: true },
-  { id: "bet", label: "Bet", dark: true },
-  { id: "loop", label: "Loop", dark: true },
-  { id: "why", label: "Why", dark: true },
-  { id: "rules", label: "Rules", dark: true },
-  { id: "who", label: "Twist", dark: true },
+  { id: "done", label: "Done?", dark: true },
+  { id: "ruler", label: "Ruler", dark: true },
+  { id: "selfplay", label: "Self-play", dark: true },
+  { id: "play", label: "Play", dark: true },
+  { id: "human", label: "Human", dark: true },
   { id: "home", label: "Home", dark: true },
 ] as const;
 
-// The 15-minute slot, per part.
+// The 15-minute slot, per part: 14 minutes planned.
 const BUDGET = [
   { id: "built", label: "What we built", minutes: 2 },
-  { id: "bet", label: "The bet", minutes: 2.5 },
-  { id: "loop", label: "How it plays", minutes: 1.5 },
-  { id: "why", label: "Why", minutes: 2.5 },
-  { id: "rules", label: "Rules", minutes: 2.5 },
-  { id: "who", label: "Twist", minutes: 1.5 },
+  { id: "done", label: "It said done", minutes: 1.5 },
+  { id: "ruler", label: "The ruler", minutes: 2 },
+  { id: "selfplay", label: "Self-play", minutes: 1.5 },
+  { id: "play", label: "Can an AI play it?", minutes: 3.5 },
+  { id: "human", label: "The human", minutes: 2 },
   { id: "home", label: "Home", minutes: 1.5 },
 ];
 
@@ -70,27 +75,15 @@ const WORD: Record<string, string> = { win: "won", loss: "lost", draw: "draw", s
 const FACTION: Record<number, string> = { 1000: "China", 1001: "Iran", 1002: "Turkey", 1003: "Saudi" };
 
 const num = (n: number) => n.toLocaleString("en");
-const cap = (s: string) => s[0].toUpperCase() + s.slice(1);
 const mmss = (s: number) => `${Math.floor(s / 60)}:${String(Math.round(s % 60)).padStart(2, "0")}`;
 const clock = (min: number) => mmss(Math.round(min * 60));
-const clockT = (tick: number) => mmss(Math.floor(tick / 25));
 const day = (iso: string) => new Date(iso).toLocaleDateString("en-GB", { day: "numeric", month: "short", timeZone: "UTC" });
-const pct = (p: number) => (p >= 0.995 && p < 1 ? `${(p * 100).toFixed(1)} %` : p > 0 && p < 0.01 ? "<1 %" : `${Math.round(p * 100)} %`);
 
 const R = data.results;
 const W = data.why;
-const T = data.turn;
 const P = data.prompt;
 const RL = data.rules;
 const H = data.help;
-const O = data.open;
-const CODE = data.code;
-const lineOf = (k: keyof typeof CODE) => {
-  const v = CODE[k];
-  return typeof v === "object" && v && "line" in v ? v.line : "?";
-};
-const jev = T.brains.find((b) => b.provider !== "scripted")!;
-const oursTurn = T.brains.find((b) => b.provider === "scripted")!;
 const ev = (k: string) => RL.evening.rows.find((r) => r.key === k)!;
 const fl = (k: string) => RL.flags.rows.find((r) => r.key === k)!;
 const run = (k: string) => H.runs.find((r) => r.key === k)!;
@@ -166,36 +159,6 @@ function Claim({ children }: { children: ReactNode }) {
 
 function Evidence({ children }: { children: ReactNode }) {
   return <p className="mt-5 max-w-5xl text-[clamp(0.8rem,0.95vw,0.95rem)] leading-relaxed text-muted">{children}</p>;
-}
-
-// The code on screen is the real code, cut with "…". It wraps on a phone and scrolls sideways nowhere.
-const TOKENS = /(\/\/.*$)|("(?:[^"\\]|\\.)*")(?=\s*:)|("(?:[^"\\]|\\.)*")|\b(export|async|function|const|return|if|true|false)\b|(\b\d+(?:\.\d+)?\b)/g;
-const TOKEN_COLOR = [GREY, LIGHT, "#d8b37a", "#9fb7d6", OURS];
-function Code({ src, marks = [], where }: { src: string; marks?: number[]; where?: ReactNode }) {
-  return (
-    <div className="overflow-hidden rounded-xl border border-white/10 bg-[#0b0605]">
-      {where && <div className="border-b border-white/10 px-4 py-2.5 font-mono text-[clamp(0.68rem,0.85vw,0.8rem)] text-white/50">{where}</div>}
-      <pre className="py-3 font-mono text-[clamp(0.72rem,1.12vw,1.1rem)] leading-[1.6] text-[#f0efec]">
-        {src.split("\n").map((line, i) => {
-          const parts: ReactNode[] = [];
-          let at = 0;
-          for (const m of line.matchAll(TOKENS)) {
-            const kind = [1, 2, 3, 4, 5].findIndex((g) => m[g] !== undefined);
-            parts.push(line.slice(at, m.index), <span key={m.index} style={{ color: TOKEN_COLOR[kind] }}>{m[0]}</span>);
-            at = (m.index ?? 0) + m[0].length;
-          }
-          parts.push(line.slice(at));
-          const hl = marks.includes(i);
-          return (
-            <span key={i} className="block whitespace-pre-wrap break-words px-4 lg:whitespace-pre lg:break-normal"
-              style={{ borderLeft: `3px solid ${hl ? OURS : "transparent"}`, background: hl ? "rgba(242,193,78,.12)" : undefined }}>
-              {line ? parts : " "}
-            </span>
-          );
-        })}
-      </pre>
-    </div>
-  );
 }
 
 /* ─── The game boards ───────────────────────────────────────────────────── */
@@ -346,7 +309,7 @@ function Bars({ items, max }: { items: { label: string; value: number; display: 
 
 /* ─── The title, and the first win (part 02) ──────────────────────────────────────────────────────── */
 
-const PARTS = ["What we built", "The bet", "How it plays", "Why the models lost", "How the rules got good", "The twist", "Take it home"];
+const PARTS = ["What we built", "It said done", "Give it a ruler", "The game plays itself", "Can an AI play it?", "What no ruler catches", "Take it home"];
 
 function Hero() {
   return (
@@ -360,24 +323,19 @@ function Hero() {
       <div className="flex flex-1 items-center py-12">
         <Wrap>
           <Reveal>
-            <div className={`${TYPE.kicker} mb-6`} style={{ color: OURS }}>Four brains · the same sixteen games</div>
+            <div className={`${TYPE.kicker} mb-6`} style={{ color: OURS }}>One person · coding agents · one real-time strategy game</div>
             <h1 className={`${TYPE.h1} mb-8`}>Can an AI play<br />our game?</h1>
-            <p className={`${TYPE.lede} mb-10 max-w-3xl`}>
-              We built a real-time strategy game with coding agents. Then three AI models and a page of plain rules each played the
-              same 16 games. Every game was really played; every number comes from its log.
+            <p data-spine className="mb-6 max-w-4xl text-[clamp(1.35rem,2.6vw,2.6rem)] font-semibold leading-snug tracking-[-0.015em]">
+              AI made building cheap. <span style={{ color: OURS }}>What got expensive was knowing what is true.</span>
             </p>
-            <div className="flex flex-wrap gap-2.5">
-              {R.brains.map((b) => (
-                <span key={b.name} className="rounded-full border px-4 py-2 text-[clamp(0.9rem,1.1vw,1.1rem)] font-semibold"
-                  style={b.provider === "scripted" ? { borderColor: OURS, color: OURS } : { borderColor: "rgba(255,255,255,.18)" }}>
-                  {b.name}
-                </span>
-              ))}
-            </div>
+            <p className={`${TYPE.lede} max-w-3xl`}>
+              We built a real-time strategy game with coding agents, learned to check their work the hard way, and then asked whether an AI could play it.
+              Every number here comes from the project’s own logs and history.
+            </p>
           </Reveal>
         </Wrap>
       </div>
-      <div className="pb-8">
+      <div className="pb-8 md:pb-24">
         <Wrap>
           <div className="grid grid-cols-2 gap-x-6 gap-y-3 border-t border-white/10 pt-5 md:grid-cols-4 xl:grid-cols-7">
             {PARTS.map((p, i) => (
@@ -394,82 +352,6 @@ function Hero() {
         </Wrap>
       </div>
     </section>
-  );
-}
-
-// The reader's scroll is the game clock. Captions sit under the film, never over the game.
-function FirstWin() {
-  const { ref, progress, print } = useSectionProgress(["start start", "end end"]);
-  const video = useRef<HTMLVideoElement>(null);
-  const raf = useRef(0);
-  const [caption, setCaption] = useState(0);
-  useMotionValueEvent(progress, "change", (v) => {
-    setCaption(v < 0.25 ? 0 : v < 0.53 ? 1 : v < 0.86 ? 2 : 3);
-    cancelAnimationFrame(raf.current);
-    raf.current = requestAnimationFrame(() => {
-      const el = video.current;
-      if (el && el.duration && isFinite(el.duration)) el.currentTime = Math.min(el.duration - 0.04, v * el.duration);
-    });
-  });
-  const g = O.game;
-  const captions: [string, ReactNode][] = [
-    [`${day(g.finishedAt)} · our AI Arena`, <>Our side plays {cap(g.ours)}. The enemy is Brutal, the game’s hardest AI: it attacks early, with 15,000 extra credits.</>],
-    ["Before this game", <>{O.brutalBefore.finished} games against Brutal. Not one won, by any brain.</>],
-    ["Your scroll is the clock", <>Eighteen minutes of play: the army builds, pushes out, and finds the enemy base.</>],
-    [`${mmss(g.gameSeconds)} of play`, <>Won. The first time our side ever beat Brutal.</>],
-  ];
-  const stats: [string, string][] = [
-    [mmss(g.gameSeconds), "game time to win"],
-    [num(g.theyLost), `what Brutal lost, in credits; we lost ${num(g.weLost)}`],
-    [String(g.buildingsDestroyed), `enemy buildings destroyed; we lost ${g.ourBuildingsLost || "none"}`],
-    [`${O.brutalBefore.won} of ${O.brutalBefore.finished}`, "Brutal games won before this one, by any brain"],
-  ];
-  return (
-    <>
-      {print ? (
-        <Part><Wrap className="py-12">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={`${MEDIA}/frame-final-attack.jpg`} alt="The final attack on the enemy base, from the game's replay" className="w-full rounded-2xl" />
-        </Wrap></Part>
-      ) : (
-        <div ref={ref} className="slide-dark relative bg-black text-white" style={{ height: "380vh" }}>
-          <div className="sticky top-0 flex h-[100svh] w-full flex-col justify-center overflow-hidden">
-            <div className="relative aspect-video w-full shrink-0 md:aspect-auto md:min-h-0 md:flex-1">
-              <video ref={video} src={`${MEDIA}/cold-open-scrub.mp4`} poster={`${MEDIA}/cold-open-start.jpg`} muted playsInline preload="auto" className="absolute inset-0 h-full w-full object-contain" />
-            </div>
-            <div className="relative h-[clamp(9rem,28vh,16rem)] shrink-0 border-t border-white/10 bg-background">
-              {captions.map(([k, t], i) => (
-                <div key={k} className="absolute inset-0 flex items-center transition-all duration-500 md:bottom-20" style={{ opacity: caption === i ? 1 : 0, transform: `translateY(${caption === i ? 0 : 12}px)` }} aria-hidden={caption !== i}>
-                  <Wrap>
-                    <div className={`${TYPE.kicker} mb-2`} style={{ color: OURS }}>{k}</div>
-                    <p className="max-w-4xl text-[clamp(1.15rem,2.3vw,2.2rem)] font-semibold leading-snug">{t}</p>
-                  </Wrap>
-                </div>
-              ))}
-            </div>
-            <motion.div className="absolute bottom-0 left-0 h-1 w-full origin-left" style={{ scaleX: progress, background: OURS }} />
-          </div>
-        </div>
-      )}
-      <Part>
-        <Wrap><Block>
-          <div className="grid grid-cols-2 gap-x-6 gap-y-10 xl:grid-cols-4">
-            {stats.map(([b, t], i) => (
-              <Reveal key={t} delay={i * 0.08}>
-                <div className="border-t-2 border-border pt-4">
-                  <b className={`${TYPE.big} block`}>{b}</b>
-                  <span className="mt-3 block text-[clamp(0.9rem,1.1vw,1.1rem)] leading-snug text-muted">{t}</span>
-                </div>
-              </Reveal>
-            ))}
-          </div>
-          <div className="mt-14"><Claim>The first win over Brutal didn’t come from the smartest brain we had. Hold that thought.</Claim></div>
-          <Evidence>
-            Arena game {g.id} · map {g.map}, start {g.seed - 999} ({cap(g.ours)} against {cap(g.theirs)}), speed {g.speed}: {mmss(g.gameSeconds)} of play in {mmss(g.wallSeconds)}. The film is the game’s own replay.
-          </Evidence>
-        </Block></Wrap>
-      </Part>
-    </>
   );
 }
 
@@ -593,11 +475,12 @@ function BuiltTour() {
         </Pinned>
       )}
       <Wrap className="pb-[clamp(3.5rem,9vh,8rem)]">
-        <Claim>We built all of this with coding agents. So the next question was obvious: can an AI also play it?</Claim>
+        <Claim>All of it was built with coding agents. The web game was playable 8½ hours after its first commit. Building was not the hard part.</Claim>
         <Evidence>
           Counted on {BUILT_COUNT.day} with git log, merges left out: {num(BUILT_COUNT.commits)} commits in four repositories (game, web game, website, art);{" "}
           {num(BUILT_COUNT.signed)} are signed by Claude as co-author; Codex does not sign its commits, so its share is in the rest. On screen: screenshots of the
-          1 Nov Windows release, the website’s trailer, the live web game filmed on 11 and 12 Nov, and the Faction Studio on our own machine.
+          1 Nov Windows release, the website’s trailer, the live web game filmed on 11 and 12 Nov, and the Faction Studio on our own machine. The web game:
+          first commit at 02:28 and a playable skirmish at 11:03 on 7 Oct.
         </Evidence>
       </Wrap>
     </Part>
@@ -613,243 +496,241 @@ function BuiltPart() {
   );
 }
 
-/* ─── 02 · The bet ──────────────────────────────────────────────────────── */
+/* ─── 02 · It said done. It wasn't. ─────────────────────────────────────── */
 
-function BetPart() {
+// What an agent reported, and what was really there. Each pair read from its source on 12 Nov 2026:
+//   models  hq/games/HANDOFF-claude-2026-10-05.md: "122 / 122 GLB jobs"; new native exports "0 VXL, 0 HVA, 0 SHP"; clips "0 / 0".
+//   tests   hq/games/artifacts/quality-check-20261025/CHECK.md: 77 scripts, 24 pass, 51 not run, 7 named as out of date.
+//   score   RTSAI-Art README (pilot, 3 Oct): Qilin voxel-v2 scored 81.5 against a bar of 70;
+//           RTSAI-Art docs/original-vs-generated.md: the same tank failed 9 of 15 checks beside the original game's vehicles.
+const RECEIPTS: { when: string; said: string; saidNote: string; had: string; hadNote: string }[] = [
+  { when: "5 Oct", said: "122 of 122", saidNote: "3D models generated, one for every new unit",
+    had: "0", hadNote: "in the game. None was converted to the game’s own format, and none could move." },
+  { when: "25 Oct", said: "77", saidNote: "test scripts written for the web game",
+    had: "24", hadNote: "ran and passed. 51 had not been run, and 7 waited for buttons that no longer existed." },
+  { when: "3 Oct", said: "81.5 of 100", saidNote: "the art pipeline’s score for its own tank (pass mark 70)",
+    had: "9 of 15", hadNote: "checks failed, once the tank stood beside the original game’s tanks." },
+];
+
+function DonePart() {
   return (
-    <div id="bet">
-      <Part>
-        <Wrap>
-          <Block>
-            <PartHead n="02" label="The bet" title="So: can an AI play it?"
-              lede="Three AI models and one page of plain rules, each against the game’s own AI. First, how one of those games ended." />
-          </Block>
-        </Wrap>
-      </Part>
-      <FirstWin />
-      <SixteenGames />
-    </div>
+    <Part id="done">
+      <Wrap><Block>
+        <PartHead n="02" label="The catch" title="It said done. It wasn’t."
+          lede="Three reports from the agents. Every number in them was true. None of the three jobs was finished." />
+        <Reveal delay={0.1}>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={`${MEDIA}/done-designs.jpg`} alt="Eight generated unit designs for one faction: a tank, a troop carrier, a scout car, an air-defence vehicle, rocket artillery, a jet, a drone and a helicopter" className="mt-10 w-full rounded-2xl" />
+          <p className="mt-3 text-sm text-muted">Eight of the 122 unit designs the agents generated on 4 Oct. Each also got a 3D model. They looked finished.</p>
+        </Reveal>
+        <div className="mt-12">
+          {RECEIPTS.map((r, i) => (
+            <Reveal key={r.said} delay={i * 0.08}>
+              <div data-receipt className="grid items-start gap-x-6 gap-y-5 border-t border-border py-7 md:grid-cols-[minmax(0,1fr)_3rem_minmax(0,1fr)]">
+                <div>
+                  <div className={`${TYPE.kicker} mb-3 text-white/50`}>{r.when} · the report</div>
+                  <b className={`${TYPE.big} block`} style={{ color: LIGHT }}>{r.said}</b>
+                  <span className="mt-3 block max-w-md text-[clamp(0.95rem,1.2vw,1.25rem)] leading-snug text-muted">{r.saidNote}</span>
+                </div>
+                <div className="hidden pt-9 text-3xl text-muted md:block" aria-hidden>→</div>
+                <div>
+                  <div className={`${TYPE.kicker} mb-3`} style={{ color: OURS }}>What was there</div>
+                  <b className={`${TYPE.big} block`} style={{ color: OURS }}>{r.had}</b>
+                  <span className="mt-3 block max-w-md text-[clamp(0.95rem,1.2vw,1.25rem)] leading-snug">{r.hadNote}</span>
+                </div>
+              </div>
+            </Reveal>
+          ))}
+        </div>
+        <div className="mt-10"><Claim>An agent counts what it made. I had to look at what I got.</Claim></div>
+        <Evidence>
+          Models: the 5 Oct handoff note between agents (122 of 122 model jobs; 0 exports to the game’s formats; 0 animations). Tests: the 25 Oct check of
+          the web game’s tools folder. Score: the art pipeline’s own gate on its pilot tank, 3 Oct, and the comparison written the same day.
+        </Evidence>
+      </Block></Wrap>
+    </Part>
   );
 }
 
-/* ─── 03 · How it plays ─────────────────────────────────────────────────── */
+/* ─── 03 · Give it a ruler ──────────────────────────────────────────────── */
 
-const NODES: { t: string; d: string; e?: string; chips?: boolean; c: string }[] = [
-  { t: "The live game", d: "The same page as rtsai.net/play, against the game’s own AI", c: "window.game" },
-  { t: "What a player sees", d: "Our side only: the fog of war hides the rest", e: "credits, buildings, units, enemies in sight", c: "adviserObserve()" },
-  { t: "Closed questions", d: "Only what is possible now, plus Wait", e: "“Which building should we start next?”", c: "plan()" },
-  { t: "A brain picks", d: "", chips: true, c: "decide()" },
-  { t: "Player orders", d: "What a click would send; the replay plays them back", e: "build · gapile", c: "adviserExecute()" },
+// The ruler was the original game: 15 measured checks against its own vehicles (RTSAI-Art docs/original-vs-generated.md,
+// 3 Oct). A prototype that changed only the light, the scale and the palette went from 9 failed checks to 0.
+// Icons, against the original game's build-menu icons: RTSAI-Art a305e23e (image-model icons 0 of 122; first renders 76),
+// 7f56f859 (120), e5e0e8d1 (122 of 122), 5 and 6 Oct.
+// The ruler's own faults: RTSAI-Art docs/sprite-vs-voxel.md (previews drew 0.63 px per voxel, the engine draws 1.267);
+// RTSAI-Mod 1e0a5e0 and 31912c4 (3 Oct: unfair duel lines; 8-0 became 4-4 and 3-5); RTSAI-WebGame bb7e949 (4 Nov).
+const ICONS = [
+  { label: "Painted by an image model", value: 0, display: "0 of 122 pass" },
+  { label: "Rendered from the unit’s own 3D model", value: 76, display: "76" },
+  { label: "Second pass", value: 120, display: "120" },
+  { label: "Third pass", value: 122, display: "122 of 122", ours: true },
+];
+const RULER_FAULTS: [string, string][] = [
+  ["The preview drew every unit at half size", "0.63 pixels per block, where the game draws 1.27. The first art was judged at the wrong size."],
+  ["The duel test was unfair", "One side always started on the same line. Once that was fixed, an 8–0 became 4–4 and another became 3–5."],
+  ["A model that never answered", "Two local models spent their whole answer thinking, so every turn quietly fell back to our rules."],
 ];
 
-const CALLS: Record<string, [string, string]> = {
-  jev: ["POST /v1/systemone", "typesafe/jev-1.13, through OpenRouter"],
-  openai: ["POST /v1/decisions", "gpt-6-luna, one choice question each"],
-  local: ["POST /v1/chat/completions", "Ollama on our own GPU"],
-  scripted: ["scriptedAnswers()", "plain code, same process, no network"],
-};
-
-function LoopPart() {
-  const luna = R.brains.find((b) => b.provider === "openai");
-  const facts: [string, string][] = [
-    ["The game pauses while a model thinks", "so a slow answer never loses on speed"],
-    ["No answer? Our rules play that turn", `flagged in the log: Luna, ${luna?.fallbacks} of ${num(luna?.turns ?? 0)} turns`],
-    ["Every turn is written down", "the question, each option’s probability, the orders sent"],
-  ];
+function RulerPart() {
+  const strip = "w-full rounded-xl [image-rendering:pixelated]";
   return (
-    <Part id="loop">
+    <Part id="ruler">
       <Wrap><Block>
-        <PartHead n="03" label="How it plays" title="One loop for every brain. Only the brain changes."
-          lede="Every 2 game seconds: what to build next. Every 5: what the army does." />
-        <StaggerChildren staggerDelay={0.1} className="mt-12 flex flex-col gap-1 xl:flex-row xl:items-stretch xl:gap-0">
-          {NODES.map((n, i) => (
-            <Fragment key={n.t}>
-              {i > 0 && (
-                <StaggerItem className="flex items-center justify-center text-2xl text-muted xl:px-2">
-                  <span className="xl:hidden" aria-hidden>↓</span><span className="hidden xl:inline" aria-hidden>→</span>
-                </StaggerItem>
-              )}
-              <StaggerItem className="flex-1">
-                <div className="flex h-full flex-col rounded-xl border bg-white/[0.03] p-4" style={{ borderColor: n.chips ? OURS : "var(--color-border)" }}>
-                  <b className="text-[clamp(1.05rem,1.3vw,1.35rem)] leading-tight">{n.t}</b>
-                  {n.d && <span className="mt-1.5 text-sm leading-snug text-muted">{n.d}</span>}
-                  {n.e && <span className="mt-2 text-sm leading-snug">{n.e}</span>}
-                  {n.chips && (
-                    <div className="mt-2 grid grid-cols-2 gap-1.5 xl:grid-cols-1">
-                      {R.brains.map((b) => (
-                        <span key={b.name} className="rounded-md border px-2.5 py-1 text-sm font-semibold"
-                          style={b.provider === "scripted" ? { borderColor: OURS, color: OURS } : { borderColor: "var(--color-border)" }}>{b.name}</span>
-                      ))}
-                    </div>
-                  )}
-                  <code className="mt-auto pt-3 font-mono text-xs" style={{ color: OURS }}>{n.c}</code>
-                </div>
-              </StaggerItem>
-            </Fragment>
-          ))}
-        </StaggerChildren>
-        <p className="mt-3 text-sm text-muted">↺ The orders go back into the game, and the loop runs again.</p>
-
-        <div className="mt-16 grid items-start gap-10 xl:grid-cols-[1.25fr_1fr]">
+        <PartHead n="03" label="The ruler" title="Give it a ruler."
+          lede="A score means nothing until it stands beside something you know is good. Our ruler was the original game." />
+        <div className="mt-12 grid items-start gap-10 xl:grid-cols-[1.35fr_1fr]">
           <Reveal>
-            <h3 className={`${TYPE.h3} mb-5`}>One function decides who plays.</h3>
-            <Code marks={[1, 3]} where={`RTSAI-WebGame ${CODE.commit} · tools/arena/providers.mjs:${lineOf("decide")}`} src={`export async function decide(provider, obs, questions, credential = {}, opts = {}) {
-  if (provider === "scripted") {
-    …
-    return { answers: scriptedAnswers(obs, questions, opts), …, usd: 0 };
-  }
-  // Otherwise a model reads the prompt (the rubric by default) and the battlefield.
-  return askQuestions(provider,
-    { text: PROMPTS[opts.prompt] ?? RUBRIC, json: describe(obs) }, questions, credential);
-}`} />
+            <div className={`${TYPE.kicker} mb-2 text-white/50`}>First try · generated, then turned into game blocks</div>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={`${MEDIA}/ruler-first.png`} alt="The generated tank from four sides at game size: dark, muddy and hard to read" className={strip} />
+            <div className={`${TYPE.kicker} mb-2 mt-6`} style={{ color: OURS }}>The same model, drawn as a sprite · the route that shipped</div>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={`${MEDIA}/ruler-shipped.png`} alt="The same tank from four sides, drawn as a sprite: lighter, with clear camouflage and a readable shape" className={strip} />
+            <p className="mt-3 text-sm text-muted">Our own tank, the Qilin, three times the size it has in the game.</p>
           </Reveal>
           <Reveal delay={0.1}>
-            <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2 xl:grid-cols-1">
-              {R.brains.map((b) => (
-                <div key={b.name} className="rounded-xl border bg-white/[0.03] px-4 py-3" style={{ borderColor: b.provider === "scripted" ? OURS : "var(--color-border)" }}>
-                  <b className="block text-base" style={b.provider === "scripted" ? { color: OURS } : undefined}>{b.name}</b>
-                  <code className="block font-mono text-xs text-white/70">{CALLS[b.provider][0]}</code>
-                  <span className="text-sm text-muted">{CALLS[b.provider][1]}</span>
+            <div className="grid gap-7">
+              {[
+                ["Its own score", "81.5", "of 100, pass mark 70", LIGHT],
+                ["Beside the original game’s tanks", "9 failed", "of 15 measured checks", LOSS],
+                ["After changing only light, size and colours", "0 failed", "same model, same checks", OURS],
+              ].map(([k, n, s, c]) => (
+                <div key={k} className="border-t border-border pt-4">
+                  <div className="text-[clamp(0.9rem,1.1vw,1.1rem)] text-muted">{k}</div>
+                  <b className={`${TYPE.big} mt-2 block`} style={{ color: c }}>{n}</b>
+                  <span className="mt-2 block text-sm text-muted">{s}</span>
                 </div>
               ))}
             </div>
           </Reveal>
         </div>
 
-        <div className="mt-12 grid gap-6 md:grid-cols-3">
-          {facts.map(([b, t]) => (
-            <div key={b} className="border-t border-border pt-3 text-sm text-muted"><b className="mb-1 block text-base text-foreground">{b}</b>{t}</div>
+        <h3 className={`${TYPE.h3} mb-2 mt-20`}>The same ruler, for 122 build-menu icons</h3>
+        <p className="mb-6 text-[clamp(0.95rem,1.15vw,1.15rem)] text-muted">How many pass, measured against the original game’s icons.</p>
+        <Bars max={122} items={ICONS} />
+
+        <h3 className={`${TYPE.h3} mb-8 mt-20`}>Then check the ruler.</h3>
+        <div className="grid gap-x-10 gap-y-8 md:grid-cols-3">
+          {RULER_FAULTS.map(([h, b], i) => (
+            <Reveal key={h} delay={i * 0.08}>
+              <div className="border-t border-border pt-5">
+                <h4 className="text-[clamp(1.15rem,1.6vw,1.6rem)] font-semibold leading-tight">{h}</h4>
+                <p className="mt-3 text-[clamp(0.95rem,1.15vw,1.15rem)] leading-relaxed text-muted">{b}</p>
+              </div>
+            </Reveal>
           ))}
         </div>
-        <div className="mt-14"><Claim>Our rules answer exactly like a model: a choice and a probability for every option. The brain is the only thing that changes.</Claim></div>
+        <div className="mt-12"><Claim>Compare it with something you know is good. Then check the ruler.</Claim></div>
+        <Evidence>
+          The 15 checks measure light, size, colour and detail against the original game’s own vehicles, which all pass against each other. The 9 and the 0
+          are the same generated model before and after a change to light, scale and palette only (3 Oct). The icons: 5 and 6 Oct.
+        </Evidence>
       </Block></Wrap>
     </Part>
   );
 }
 
-/* ─── 04 · Why the models lost ──────────────────────────────────────────── */
+/* ─── 04 · Let the game play itself ─────────────────────────────────────── */
 
-const RUBRIC_BEFORE = "You command one side in a real-time strategy match (Red Alert 2 style) against a computer opponent. Win by destroying every enemy building. ";
-const RUBRIC_KEY = "Economy first (power, refineries, harvesters)";
-const RUBRIC_AFTER = ", then production, then a large army that attacks together. Defend when the enemy is at the base. Never leave credits unspent for long. Answer each question for the state given.";
+// RTSAI-Mod 46dcbd3 (2 Oct): "30-minute game takes ~45-120 s of wall time". Balance games: 8,808 match rows in
+// RTSAI-Mod docs/balance-data (counted 12 Nov 2026; the two duel files are left out).
+// Showdown: RTSAI-WebGame evals/faction-showdown-20261022 (21 and 22 Oct): 120 games before the fixes and 230 after,
+// bugs.json B1 to B7, and the effects audit (329 of 3,912 deaths drew nothing; after the fix, 0).
+const SELF_PLAY: [string, string][] = [
+  ["8,808", "balance games, to set what every unit costs"],
+  ["350", "games, every faction against every faction"],
+  ["7", "bugs that no person had found"],
+];
+const SELF_BUGS: [string, string][] = [
+  ["40 minutes", "Starting with $2,500, each army built a power plant, then stood idle for the whole game. Nobody could ever afford a refinery."],
+  ["329 of 3,912", "unit deaths showed nothing on screen: the unit just vanished. After the fix: 0."],
+  ["Mind control", "did nothing at all for nine of the countries. Neither did two ships’ aircraft."],
+];
 
-function Duel() {
+function SelfPlayPart() {
   return (
-    <div className="grid gap-10 lg:grid-cols-2">
-      {[jev, oursTurn].map((b, i) => {
-        const ours = b.provider === "scripted";
-        return (
-          <Reveal key={b.name} delay={i * 0.2}>
-            <div className="rounded-2xl border p-5 sm:p-6" style={{ borderColor: ours ? OURS : "var(--color-border)" }}>
-              <h4 className="text-[clamp(1.35rem,2vw,2rem)] font-semibold" style={ours ? { color: OURS } : undefined}>{b.name}</h4>
-              <p className="mb-4 text-sm text-muted">asked at {clockT(b.tick)} · {ours ? "answered in under 0.01 s" : `answered in ${(b.ms / 1000).toFixed(2)} s while the game paused`}</p>
-              {b.options.map((o) => {
-                const chosen = o.value === b.choice;
-                return (
-                  <div key={o.value} className="grid min-h-[34px] grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)_3.5rem] items-center gap-3">
-                    <span className={`truncate text-[clamp(0.85rem,1.05vw,1.05rem)] ${chosen ? "font-bold text-foreground" : "text-muted"}`}>{o.label}</span>
-                    <div className="h-5"><div className="h-5 rounded-r" style={{ width: o.p ? `max(3px, ${o.p * 100}%)` : 0, background: ours ? OURS : GREY }} /></div>
-                    <span className={`text-right text-[clamp(0.85rem,1.05vw,1.05rem)] ${chosen ? "font-bold text-foreground" : "text-muted"}`}>{pct(o.p)}</span>
-                  </div>
-                );
-              })}
-              <p className="mt-4 flex items-start gap-2.5 text-[clamp(0.9rem,1.1vw,1.1rem)]">
-                <span className="mt-0.5"><Tile g={{ seed: 0, result: b.result, minutes: 0 }} size={22} /></span>
-                <span>Army worth {num(b.atMinute3.army)} at minute 3, {num(b.atMinute3.credits)} unspent · {WORD[b.result]} at {mmss(b.gameSeconds)}</span>
-              </p>
+    <Part id="selfplay">
+      <Wrap><Block>
+        <PartHead n="04" label="Self-play" title="Let the game play itself."
+          lede="A 30-minute battle runs in about a minute with nobody watching. So the game played itself, thousands of times." />
+        <Reveal delay={0.1}>
+          <video data-bots src={`${MEDIA}/bots.mp4`} poster={`${MEDIA}/bots.jpg`} autoPlay muted loop playsInline preload="metadata" className="mt-10 aspect-video w-full rounded-2xl bg-black" />
+          <p className="mt-3 text-sm text-muted">AI against AI, 21 and 22 Oct: three of the 350 games. Nobody is playing.</p>
+        </Reveal>
+        <div className="mt-12 grid gap-x-8 gap-y-8 sm:grid-cols-3">
+          {SELF_PLAY.map(([n, t], i) => (
+            <Reveal key={t} delay={i * 0.08}>
+              <div className="border-t-2 border-border pt-4">
+                <b className={`${TYPE.big} block`} style={i === 2 ? { color: OURS } : undefined}>{n}</b>
+                <span className="mt-3 block text-[clamp(0.95rem,1.15vw,1.2rem)] leading-snug text-muted">{t}</span>
+              </div>
+            </Reveal>
+          ))}
+        </div>
+        <h3 className={`${TYPE.h3} mb-6 mt-20`}>Three of the seven</h3>
+        <div className="grid gap-0">
+          {SELF_BUGS.map(([n, t]) => (
+            <div key={n} className="grid items-baseline gap-x-8 gap-y-1 border-t border-border py-5 md:grid-cols-[minmax(0,17rem)_1fr]">
+              <b className="text-[clamp(1.5rem,2.6vw,2.6rem)] font-bold leading-none tracking-[-0.02em]" style={{ color: OURS }}>{n}</b>
+              <span className="text-[clamp(1rem,1.3vw,1.35rem)] leading-snug">{t}</span>
             </div>
-          </Reveal>
-        );
-      })}
-    </div>
+          ))}
+        </div>
+        <div className="mt-12"><Claim>Our best tester was the game itself, played thousands of times.</Claim></div>
+        <Evidence>
+          Balance: bot against bot on the desktop game, 2 to 8 Oct, six rounds. Showdown: all 16 factions on the live web game, 120 games before the fixes
+          and 230 after; the film is from its own record. The seven bugs and their fixes are listed in that record.
+        </Evidence>
+      </Block></Wrap>
+    </Part>
   );
 }
 
-function WhyPart() {
+/* ─── 05 · So: can an AI play it? ───────────────────────────────────────── */
+
+// The experiment, folded into one part on 12 Nov 2026 (it was five parts). What went: the turn-loop diagram, the code
+// screens, the prompt and the duel, the rules timeline and the git log. The two boards and the numbers stay.
+function WhyBrief() {
   const order = R.brains.map((b) => W.brains.find((w) => w.provider === b.provider)!);
-  const usd = P.models.reduce((s, m) => s + m.coached.usd, 0);
+  const at = (p: string) => order.find((w) => w.provider === p)!.firstBarracksMin;
   const firstWins = P.models.reduce((s, m) => s + m.first.wins, 0);
   const coachedWins = P.models.reduce((s, m) => s + m.coached.wins, 0);
-  const pos = (min: number) => Math.round((min / 5) * 1000) / 10;
-  const at = (p: string) => order.find((w) => w.provider === p)!.firstBarracksMin;
+  const usd = P.models.reduce((s, m) => s + m.coached.usd, 0);
   return (
-    <Part id="why">
+    <Part>
       <Wrap><Block>
-        <PartHead n="04" label="Why the models lost" title="They did what we told them." lede="Every model read this, every turn, beside the battlefield as JSON:" />
-        <Reveal delay={0.1}>
-          <blockquote className="mt-8 max-w-5xl rounded-xl border border-border bg-white/[0.03] p-5 text-[clamp(1.05rem,1.6vw,1.55rem)] leading-relaxed text-foreground/85 sm:p-7">
-            {RUBRIC_BEFORE}<mark className="rounded bg-transparent px-0.5 font-semibold" style={{ color: OURS, boxShadow: `inset 0 -0.35em 0 rgba(242,193,78,.18)` }}>{RUBRIC_KEY}</mark>{RUBRIC_AFTER}
-          </blockquote>
-          <p className="mt-3 text-sm text-muted">The rubric, word for word · tools/arena/brain.mjs:{lineOf("rubric")}</p>
-        </Reveal>
-
-        <h3 className={`${TYPE.h3} mb-2 mt-20`}>Same moment, two brains.</h3>
-        <p className={`${TYPE.lede} mb-8 max-w-3xl`}>Brutal, start 1 ({cap(oursTurn.faction)}). A minute in, each brain is asked: “{oursTurn.instructions}”</p>
-        <Duel />
-        <Reveal delay={0.1}>
-          <div className="mt-10 grid items-start gap-6 xl:grid-cols-[1.3fr_1fr]">
-            <Code marks={[1]} where={`Why our rules said Barracks · brain.mjs:${lineOf("refinery")}`} src={`refinery: !has("refinery") ? 6
-  : refineries < 2 && minutes > 2 && expand ? 3.5 : …,
-barracks: !has("barracks") && !queued("barracks") ? 4.5 : -1,`} />
-            <p className={TYPE.body}>Our rules score a second refinery below zero until minute 2. The rubric told every model <b style={{ color: OURS }}>“Economy first.”</b> <span className="text-muted">{jev.name} obeyed.</span></p>
-          </div>
-        </Reveal>
-
-        <h3 className={`${TYPE.h3} mb-2 mt-20`}>When each brain started its army</h3>
-        <p className="mb-6 text-sm text-muted">The middle of each brain’s 16 games. Drag along the line.</p>
-        <Spectrum axis={{ left: "0:00, game start", right: "5:00" }} scrub color={OURS} items={[
-          { label: `Our rules ${clock(at("scripted"))}`, position: pos(at("scripted")), highlight: true, color: OURS },
-          { label: `Luna ${clock(at("openai"))}`, position: pos(at("openai")) },
-          { label: `Jev and Gemma ${clock(at("jev"))}`, position: pos(at("jev")) },
-        ]} />
-        <div className="mt-14 grid gap-12 xl:grid-cols-2">
+        <h3 className={`${TYPE.h3} max-w-4xl`}>Why the models lost: they did what we told them.</h3>
+        <p className={`${TYPE.lede} mt-4 max-w-3xl`}>Their instructions said “Economy first.” So they saved money while the enemy built an army.</p>
+        <div className="mt-10 grid items-start gap-12 xl:grid-cols-2">
           <div>
             <h4 className="mb-4 text-[clamp(1.1rem,1.5vw,1.5rem)] font-semibold">Money left unspent at minute 5</h4>
             <Bars max={10000} items={order.map((w) => ({ label: w.name, value: w.creditsAt5, display: num(Math.round(w.creditsAt5)), ours: w.provider === "scripted" }))} />
           </div>
-          <div>
-            <h4 className="mb-4 text-[clamp(1.1rem,1.5vw,1.5rem)] font-semibold">Army at minute 3, in credits</h4>
-            <Bars max={3500} items={order.map((w) => ({ label: w.name, value: w.armyAt3, display: num(Math.round(w.armyAt3)), ours: w.provider === "scripted" }))} />
+          <div className="grid gap-7 sm:grid-cols-3 xl:grid-cols-1">
+            <div className="border-t border-border pt-4">
+              <div className="text-[clamp(0.9rem,1.1vw,1.1rem)] text-muted">When the army started: our rules, then Jev and Gemma</div>
+              <b className={`${TYPE.big} mt-2 block`}><span style={{ color: OURS }}>{clock(at("scripted"))}</span> <span className="text-muted">vs</span> {clock(at("jev"))}</b>
+            </div>
+            <div className="border-t border-border pt-4">
+              <div className="text-[clamp(0.9rem,1.1vw,1.1rem)] text-muted">Then we gave the models our rules as advice. Games won, of 48</div>
+              <b className={`${TYPE.big} mt-2 block`}>{firstWins} <span className="text-muted">→</span> <span style={{ color: OURS }}>{coachedWins}</span></b>
+            </div>
+            <div className="border-t border-border pt-4">
+              <div className="text-[clamp(0.9rem,1.1vw,1.1rem)] text-muted">Against Hard and Brutal, with the advice</div>
+              <b className={`${TYPE.big} mt-2 block`}>0 <span className="text-[0.5em] font-semibold text-muted">of 24</span></b>
+            </div>
           </div>
         </div>
-        <Evidence>Towers built by minute 5: {order.map((w) => `${w.name} ${w.towersBy5}`).join(", ")}. Credits are the game’s money; refineries make more of it.</Evidence>
-        <div className="mt-12"><Claim>The models saved money and built towers. Our rules built an army.</Claim></div>
-
-        <h3 className={`${TYPE.h3} mb-2 mt-24`}>So we told the models what our rules know.</h3>
-        <p className={`${TYPE.lede} mb-8 max-w-3xl`}>Our rules, written as six lines of advice, replaced the rubric. Nothing else changed. The same 16 games each, again.</p>
-        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-          <Reveal><div className="h-full rounded-2xl border border-border p-5">
-            <div className="text-sm text-muted">Games won by the three models, of 48</div>
-            <div className={`${TYPE.big} mt-3`}>{firstWins} <span className="text-muted">→</span> <span style={{ color: OURS }}>{coachedWins}</span></div>
-            <div className="mt-2 text-sm text-muted">first prompt → coached</div>
-          </div></Reveal>
-          <Reveal delay={0.08}><div className="h-full rounded-2xl border border-border p-5">
-            <div className="text-sm text-muted">Against Hard and Brutal, coached</div>
-            <div className={`${TYPE.big} mt-3`}>0 <span className="text-[0.5em] font-semibold text-muted">of 24</span></div>
-            <div className="mt-2 text-sm text-muted">our rules: 2 of 8</div>
-          </div></Reveal>
-          <Reveal delay={0.16}><div className="h-full rounded-2xl border border-border p-5 sm:col-span-2 xl:col-span-1">
-            <div className="text-sm text-muted">When the army started (middle of 16 games)</div>
-            <div className="mt-3 grid gap-1">
-              {P.models.map((m) => (
-                <div key={m.name} className="flex items-baseline justify-between gap-3 text-[clamp(0.9rem,1.1vw,1.1rem)]">
-                  <span className="truncate">{m.name}</span>
-                  <span className="whitespace-nowrap font-semibold"><span className="text-muted">{clock(m.first.firstBarracksMin)} →</span> {clock(m.coached.firstBarracksMin)}</span>
-                </div>
-              ))}
-            </div>
-          </div></Reveal>
-        </div>
-        <Evidence>
-          Prompt: brain.mjs:{lineOf("coached")}, PROMPTS.coached. Coached games: {P.models.map((m) => `${m.name} ${m.coached.wins}–${m.coached.draws}–${m.coached.losses}`).join(", ")} (won–draw–lost); they cost ${usd.toFixed(2)}. Every coached win came against Normal or Rush.
-        </Evidence>
         <div className="mt-12"><Claim>Better advice fixed the opening. It didn’t fix the hard games.</Claim></div>
+        <Evidence>
+          The middle of each brain’s 16 games. Luna started its army at {clock(at("openai"))}. With the advice: {P.models.map((m) => `${m.name} ${m.coached.wins}–${m.coached.draws}–${m.coached.losses}`).join(", ")} (won–draw–lost),
+          for ${usd.toFixed(2)}; every one of those wins came against Normal or Rush.
+        </Evidence>
       </Block></Wrap>
     </Part>
   );
 }
-
-/* ─── 05 · How the rules got good ───────────────────────────────────────── */
 
 type RuleRow = (typeof RL.evening.rows)[number] | (typeof RL.flags.rows)[number];
 const ruleRow = (r: RuleRow): BoardRow => ({
@@ -857,76 +738,53 @@ const ruleRow = (r: RuleRow): BoardRow => ({
   of: `of ${r.finished}${r.played > r.finished ? " finished" : ""}`,
 });
 
-function RulesPart() {
+function Switches() {
   const { ref, flat, step } = useSteps(RL.flags.rows.length + 1);
   const ringed = new Set(step >= RL.flags.rows.length ? RL.together.flatMap((t) => ["counters", "hunt", "both"].map((k) => `${k}|${t.opponent}|${t.seed}`)) : []);
-  const nodes = [
-    { date: "23 Oct, evening", title: `The brain wins ${ev("base").wins} of ${ev("base").finished}`, description: "Brutal attacks in the first minutes, so we taught the brain to defend: several rules at a time.", color: GREY },
-    { date: "Try 1", title: `Early defence: ${ev("defence").wins} of ${ev("defence").finished}`, description: "Towers first, army home, economy paused. Worse.", color: LOSS },
-    { date: "Tries 2 and 3", title: `A smarter mix, then a real bug fixed: ${ev("adaptive").wins} and ${ev("scouting").wins}`, description: "The bug (Defend chased any enemy a scout saw) was the brain’s only push toward the enemy.", color: LOSS },
-    { date: "That night", title: "We put the old brain back", description: "Many rules changed at once: no way to tell which one hurt.", color: GREY },
-    { date: "24 Oct, morning", title: "One idea, one switch", description: "Each idea became one flag, and each played the same 16 games as the brain without it.", color: OURS },
-  ];
   return (
-    <Part id="rules">
+    <Part>
       <Wrap><Block className="pb-0">
-        <PartHead n="05" label="How the rules got good" title="Not by being clever. One switch at a time."
-          lede="Two days in the Arena, 23 and 24 October: first the smart idea, then the boring method." />
-        <div className="mt-12 grid items-start gap-10 xl:grid-cols-[1fr_420px]">
-          <AnimatedTimeline nodes={nodes} color={OURS} />
-          <div className="hidden xl:block">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={`${MEDIA}/frame-final-attack.jpg`} alt="The counters + hunt brain's final attack on Brutal's base, 24 Oct" className="sticky top-24 w-full rounded-2xl" />
-            <p className="mt-3 text-sm text-muted">The brain that came out of it, reaching Brutal’s base on 24 Oct: the game at the start of this talk.</p>
-          </div>
-        </div>
+        <h3 className={`${TYPE.h3} max-w-4xl`}>How the rules got good: one switch at a time.</h3>
+        <p className={`${TYPE.lede} mt-4 max-w-3xl`}>
+          First we changed several rules at once. Wins fell from {ev("base").wins} to {ev("defence").wins} of {ev("base").finished}, and nothing told us which
+          rule had hurt. So each idea became one switch, tested on the same 16 games.
+        </p>
       </Block></Wrap>
       <Pinned innerRef={ref} runway="320vh" flat={flat}>
         <Wrap>
           <h3 className={`${TYPE.h3} mb-1`}>One switch at a time, the same 16 games</h3>
-          <p className="mb-6 text-[clamp(0.95rem,1.15vw,1.15rem)] text-muted">24 Oct, morning. Each row is the brain with one switch on.{flat ? "" : " Scroll: one switch at a time."}</p>
+          <p className="mb-6 text-[clamp(0.95rem,1.15vw,1.15rem)] text-muted">24 Oct. Each row is the rules with one switch on.{flat ? "" : " Scroll: one switch at a time."}</p>
           <Board rows={RL.flags.rows.map(ruleRow)} seeds={RL.flags.seeds} shown={step + 1} ringed={ringed} />
           <p className="mt-6 text-[clamp(1.1rem,1.8vw,1.75rem)] font-semibold transition-opacity duration-500" style={{ color: OURS, opacity: step >= RL.flags.rows.length ? 1 : 0 }}>
-            Each switch alone lost the ringed games. Together they won {RL.together.length === 2 ? "both" : "them all"}. One is the Brutal win from the start.
+            Each switch alone lost the ringed games. Together they won {RL.together.length === 2 ? "both" : "them all"}.
           </p>
         </Wrap>
       </Pinned>
       <Wrap><Block className="pt-6">
-        <Claim>Our rules aren’t clever. They were tested, one switch at a time, and the switches that lost are still in the code.</Claim>
+        <Claim>Our rules aren’t clever. They were tested, one switch at a time.</Claim>
+        <p data-caution className="mt-8 max-w-4xl text-[clamp(1rem,1.3vw,1.35rem)] leading-relaxed text-muted">
+          One caution. Ten days later the same rules played the same 16 games again and won <b className="text-foreground">{oursWins}</b>, not{" "}
+          <b className="text-foreground">{fl("both").wins}</b>. One game per square is a small sample, and results move between runs.
+        </p>
         <Evidence>
-          Map {RL.map}, starts 1–4 = China, Iran, Turkey, Saudi. Where a start was played twice, the later game counts. Adopted as “24 Oct counters+hunt” (BRAIN_VERSION, brain.mjs:{lineOf("version")}): the brain that played the match-up. On a map it had never seen it went from {RL.newMap.before.wins} to {RL.newMap.adopted.wins} wins of {RL.newMap.adopted.played}.
+          Map {RL.map}, starts 1–4 = China, Iran, Turkey, Saudi. Where a start was played twice, the later game counts. On a map the rules had never seen,
+          they went from {RL.newMap.before.wins} to {RL.newMap.adopted.wins} wins of {RL.newMap.adopted.played}. The models were never tried on a second map.
         </Evidence>
       </Block></Wrap>
     </Part>
   );
 }
 
-/* ─── 06 · The twist ────────────────────────────────────────────────────── */
-
-const MARK = new Set(["585723b", "e241116", "984c6db"]);
-
-function WhoPart() {
+function Twist() {
   const commits = H.brain.commits;
   const coBy = commits.filter((c) => /Claude/.test(c.coAuthor ?? "")).length;
   return (
-    <Part id="who">
+    <Part>
       <Wrap><Block>
-        <PartHead n="06" label="The twist" title="So who wrote our rules?" />
-        <p className="mb-8 mt-4 font-mono text-[clamp(0.8rem,1vw,1rem)] text-muted">git log tools/arena/brain.mjs · {commits.length} commits, {coBy} co-authored by Claude</p>
-        <StaggerChildren staggerDelay={0.1} className="grid">
-          {commits.map((c) => (
-            <StaggerItem key={c.hash}>
-              <div className="grid grid-cols-[4.5rem_1fr] items-baseline gap-x-4 border-t border-border py-2.5 md:grid-cols-[5.5rem_4.5rem_1fr_9rem]" title={`${c.hash} · ${c.date} · ${c.author}`}>
-                <code className="font-mono text-sm" style={{ color: OURS }}>{c.hash}</code>
-                <span className="hidden text-sm text-muted md:block">{day(c.date)}</span>
-                <span className={`text-[clamp(0.95rem,1.2vw,1.2rem)] leading-snug ${MARK.has(c.hash) ? "font-semibold text-foreground" : "text-muted"}`}>{c.subject}</span>
-                <span className="col-start-2 font-mono text-xs md:col-start-auto md:text-right md:text-sm" style={{ color: OURS }}>{(c.coAuthor ?? "none").split(" <")[0]}</span>
-              </div>
-            </StaggerItem>
-          ))}
-        </StaggerChildren>
-        <Reveal delay={0.15}>
-          <div className="mt-12 flex flex-wrap items-center gap-2.5">
+        <h3 className={`${TYPE.h3} max-w-4xl`}>So who wrote our rules?</h3>
+        <p className="mb-8 mt-4 font-mono text-[clamp(0.85rem,1.1vw,1.15rem)] text-muted">git log tools/arena/brain.mjs · {commits.length} commits, {coBy} co-authored by Claude</p>
+        <Reveal delay={0.1}>
+          <div className="flex flex-wrap items-center gap-2.5">
             {["Read a lost game’s log", "Add one idea as a switch", "Play the same 16 games", "Keep it or drop it"].map((t, i) => (
               <span key={t} className="flex items-center gap-2.5">
                 {i > 0 && <span className="text-xl text-muted" aria-hidden>→</span>}
@@ -936,11 +794,126 @@ function WhoPart() {
             <span className="text-xl text-muted" aria-hidden>↺</span>
           </div>
         </Reveal>
-        <div className="mt-24 max-w-5xl">
+        <div className="mt-20 max-w-5xl">
           <ScrollRevealText mode="word" scrub className={`${TYPE.h2} text-white`}>
             The AI that wins isn’t the one playing. It’s the one that wrote the player.
           </ScrollRevealText>
         </div>
+      </Block></Wrap>
+    </Part>
+  );
+}
+
+function PlayPart() {
+  return (
+    <div id="play">
+      <Part>
+        <Wrap>
+          <Block className="pb-0">
+            <PartHead n="05" label="The bet" title="So: can an AI play it?"
+              lede="The same ruler, pointed at the AI itself. Three AI models and one page of plain rules each played the same 16 games against the game’s own AI." />
+          </Block>
+        </Wrap>
+      </Part>
+      <SixteenGames />
+      <WhyBrief />
+      <Switches />
+      <Twist />
+    </div>
+  );
+}
+
+/* ─── 06 · What no ruler catches ────────────────────────────────────────── */
+
+// Taste: RTSAI-WebGame docs/PLAYTEST-LOG.md, the owner's reports of 26 Oct (2 to 4: three art bugs; 6 and 7: the shots),
+// and 9c733d8 (1 Nov): eleven unit types whose turret always pointed north. The pictures are from that fix's own
+// before/after capture (hq/games/artifacts/playtest-20261101/muzzle).
+// Attention: the owner's instruction files (51 folders and 381 GB left on one drive, 8 to 27 Oct; one fix that grew
+// into 11 sessions, by 10 Nov); hq/games/artifacts/build-journey-20261024/OUTLINE.md, beat 9 (a release on 26 Oct
+// went out without two finished fixes, every check green; they shipped on 1 Nov).
+const TASTE: [string, ReactNode][] = [
+  ["I played for ten minutes", <>and said: the shots look wrong.</>],
+  ["We measured 90 shells", <>They landed 2 pixels from the target. Not a bug.</>],
+  ["The measuring found the real one", <>On 11 kinds of unit the turret always pointed north.</>],
+];
+const ATTENTION: [string, string][] = [
+  ["381 GB", "of leftover copies of the project in 51 folders. None held anything new."],
+  ["11 sessions", "grew out of one small fix. Half my turns were clicks on whatever a session offered."],
+  ["6 days", "two finished fixes waited, after a second agent released without them. Every check was green."],
+];
+const FOR_ME: [string, string][] = [
+  ["One release command", "It builds only from the latest code, and it refuses when something is off."],
+  ["Rules with their reason", "Written where every agent reads them, each with the incident that caused it."],
+  ["A step back", "Before any big job, one question: which of my goals does this serve?"],
+];
+
+function HumanPart() {
+  const shot = "w-full rounded-xl [image-rendering:pixelated]";
+  return (
+    <Part id="human">
+      <Wrap><Block>
+        <PartHead n="06" label="The human" title="What no ruler catches."
+          lede="Two things stayed mine the whole way: taste and attention." />
+        <div className="mt-12 grid items-start gap-10 lg:grid-cols-[1fr_1.1fr]">
+          <div>
+            {TASTE.map(([h, b], i) => (
+              <Reveal key={h} delay={i * 0.1}>
+                <div className="grid grid-cols-[2.25rem_1fr] gap-x-3 border-t border-border py-5">
+                  <span className="font-mono text-sm" style={{ color: OURS }}>0{i + 1}</span>
+                  <div>
+                    <b className="block text-[clamp(1.15rem,1.7vw,1.75rem)] leading-tight">{h}</b>
+                    <span className="mt-1.5 block text-[clamp(1rem,1.3vw,1.35rem)] leading-snug text-muted">{b}</span>
+                  </div>
+                </div>
+              </Reveal>
+            ))}
+            <p className="mt-6 text-[clamp(1.1rem,1.8vw,1.75rem)] font-semibold" style={{ color: OURS }}>My eye found it. The ruler located it.</p>
+          </div>
+          <Reveal delay={0.15}>
+            <div className="grid grid-cols-2 gap-4">
+              <figure>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={`${MEDIA}/human-turret-before.png`} alt="A tank firing at a target to its right while its turret and muzzle flash point straight up the screen" className={shot} />
+                <figcaption className="mt-2 text-sm text-muted">Before: the target is to the right. The turret points north.</figcaption>
+              </figure>
+              <figure>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={`${MEDIA}/human-turret-after.png`} alt="The same tank after the fix, its turret and muzzle flash pointing right at the target" className={shot} />
+                <figcaption className="mt-2 text-sm text-muted">After: on target.</figcaption>
+              </figure>
+            </div>
+            <p className="mt-4 text-sm text-muted">The same ten minutes found three art bugs that no test could see.</p>
+          </Reveal>
+        </div>
+
+        <h3 className={`${TYPE.h3} mb-8 mt-24 max-w-4xl`}>The agents never ran out of output. I ran out of attention.</h3>
+        <div className="grid gap-x-8 gap-y-8 sm:grid-cols-3">
+          {ATTENTION.map(([n, t], i) => (
+            <Reveal key={n} delay={i * 0.08}>
+              <div className="border-t-2 border-border pt-4">
+                <b className={`${TYPE.big} block`}>{n}</b>
+                <span className="mt-3 block text-[clamp(0.95rem,1.15vw,1.2rem)] leading-snug text-muted">{t}</span>
+              </div>
+            </Reveal>
+          ))}
+        </div>
+
+        <h3 className={`${TYPE.h3} mb-8 mt-20 max-w-4xl`}>So the most useful things I built were for me.</h3>
+        <div className="grid gap-x-10 gap-y-8 md:grid-cols-3">
+          {FOR_ME.map(([h, b], i) => (
+            <Reveal key={h} delay={i * 0.08}>
+              <div className="border-t border-border pt-5" style={{ borderTopColor: OURS }}>
+                <h4 className="text-[clamp(1.15rem,1.6vw,1.6rem)] font-semibold leading-tight">{h}</h4>
+                <p className="mt-3 text-[clamp(0.95rem,1.15vw,1.15rem)] leading-relaxed text-muted">{b}</p>
+              </div>
+            </Reveal>
+          ))}
+        </div>
+        <div className="mt-12"><Claim>The scarce thing isn’t code. It’s taste and attention.</Claim></div>
+        <Evidence>
+          The play session: 26 Oct, on the live game; the turret fix shipped on 1 Nov. The folders were counted on one drive between 8 and 27 Oct. The
+          release that went out without the two fixes: 26 Oct; they shipped on 1 Nov.
+        </Evidence>
       </Block></Wrap>
     </Part>
   );
@@ -959,9 +932,9 @@ const TRY: [string, string, string, string][] = [
 function HomePart() {
   const withModel = H.runs.filter((r) => r.how === "both");
   const tips: [string, string, string][] = [
+    ["Give the agent a ruler before the task", "9 → 0", "failed checks on a generated tank, once it stood beside the original game’s. Its own score had been 81.5 of 100."],
     ["Race the dumbest thing that could work", `${oursWins} vs ${bestModel}`, "Plain rules against the best model, the same 16 games. Then read each loser’s decision log."],
-    ["Change one thing at a time", `${ev("base").wins} → ${ev("defence").wins}`, "when we changed several rules at once; the next two tries won none."],
-    ["Test good ideas together, then somewhere new", `${fl("counters").wins} + ${fl("hunt").wins} → ${fl("both").wins}`, `of ${fl("both").finished}, two switches together. On a new map: ${RL.newMap.before.wins} → ${RL.newMap.adopted.wins}.`],
+    ["Change one thing at a time", `${fl("counters").wins} + ${fl("hunt").wins} → ${fl("both").wins}`, `of ${fl("both").finished}: two switches, each tested alone, then together. Several changes at once had cut the wins from ${ev("base").wins} to ${ev("defence").wins}.`],
     ["Put the model where rules can’t reach", `${run("rules").correct} → ${withModel[0].correct} %`, `of ${H.orders} spoken orders read right: rules first, a model only for the ${withModel[0].modelCalls} they couldn’t read. A model for every order: at most ${Math.max(...H.runs.filter((r) => r.how === "model").map((r) => r.correct))} %.`],
   ];
   return (
@@ -1021,11 +994,11 @@ export default function CanAnAiPlay() {
         <PresentationTimer targetMinutes={15} sections={BUDGET} />
       </div>
       <BuiltPart />
-      <BetPart />
-      <LoopPart />
-      <WhyPart />
-      <RulesPart />
-      <WhoPart />
+      <DonePart />
+      <RulerPart />
+      <SelfPlayPart />
+      <PlayPart />
+      <HumanPart />
       <HomePart />
     </main>
   );
