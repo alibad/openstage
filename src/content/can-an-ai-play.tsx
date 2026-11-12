@@ -3,8 +3,9 @@
 /*
  * "Can an AI play our game?" — the AI Tinkerers Doha Round 5 talk (Monday 16 Nov 2026, 15 minutes), as a scroll story.
  *
- * Six parts, one arc (rebuilt 10 Nov 2026 from ten chapters: the owner found the old one wandered, changed theme from
- * chapter to chapter and didn't fit a laptop window):
+ * Seven parts, one arc (rebuilt 10 Nov 2026 from ten chapters: the owner found the old one wandered, changed theme from
+ * chapter to chapter and didn't fit a laptop window; 12 Nov: the owner missed the product itself, so it now opens on it):
+ *   built  What we built: the desktop game, the web game, the battle simulator, real-place maps, the Faction Studio.
  *   bet    The bet: three AI models and a page of plain rules play the same 16 games. The first win, then the board.
  *   loop   How it plays: one loop, and one function decides who plays.
  *   why    Why the models lost: they did what we told them ("Economy first"); better advice fixed only the easy games.
@@ -42,6 +43,7 @@ const MEDIA = "/talks/can-an-ai-play";
 const TAGLINE = "Read · Switch · Play · Keep · Repeat";
 
 const CHAPTERS = [
+  { id: "built", label: "Built", dark: true },
   { id: "bet", label: "Bet", dark: true },
   { id: "loop", label: "Loop", dark: true },
   { id: "why", label: "Why", dark: true },
@@ -52,12 +54,13 @@ const CHAPTERS = [
 
 // The 15-minute slot, per part.
 const BUDGET = [
-  { id: "bet", label: "The bet", minutes: 3 },
-  { id: "loop", label: "How it plays", minutes: 2 },
-  { id: "why", label: "Why", minutes: 3.5 },
-  { id: "rules", label: "Rules", minutes: 3 },
+  { id: "built", label: "What we built", minutes: 2 },
+  { id: "bet", label: "The bet", minutes: 2.5 },
+  { id: "loop", label: "How it plays", minutes: 1.5 },
+  { id: "why", label: "Why", minutes: 2.5 },
+  { id: "rules", label: "Rules", minutes: 2.5 },
   { id: "who", label: "Twist", minutes: 1.5 },
-  { id: "home", label: "Home", minutes: 1 },
+  { id: "home", label: "Home", minutes: 1.5 },
 ];
 
 const LEVELS: Record<string, string> = { normal: "Normal", rush: "Rush", hard: "Hard", brutal: "Brutal" };
@@ -341,9 +344,9 @@ function Bars({ items, max }: { items: { label: string; value: number; display: 
   );
 }
 
-/* ─── 01 · The bet ──────────────────────────────────────────────────────── */
+/* ─── The title, and the first win (part 02) ──────────────────────────────────────────────────────── */
 
-const PARTS = ["The bet", "How it plays", "Why the models lost", "How the rules got good", "The twist", "Take it home"];
+const PARTS = ["What we built", "The bet", "How it plays", "Why the models lost", "How the rules got good", "The twist", "Take it home"];
 
 function Hero() {
   return (
@@ -376,7 +379,7 @@ function Hero() {
       </div>
       <div className="pb-8">
         <Wrap>
-          <div className="grid grid-cols-2 gap-x-6 gap-y-3 border-t border-white/10 pt-5 md:grid-cols-3 xl:grid-cols-6">
+          <div className="grid grid-cols-2 gap-x-6 gap-y-3 border-t border-white/10 pt-5 md:grid-cols-4 xl:grid-cols-7">
             {PARTS.map((p, i) => (
               <div key={p} className="flex items-baseline gap-2.5">
                 <span className="font-mono text-xs" style={{ color: OURS }}>0{i + 1}</span>
@@ -516,17 +519,112 @@ function SixteenGames() {
   );
 }
 
+/* ─── 01 · What we built ────────────────────────────────────────────────── */
+
+// Counted on 12 Nov 2026 with `git log --no-merges` in RTSAI-Mod, RTSAI-WebGame, RTSAI-Web and RTSAI-Art; "with an
+// agent" means the commit names Claude or Codex as co-author. The clips are cut by the talk folder's built-clips.sh.
+const BUILT_COUNT = { commits: 1517, withAgent: 939, day: "12 Nov 2026" };
+const BUILT: { key: string; name: string; line: string }[] = [
+  { key: "desktop", name: "Desktop game", line: "A Windows game with three games inside: Classic, RA2 and our own RTS." },
+  { key: "web", name: "Web game", line: "The isometric game in a browser tab, at rtsai.net/play. Nothing to install." },
+  { key: "simulator", name: "Battle simulator", line: "Pick any two armies, drop them on a map and press Fight." },
+  { key: "places", name: "Real places", line: "Pick any place on Earth. It becomes a map you can play." },
+  { key: "studio", name: "Faction Studio", line: "Where every unit is made and checked: design, 3D model, sprite, animation, sound, cost." },
+];
+
+// One thing at a time, big: the scroll steps through the five clips. Only the clip on screen plays.
+function BuiltTour() {
+  const { ref, flat, step } = useSteps(BUILT.length - 1);
+  const at = Math.min(step, BUILT.length - 1);
+  const videos = useRef<(HTMLVideoElement | null)[]>([]);
+  useEffect(() => {
+    if (flat) return;
+    videos.current.forEach((v, i) => {
+      if (!v) return;
+      if (i === at) { v.currentTime = 0; void v.play().catch(() => {}); } else v.pause();
+    });
+  }, [at, flat]);
+  return (
+    <Part>
+      <Wrap>
+        <Block className="pb-0">
+          <PartHead n="01" label="What we built" title="First, what we built." lede="Five things you can open today. All of it made with coding agents." />
+        </Block>
+      </Wrap>
+      {flat ? (
+        <Wrap className="py-12">
+          <div className="grid gap-x-8 gap-y-12 md:grid-cols-2">
+            {BUILT.map((b, i) => (
+              <div key={b.key}>
+                <video src={`${MEDIA}/built-${b.key}.mp4`} poster={`${MEDIA}/built-${b.key}.jpg`} autoPlay muted loop playsInline preload="metadata" className="aspect-video w-full rounded-2xl bg-black" />
+                <div className={`${TYPE.kicker} mt-4`} style={{ color: OURS }}>0{i + 1} · {b.name}</div>
+                <p className="mt-2 text-[clamp(1.1rem,2vw,1.6rem)] font-semibold leading-snug">{b.line}</p>
+              </div>
+            ))}
+          </div>
+        </Wrap>
+      ) : (
+        <Pinned innerRef={ref} runway="340vh" flat={false}>
+          <Wrap>
+            <div className="flex flex-wrap gap-x-[clamp(1rem,2.4vw,2.5rem)] gap-y-1">
+              {BUILT.map((b, i) => (
+                <span key={b.key} className="border-b-2 pb-1.5 text-[clamp(0.95rem,1.45vw,1.5rem)] font-semibold transition-colors duration-300"
+                  style={{ color: i === at ? OURS : "rgba(255,255,255,.42)", borderColor: i === at ? OURS : "transparent" }}>
+                  {b.name}
+                </span>
+              ))}
+            </div>
+            <div className="relative mt-5 aspect-video overflow-hidden rounded-2xl bg-black" style={{ width: "min(100%, calc((100svh - 19rem) * 16 / 9))" }}>
+              {BUILT.map((b, i) => (
+                <video key={b.key} ref={(el) => { videos.current[i] = el; }} src={`${MEDIA}/built-${b.key}.mp4`} poster={`${MEDIA}/built-${b.key}.jpg`} muted loop playsInline preload="metadata"
+                  aria-hidden={i !== at} className="absolute inset-0 h-full w-full object-cover transition-opacity duration-500" style={{ opacity: i === at ? 1 : 0 }} />
+              ))}
+            </div>
+            <p className="mt-4 min-h-[2.7em] max-w-4xl text-[clamp(1.15rem,2.3vw,2.2rem)] font-semibold leading-snug">{BUILT[at].line}</p>
+          </Wrap>
+        </Pinned>
+      )}
+      <Wrap className="pb-[clamp(3.5rem,9vh,8rem)]">
+        <Claim>We built all of this with coding agents. So the next question was obvious: can an AI also play it?</Claim>
+        <Evidence>
+          Counted on {BUILT_COUNT.day} with git log, merges left out: {num(BUILT_COUNT.commits)} commits in four repositories (game, web game, website, art);{" "}
+          {num(BUILT_COUNT.withAgent)} name Claude or Codex as co-author. On screen: screenshots of the 1 Nov Windows release, the website’s trailer, the live web
+          game filmed on 11 and 12 Nov, and the Faction Studio on our own machine.
+        </Evidence>
+      </Wrap>
+    </Part>
+  );
+}
+
+function BuiltPart() {
+  return (
+    <div id="built">
+      <Hero />
+      <BuiltTour />
+    </div>
+  );
+}
+
+/* ─── 02 · The bet ──────────────────────────────────────────────────────── */
+
 function BetPart() {
   return (
     <div id="bet">
-      <Hero />
+      <Part>
+        <Wrap>
+          <Block>
+            <PartHead n="02" label="The bet" title="So: can an AI play it?"
+              lede="Three AI models and one page of plain rules, each against the game’s own AI. First, how one of those games ended." />
+          </Block>
+        </Wrap>
+      </Part>
       <FirstWin />
       <SixteenGames />
     </div>
   );
 }
 
-/* ─── 02 · How it plays ─────────────────────────────────────────────────── */
+/* ─── 03 · How it plays ─────────────────────────────────────────────────── */
 
 const NODES: { t: string; d: string; e?: string; chips?: boolean; c: string }[] = [
   { t: "The live game", d: "The same page as rtsai.net/play, against the game’s own AI", c: "window.game" },
@@ -553,7 +651,7 @@ function LoopPart() {
   return (
     <Part id="loop">
       <Wrap><Block>
-        <PartHead n="02" label="How it plays" title="One loop for every brain. Only the brain changes."
+        <PartHead n="03" label="How it plays" title="One loop for every brain. Only the brain changes."
           lede="Every 2 game seconds: what to build next. Every 5: what the army does." />
         <StaggerChildren staggerDelay={0.1} className="mt-12 flex flex-col gap-1 xl:flex-row xl:items-stretch xl:gap-0">
           {NODES.map((n, i) => (
@@ -621,7 +719,7 @@ function LoopPart() {
   );
 }
 
-/* ─── 03 · Why the models lost ──────────────────────────────────────────── */
+/* ─── 04 · Why the models lost ──────────────────────────────────────────── */
 
 const RUBRIC_BEFORE = "You command one side in a real-time strategy match (Red Alert 2 style) against a computer opponent. Win by destroying every enemy building. ";
 const RUBRIC_KEY = "Economy first (power, refineries, harvesters)";
@@ -669,7 +767,7 @@ function WhyPart() {
   return (
     <Part id="why">
       <Wrap><Block>
-        <PartHead n="03" label="Why the models lost" title="They did what we told them." lede="Every model read this, every turn, beside the battlefield as JSON:" />
+        <PartHead n="04" label="Why the models lost" title="They did what we told them." lede="Every model read this, every turn, beside the battlefield as JSON:" />
         <Reveal delay={0.1}>
           <blockquote className="mt-8 max-w-5xl rounded-xl border border-border bg-white/[0.03] p-5 text-[clamp(1.05rem,1.6vw,1.55rem)] leading-relaxed text-foreground/85 sm:p-7">
             {RUBRIC_BEFORE}<mark className="rounded bg-transparent px-0.5 font-semibold" style={{ color: OURS, boxShadow: `inset 0 -0.35em 0 rgba(242,193,78,.18)` }}>{RUBRIC_KEY}</mark>{RUBRIC_AFTER}
@@ -743,7 +841,7 @@ barracks: !has("barracks") && !queued("barracks") ? 4.5 : -1,`} />
   );
 }
 
-/* ─── 04 · How the rules got good ───────────────────────────────────────── */
+/* ─── 05 · How the rules got good ───────────────────────────────────────── */
 
 type RuleRow = (typeof RL.evening.rows)[number] | (typeof RL.flags.rows)[number];
 const ruleRow = (r: RuleRow): BoardRow => ({
@@ -764,7 +862,7 @@ function RulesPart() {
   return (
     <Part id="rules">
       <Wrap><Block className="pb-0">
-        <PartHead n="04" label="How the rules got good" title="Not by being clever. One switch at a time."
+        <PartHead n="05" label="How the rules got good" title="Not by being clever. One switch at a time."
           lede="Two days in the Arena, 23 and 24 October: first the smart idea, then the boring method." />
         <div className="mt-12 grid items-start gap-10 xl:grid-cols-[1fr_420px]">
           <AnimatedTimeline nodes={nodes} color={OURS} />
@@ -795,7 +893,7 @@ function RulesPart() {
   );
 }
 
-/* ─── 05 · The twist ────────────────────────────────────────────────────── */
+/* ─── 06 · The twist ────────────────────────────────────────────────────── */
 
 const MARK = new Set(["585723b", "e241116", "984c6db"]);
 
@@ -805,7 +903,7 @@ function WhoPart() {
   return (
     <Part id="who">
       <Wrap><Block>
-        <PartHead n="05" label="The twist" title="So who wrote our rules?" />
+        <PartHead n="06" label="The twist" title="So who wrote our rules?" />
         <p className="mb-8 mt-4 font-mono text-[clamp(0.8rem,1vw,1rem)] text-muted">git log tools/arena/brain.mjs · {commits.length} commits, {coBy} co-authored by Claude</p>
         <StaggerChildren staggerDelay={0.1} className="grid">
           {commits.map((c) => (
@@ -840,7 +938,7 @@ function WhoPart() {
   );
 }
 
-/* ─── 06 · Take it home ─────────────────────────────────────────────────── */
+/* ─── 07 · Take it home ─────────────────────────────────────────────────── */
 
 function HomePart() {
   const withModel = H.runs.filter((r) => r.how === "both");
@@ -853,7 +951,7 @@ function HomePart() {
   return (
     <Part id="home">
       <Wrap><Block className="md:pb-36">
-        <PartHead n="06" label="Take it home" title="Four things to try on Monday." />
+        <PartHead n="07" label="Take it home" title="Four things to try on Monday." />
         <div className="mt-12 grid gap-x-10 gap-y-10 md:grid-cols-2">
           {tips.map(([h, n, b], i) => (
             <Reveal key={h} delay={i * 0.08}>
@@ -894,6 +992,7 @@ export default function CanAnAiPlay() {
         <DeckControls />
         <PresentationTimer targetMinutes={15} sections={BUDGET} />
       </div>
+      <BuiltPart />
       <BetPart />
       <LoopPart />
       <WhyPart />
