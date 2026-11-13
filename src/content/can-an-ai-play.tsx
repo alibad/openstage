@@ -24,9 +24,11 @@
  *
  * The new parts' numbers are constants beside each part, each with its source file or commit in a comment.
  *
- * One theme throughout, Red Alert (13 Nov 2026, the owner's ask: "more like a red alert with the red color present and
- * visible"): the dark ground lit red at the top of every part, red for the talk's voice and its alarms, gold for our
- * rules and for what passed, grey for the models, green only for won.
+ * One theme throughout, the game's own "Command Red" (13 Nov 2026, the owner's asks: "more like a red alert with the
+ * red color present and visible", then "make sure the red colors come from the red color that is in the game ... use
+ * the theme of the game"): the game's charcoal ground lit red at the top of every part, its red for the talk's voice
+ * and its alarms, its gold for our rules and for what passed, grey for the models, green only for won. The game's
+ * squarer buttons (dark type on red), its corner brackets and its screen lines come along.
  * One type family (sans) for words; mono only for code and small labels. Every part reflows from a phone to a projector:
  * below 768 px wide (or under 600 px tall) the stepped boards show everything at once.
  *
@@ -49,13 +51,21 @@ import { PresentationTimer } from "@/components/presentation-timer";
 import { usePrintMode } from "@/lib/print-mode";
 import data from "./data/can-an-ai-play.json";
 
-// The theme is Red Alert. Red is the talk's own voice and its alarms: the tags on every heading, the Next control,
-// the doors to the real pages, and every number that was bad news. Gold stays for what is ours and what is good:
-// our rules on the boards, the wins, the checks that pass. Green only ever means "won".
-const RED = "#E8372C"; // fills, rules and glows
-const RED_INK = "#FF5648"; // red type on the dark ground (lighter, so small type keeps its contrast)
+// The theme is the game's own: "Command Red", the identity the owner picked for RTS AI. Every colour here is read
+// from the web game's interface (RTSAI-WebGame web/src/ui/command-red.css, 13 Nov 2026), not chosen for the talk.
+// Red is the talk's own voice and its alarms: the tags on every heading, the Next control, the doors to the real
+// pages, and every number that was bad news. Gold stays for what is ours and what is good: our rules on the boards,
+// the wins, the checks that pass. Green only ever means "won".
+const RED = "#e15a43"; // --command-accent: fills, rules and glows
+const RED_INK = "#f18470"; // --command-accent-hi: red type and small marks on the dark ground
+const ON_RED = "#151719"; // the game writes its dark ground colour on red buttons
+const BUTTON = `linear-gradient(180deg, ${RED_INK}, ${RED})`; // the game's main button
 const WIN = "#2f9e44";
-const OURS = "#F2C14E";
+const OURS = "#d8b66c"; // --hud-gold
+// The game's ground, ink, quiet text and edges, for every section of the talk.
+const GROUND = { "--color-background": "#151719", "--color-foreground": "#f5efe4", "--color-muted": "#b5b8b8", "--color-border": "#42494e" } as CSSProperties;
+// The fine screen lines the game's menu draws over its ground.
+const SCANLINES = "repeating-linear-gradient(0deg, rgba(255,255,255,.022) 0 1px, transparent 1px 3px)";
 const GREY = "#8f8e88";
 const LIGHT = "#c3c2b7";
 const MEDIA = "/talks/can-an-ai-play";
@@ -136,7 +146,7 @@ const useCompact = () => useMedia("(max-width: 767px), (max-height: 600px)");
 // `lit` puts the red light at its top: a part's first section has it (any section with an id, or by asking).
 function Part({ id, lit = !!id, className = "", children }: { id?: string; lit?: boolean; className?: string; children: ReactNode }) {
   return (
-    <section id={id} className={`slide-dark relative bg-background text-foreground ${className}`}>
+    <section id={id} style={GROUND} className={`slide-dark relative bg-background text-foreground ${className}`}>
       {lit && <RedLight />}
       <div className="relative w-full">{children}</div>
     </section>
@@ -147,7 +157,20 @@ function Part({ id, lit = !!id, className = "", children }: { id?: string; lit?:
 function RedLight() {
   return (
     <div aria-hidden data-red-light className="pointer-events-none absolute inset-x-0 top-0 h-[70vh]"
-      style={{ borderTop: `3px solid ${RED}`, background: "linear-gradient(180deg, rgba(232,55,44,.20), rgba(232,55,44,.05) 45%, transparent)" }} />
+      style={{ borderTop: `3px solid ${RED}`, background: `${SCANLINES}, linear-gradient(180deg, rgba(225,90,67,.22), rgba(225,90,67,.06) 45%, transparent)` }} />
+  );
+}
+
+// The game's card corners: four small brackets in its lighter red. The parent must be positioned.
+function Brackets() {
+  const b = `2px solid ${RED_INK}`;
+  return (
+    <span aria-hidden data-brackets className="pointer-events-none absolute inset-0 z-10">
+      <i className="absolute left-2 top-2 h-[18px] w-[18px]" style={{ borderTop: b, borderLeft: b }} />
+      <i className="absolute right-2 top-2 h-[18px] w-[18px]" style={{ borderTop: b, borderRight: b }} />
+      <i className="absolute bottom-2 left-2 h-[18px] w-[18px]" style={{ borderBottom: b, borderLeft: b }} />
+      <i className="absolute bottom-2 right-2 h-[18px] w-[18px]" style={{ borderBottom: b, borderRight: b }} />
+    </span>
   );
 }
 
@@ -164,7 +187,7 @@ function PartHead({ n, label, title, lede }: { n: string; label: string; title: 
   return (
     <Reveal>
       <div className={`${TYPE.kicker} mb-5 flex items-center gap-3`} style={{ color: RED_INK }}>
-        <span className="rounded-[3px] px-2 py-1 font-bold text-white" style={{ background: RED }}>{n}</span><span className="h-0.5 w-10" style={{ background: RED }} /><span>{label}</span>
+        <span className="rounded-[3px] px-2 py-1 font-bold" style={{ background: RED, color: ON_RED }}>{n}</span><span className="h-0.5 w-10" style={{ background: RED }} /><span>{label}</span>
       </div>
       <h2 className={`${TYPE.h2} max-w-5xl`}>{title}</h2>
       {lede && <p className={`${TYPE.lede} mt-5 max-w-3xl`}>{lede}</p>}
@@ -176,7 +199,7 @@ function PartHead({ n, label, title, lede }: { n: string; label: string; title: 
 function Claim({ children }: { children: ReactNode }) {
   return (
     <Reveal delay={0.1}>
-      <blockquote className="max-w-4xl border-l-[6px] py-2 pl-6" style={{ borderLeftColor: RED, background: "linear-gradient(90deg, rgba(232,55,44,.16), transparent 75%)" }}>
+      <blockquote className="max-w-4xl border-l-[6px] py-2 pl-6" style={{ borderLeftColor: RED, background: "linear-gradient(90deg, rgba(225,90,67,.18), transparent 75%)" }}>
         <p className="text-[clamp(1.35rem,2.6vw,2.6rem)] font-semibold leading-snug tracking-[-0.015em]">{children}</p>
       </blockquote>
     </Reveal>
@@ -269,7 +292,7 @@ function Board({ rows, seeds, shown, ringed }: { rows: BoardRow[]; seeds: number
       </div>
       {rows.map((r, ri) => (
         <div key={r.key} className={`${lane} ${pad} rounded-2xl py-[clamp(0.45rem,1.1vh,0.9rem)] transition-all duration-500 ${ri >= shown ? "translate-y-2 opacity-0" : ""}`}
-          style={{ background: r.accent ? "rgba(242,193,78,.09)" : "rgba(255,255,255,.03)", boxShadow: `inset 0 0 0 ${r.accent ? `1.5px ${OURS}` : "1px rgba(255,255,255,.06)"}` }}>
+          style={{ background: r.accent ? "rgba(216,182,108,.12)" : "rgba(255,255,255,.035)", boxShadow: `inset 0 0 0 ${r.accent ? `1.5px ${OURS}` : "1px rgba(255,255,255,.06)"}` }}>
           <div className="order-1 min-w-0">
             <b className={`${side ? "block" : "mr-3 inline-block"} text-[clamp(1.1rem,1.55vw,1.8rem)] leading-tight`} style={r.accent ? { color: OURS } : undefined}>{r.label}</b>
             {r.sub && <span className={`${side ? "block" : "inline-block"} text-[clamp(0.8rem,0.95vw,1.05rem)] leading-snug text-muted`}>{r.sub}</span>}
@@ -330,7 +353,7 @@ function StepHint({ flat, done, onNext, onAll, what }: { flat: boolean; done: bo
   return (
     <p className="mb-4 flex min-h-[2.2em] flex-wrap items-center gap-x-4 gap-y-1 text-[clamp(0.95rem,1.15vw,1.15rem)] text-muted">
       <span>One {what} at a time.</span>
-      {!done && <button type="button" onClick={onNext} className="rounded-full px-3.5 py-1 font-semibold" style={{ color: "#fff", background: RED }}>Next {what} ›</button>}
+      {!done && <button type="button" onClick={onNext} className="rounded-md px-3.5 py-1 font-bold" style={{ color: ON_RED, background: BUTTON }}>Next {what} ›</button>}
       {!done && <button type="button" onClick={onAll} className="underline underline-offset-4 hover:text-white">Show all</button>}
     </p>
   );
@@ -349,10 +372,10 @@ const PARTS = ["What we built", "It said done", "Give it a ruler", "The game pla
 
 function Hero() {
   return (
-    <section className="slide-dark relative flex min-h-[100svh] flex-col overflow-hidden bg-background text-foreground">
-      {/* Red Alert: a red bar across the top, and red light behind the tank. */}
+    <section style={GROUND} className="slide-dark relative flex min-h-[100svh] flex-col overflow-hidden bg-background text-foreground">
+      {/* Command Red: a red bar across the top, red light behind the tank, the menu's screen lines over the ground. */}
       <div aria-hidden data-red-light className="pointer-events-none absolute inset-0"
-        style={{ borderTop: `4px solid ${RED}`, background: "radial-gradient(46% 58% at 76% 46%, rgba(232,55,44,.42), rgba(232,55,44,.12) 55%, transparent 78%), linear-gradient(180deg, rgba(232,55,44,.16), transparent 34%)" }} />
+        style={{ borderTop: `4px solid ${RED}`, background: `${SCANLINES}, radial-gradient(46% 58% at 76% 46%, rgba(225,90,67,.44), rgba(225,90,67,.13) 55%, transparent 78%), linear-gradient(180deg, rgba(225,90,67,.18), transparent 34%)` }} />
       <div className="relative z-10 border-b border-white/10">
         <Wrap className={`${TYPE.kicker} flex items-center justify-between py-5 text-white/55`}>
           <span>AI Tinkerers · Doha · Round 5</span>
@@ -364,7 +387,10 @@ function Hero() {
           <div className="grid items-center gap-x-8 gap-y-6 lg:grid-cols-[minmax(0,1.25fr)_minmax(0,0.9fr)]">
             <Reveal>
               <div className={`${TYPE.kicker} mb-6`} style={{ color: RED_INK }}>One person · coding agents · one real-time strategy game</div>
-              <h1 className="mb-8 text-[clamp(2.75rem,6.3vw,6.75rem)] font-semibold leading-[0.92] tracking-[-0.05em]">Can an AI play<br />our game?</h1>
+              {/* As on the game's own title: the ink with a hard shadow and a red glow, and "AI" in the lighter red. */}
+              <h1 className="mb-8 text-[clamp(2.75rem,6.3vw,6.75rem)] font-semibold leading-[0.92] tracking-[-0.05em]" style={{ textShadow: "0 3px 0 #000, 0 0 36px rgba(225,90,67,.22)" }}>
+                Can an <span style={{ color: RED_INK }}>AI</span> play<br />our game?
+              </h1>
               <p data-spine className="mb-6 max-w-4xl text-[clamp(1.3rem,2.2vw,2.3rem)] font-semibold leading-snug tracking-[-0.015em]">
                 AI made building cheap. <span style={{ color: RED_INK }}>What got expensive was knowing what is true.</span>
               </p>
@@ -464,7 +490,7 @@ const BUILT: { key: string; name: string; line: string; where: string; href: str
   { key: "places", name: "Real places", line: "Pick any place on Earth. It becomes a map you can play.", where: "rtsai.net/play › Map editor", href: "https://rtsai.net/play/?mode=earth", open: "Open it live" },
   { key: "studio", name: "Faction Studio", line: "Where every unit is made and checked: design, 3D model, sprite, animation, sound, cost.", where: "rtsai.net/faction-studio", href: "https://rtsai.net/faction-studio", open: "Open it live" },
 ];
-const WHERE_PILL = "rounded-full bg-black/70 px-3.5 py-1.5 font-mono text-[clamp(0.8rem,1.05vw,1.1rem)] font-semibold backdrop-blur-sm";
+const WHERE_PILL = "rounded-md bg-black/75 px-3.5 py-1.5 font-mono text-[clamp(0.8rem,1.05vw,1.1rem)] font-semibold backdrop-blur-sm";
 
 // One thing at a time, big. Click a name (or press Next) to change it; click the picture to open the real thing.
 function BuiltTour() {
@@ -504,22 +530,23 @@ function BuiltTour() {
             <div role="tablist" aria-label="What we built" className="flex flex-wrap gap-x-[clamp(0.4rem,1.2vw,1.25rem)] gap-y-2">
               {BUILT.map((b, i) => (
                 <button key={b.key} type="button" role="tab" aria-selected={i === at} onClick={() => setAt(i)}
-                  className="rounded-full px-[clamp(0.7rem,1.2vw,1.2rem)] py-2 text-[clamp(0.9rem,1.35vw,1.4rem)] font-semibold transition-colors duration-200 hover:text-white"
-                  style={i === at ? { background: RED, color: "#fff" } : { color: "rgba(255,255,255,.6)", boxShadow: "inset 0 0 0 1px rgba(255,255,255,.16)" }}>
+                  className="rounded-md px-[clamp(0.7rem,1.2vw,1.2rem)] py-2 text-[clamp(0.9rem,1.35vw,1.4rem)] font-semibold transition-colors duration-200 hover:text-white"
+                  style={i === at ? { background: BUTTON, color: ON_RED } : { color: "rgba(245,239,228,.62)", boxShadow: "inset 0 0 0 1px #56616a" }}>
                   {b.name}
                 </button>
               ))}
             </div>
             {/* The picture is the door: one click opens the real thing in its own tab. */}
             <a href={now.href} target="_blank" rel="noreferrer" data-built-stage aria-label={`${now.open}: ${now.where}`}
-              className="group relative mt-5 block aspect-video overflow-hidden rounded-2xl bg-black ring-1 ring-white/10 transition hover:ring-2 hover:ring-[#E8372C]"
+              className="group relative mt-5 block aspect-video overflow-hidden rounded-lg bg-black ring-1 ring-[#56616a] transition hover:ring-2 hover:ring-[#e15a43]"
               style={{ width: "min(100%, calc((100svh - 5vh - 17rem) * 16 / 9))" }}>
               {BUILT.map((b, i) => (
                 <video key={b.key} ref={(el) => { videos.current[i] = el; }} src={`${MEDIA}/built-${b.key}.mp4`} poster={`${MEDIA}/built-${b.key}.jpg`} muted loop playsInline preload="metadata"
                   aria-hidden={i !== at} className="absolute inset-0 h-full w-full object-cover transition-opacity duration-500" style={{ opacity: i === at ? 1 : 0 }} />
               ))}
-              <span data-built-where className={`${WHERE_PILL} absolute bottom-3 left-3 z-10 text-white`}>{now.where}</span>
-              <span data-built-open className="absolute bottom-3 right-3 z-10 flex items-center gap-2 rounded-full px-[clamp(0.9rem,1.4vw,1.4rem)] py-2 text-[clamp(0.9rem,1.25vw,1.3rem)] font-bold shadow-lg transition group-hover:scale-105" style={{ background: RED, color: "#fff" }}>
+              <Brackets />
+              <span data-built-where className={`${WHERE_PILL} absolute bottom-4 left-4 z-10 text-white`}>{now.where}</span>
+              <span data-built-open className="absolute bottom-4 right-4 z-10 flex items-center gap-2 rounded-md px-[clamp(0.9rem,1.4vw,1.4rem)] py-2 text-[clamp(0.9rem,1.25vw,1.3rem)] font-bold shadow-lg transition group-hover:scale-105" style={{ background: BUTTON, color: ON_RED }}>
                 {now.open} <span aria-hidden>↗</span>
               </span>
             </a>
@@ -578,15 +605,16 @@ function ModelShelf() {
   const [id, name] = MODELS[pick];
   return (
     <div data-stop="8" data-model-shelf className="mt-[22vh]">
-      <div className="relative overflow-hidden rounded-2xl bg-white/[0.035] ring-1 ring-white/10" style={{ height: "min(54vh, 36rem)" }}>
+      <div className="relative overflow-hidden rounded-lg ring-1 ring-[#56616a]" style={{ height: "min(54vh, 36rem)", background: "linear-gradient(180deg, rgba(43,48,52,.96), rgba(21,23,25,.96))" }}>
+        <Brackets />
         <UnitModel key={id} src={`${MEDIA}/models/${id}.glb`} poster={`${MEDIA}/models/${id}.jpg`} label={`${name}: the generated 3D model, turning slowly`} className="h-full w-full" />
-        <div className={`${TYPE.kicker} absolute left-5 top-4`} style={{ color: RED_INK }}>{name} · generated 3D model</div>
-        <div className="absolute bottom-3 right-5 font-mono text-[11px] uppercase tracking-[0.2em] text-white/45">Drag to turn</div>
+        <div className={`${TYPE.kicker} absolute left-9 top-6`} style={{ color: RED_INK }}>{name} · generated 3D model</div>
+        <div className="absolute bottom-5 right-9 font-mono text-[11px] uppercase tracking-[0.2em] text-white/45">Drag to turn</div>
       </div>
       <div className="mt-3 grid grid-cols-4 gap-2.5 sm:grid-cols-8">
         {MODELS.map(([mid, mname], i) => (
           <button key={mid} type="button" aria-pressed={i === pick} aria-label={`Show the 3D model of the ${mname}`} title={mname} onClick={() => setPick(i)}
-            className="overflow-hidden rounded-xl transition hover:opacity-100" style={{ boxShadow: `0 0 0 ${i === pick ? `3px ${RED}` : "1px rgba(255,255,255,.12)"}`, opacity: i === pick ? 1 : 0.7 }}>
+            className="overflow-hidden rounded-md transition hover:opacity-100" style={{ boxShadow: `0 0 0 ${i === pick ? `3px ${RED}` : "1px rgba(255,255,255,.12)"}`, opacity: i === pick ? 1 : 0.7 }}>
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={`${MEDIA}/models/${mid}.jpg`} alt="" className="aspect-[4/3] w-full object-cover" />
           </button>
@@ -1074,8 +1102,8 @@ export default function CanAnAiPlay() {
   return (
     <main className={`relative bg-background ${print ? "print-mode" : ""}`}>
       <ScrollProgress />
-      <ChapterNav chapters={CHAPTERS} toneOnDark={{ activeDot: "bg-[#E8372C]", activeText: "text-[#FF5648]", activeGlow: "shadow-[0_0_12px_rgba(232,55,44,0.7)]", inactiveDot: "bg-white/25 group-hover:bg-white/50", inactiveTextHover: "group-hover:text-white/60" }} />
-      <DeckNext accent={RED} solid />
+      <ChapterNav chapters={CHAPTERS} toneOnDark={{ activeDot: "bg-[#e15a43]", activeText: "text-[#f18470]", activeGlow: "shadow-[0_0_12px_rgba(225,90,67,0.7)]", inactiveDot: "bg-white/25 group-hover:bg-white/50", inactiveTextHover: "group-hover:text-white/60" }} />
+      <DeckNext accent={RED} hi={RED_INK} ink={ON_RED} solid />
       {/* On a phone the timer and controls would sit on the words: they show from 768 px. */}
       <div className="hidden md:block">
         <DeckControls />

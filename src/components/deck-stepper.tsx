@@ -86,8 +86,12 @@ export function deckGo(dir: 1 | -1): "step" | "stop" | "end" {
   return "stop";
 }
 
-/** The Next and Back buttons, and the keys. Render once per deck. Hidden in print mode. `solid` fills Next with the accent. */
-export function DeckNext({ accent = "#F2C14E", solid = false }: { accent?: string; solid?: boolean }) {
+/**
+ * The Next and Back buttons, and the keys. Render once per deck. Hidden in print mode.
+ * `solid` fills Next with the accent (from `hi` at its top, if given) and writes on it in `ink`; the corners are then
+ * squarer, like a game button.
+ */
+export function DeckNext({ accent = "#F2C14E", hi, ink = "#fff", solid = false }: { accent?: string; hi?: string; ink?: string; solid?: boolean }) {
   const print = usePrintMode();
   useEffect(() => {
     if (print) return;
@@ -106,12 +110,12 @@ export function DeckNext({ accent = "#F2C14E", solid = false }: { accent?: strin
     return () => window.removeEventListener("keydown", onKey);
   }, [print]);
   if (print) return null;
-  const base = "grid h-11 place-items-center rounded-full bg-black/75 font-semibold text-white backdrop-blur-sm transition hover:bg-black active:scale-95";
+  const base = `grid h-11 place-items-center ${solid ? "rounded-md" : "rounded-full"} bg-black/75 font-semibold text-white backdrop-blur-sm transition hover:bg-black active:scale-95`;
   return (
     <div data-deck-next className="print-hidden fixed bottom-6 left-1/2 z-[90] flex -translate-x-1/2 select-none items-center gap-2">
       <button type="button" aria-label="Back" onClick={() => deckGo(-1)} className={`${base} w-11 text-lg ring-1 ring-white/15`}>‹</button>
       <button type="button" onClick={() => deckGo(1)} className={`${base} grid-flow-col gap-2 whitespace-nowrap px-6 text-[15px]`}
-        style={solid ? { color: "#fff", background: accent, boxShadow: `0 6px 22px ${accent}66` } : { color: accent, boxShadow: `0 0 0 1px ${accent}66` }}>
+        style={solid ? { color: ink, fontWeight: 700, background: hi ? `linear-gradient(180deg, ${hi}, ${accent})` : accent, boxShadow: `0 6px 22px ${accent}66` } : { color: accent, boxShadow: `0 0 0 1px ${accent}66` }}>
         <span>Next</span><span aria-hidden className="text-lg leading-none">›</span>
       </button>
     </div>
