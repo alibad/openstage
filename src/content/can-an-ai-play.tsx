@@ -24,7 +24,9 @@
  *
  * The new parts' numbers are constants beside each part, each with its source file or commit in a comment.
  *
- * One theme throughout: the dark ground, one gold accent for our rules, grey for the models, green/red only for won/lost.
+ * One theme throughout, Red Alert (13 Nov 2026, the owner's ask: "more like a red alert with the red color present and
+ * visible"): the dark ground lit red at the top of every part, red for the talk's voice and its alarms, gold for our
+ * rules and for what passed, grey for the models, green only for won.
  * One type family (sans) for words; mono only for code and small labels. Every part reflows from a phone to a projector:
  * below 768 px wide (or under 600 px tall) the stepped boards show everything at once.
  *
@@ -47,8 +49,12 @@ import { PresentationTimer } from "@/components/presentation-timer";
 import { usePrintMode } from "@/lib/print-mode";
 import data from "./data/can-an-ai-play.json";
 
+// The theme is Red Alert. Red is the talk's own voice and its alarms: the tags on every heading, the Next control,
+// the doors to the real pages, and every number that was bad news. Gold stays for what is ours and what is good:
+// our rules on the boards, the wins, the checks that pass. Green only ever means "won".
+const RED = "#E8372C"; // fills, rules and glows
+const RED_INK = "#FF5648"; // red type on the dark ground (lighter, so small type keeps its contrast)
 const WIN = "#2f9e44";
-const LOSS = "#c9423f";
 const OURS = "#F2C14E";
 const GREY = "#8f8e88";
 const LIGHT = "#c3c2b7";
@@ -127,11 +133,21 @@ function useMedia(query: string) {
 const useCompact = () => useMedia("(max-width: 767px), (max-height: 600px)");
 
 // Every part sits on the same dark ground. w-full is load-bearing.
-function Part({ id, className = "", children }: { id?: string; className?: string; children: ReactNode }) {
+// `lit` puts the red light at its top: a part's first section has it (any section with an id, or by asking).
+function Part({ id, lit = !!id, className = "", children }: { id?: string; lit?: boolean; className?: string; children: ReactNode }) {
   return (
     <section id={id} className={`slide-dark relative bg-background text-foreground ${className}`}>
+      {lit && <RedLight />}
       <div className="relative w-full">{children}</div>
     </section>
+  );
+}
+
+// The alert light: a red line across the top of a part and a glow falling from it. Decoration only.
+function RedLight() {
+  return (
+    <div aria-hidden data-red-light className="pointer-events-none absolute inset-x-0 top-0 h-[70vh]"
+      style={{ borderTop: `3px solid ${RED}`, background: "linear-gradient(180deg, rgba(232,55,44,.20), rgba(232,55,44,.05) 45%, transparent)" }} />
   );
 }
 
@@ -147,8 +163,8 @@ function Block({ children, className = "" }: { children: ReactNode; className?: 
 function PartHead({ n, label, title, lede }: { n: string; label: string; title: ReactNode; lede?: ReactNode }) {
   return (
     <Reveal>
-      <div className={`${TYPE.kicker} mb-5 flex items-center gap-3`} style={{ color: OURS }}>
-        <span>{n}</span><span className="h-px w-10" style={{ background: OURS }} /><span>{label}</span>
+      <div className={`${TYPE.kicker} mb-5 flex items-center gap-3`} style={{ color: RED_INK }}>
+        <span className="rounded-[3px] px-2 py-1 font-bold text-white" style={{ background: RED }}>{n}</span><span className="h-0.5 w-10" style={{ background: RED }} /><span>{label}</span>
       </div>
       <h2 className={`${TYPE.h2} max-w-5xl`}>{title}</h2>
       {lede && <p className={`${TYPE.lede} mt-5 max-w-3xl`}>{lede}</p>}
@@ -160,7 +176,7 @@ function PartHead({ n, label, title, lede }: { n: string; label: string; title: 
 function Claim({ children }: { children: ReactNode }) {
   return (
     <Reveal delay={0.1}>
-      <blockquote className="max-w-4xl border-l-4 py-1 pl-6" style={{ borderLeftColor: OURS }}>
+      <blockquote className="max-w-4xl border-l-[6px] py-2 pl-6" style={{ borderLeftColor: RED, background: "linear-gradient(90deg, rgba(232,55,44,.16), transparent 75%)" }}>
         <p className="text-[clamp(1.35rem,2.6vw,2.6rem)] font-semibold leading-snug tracking-[-0.015em]">{children}</p>
       </blockquote>
     </Reveal>
@@ -314,7 +330,7 @@ function StepHint({ flat, done, onNext, onAll, what }: { flat: boolean; done: bo
   return (
     <p className="mb-4 flex min-h-[2.2em] flex-wrap items-center gap-x-4 gap-y-1 text-[clamp(0.95rem,1.15vw,1.15rem)] text-muted">
       <span>One {what} at a time.</span>
-      {!done && <button type="button" onClick={onNext} className="rounded-full px-3.5 py-1 font-semibold" style={{ color: OURS, boxShadow: `inset 0 0 0 1px ${OURS}77` }}>Next {what} ›</button>}
+      {!done && <button type="button" onClick={onNext} className="rounded-full px-3.5 py-1 font-semibold" style={{ color: "#fff", background: RED }}>Next {what} ›</button>}
       {!done && <button type="button" onClick={onAll} className="underline underline-offset-4 hover:text-white">Show all</button>}
     </p>
   );
@@ -333,21 +349,24 @@ const PARTS = ["What we built", "It said done", "Give it a ruler", "The game pla
 
 function Hero() {
   return (
-    <section className="slide-dark relative flex min-h-[100svh] flex-col bg-background text-foreground">
-      <div className="border-b border-white/10">
+    <section className="slide-dark relative flex min-h-[100svh] flex-col overflow-hidden bg-background text-foreground">
+      {/* Red Alert: a red bar across the top, and red light behind the tank. */}
+      <div aria-hidden data-red-light className="pointer-events-none absolute inset-0"
+        style={{ borderTop: `4px solid ${RED}`, background: "radial-gradient(46% 58% at 76% 46%, rgba(232,55,44,.42), rgba(232,55,44,.12) 55%, transparent 78%), linear-gradient(180deg, rgba(232,55,44,.16), transparent 34%)" }} />
+      <div className="relative z-10 border-b border-white/10">
         <Wrap className={`${TYPE.kicker} flex items-center justify-between py-5 text-white/55`}>
           <span>AI Tinkerers · Doha · Round 5</span>
           <span className="hidden sm:inline">16 Nov 2026</span>
         </Wrap>
       </div>
-      <div className="flex flex-1 items-center py-12">
+      <div className="relative z-10 flex flex-1 items-center py-12">
         <Wrap>
           <div className="grid items-center gap-x-8 gap-y-6 lg:grid-cols-[minmax(0,1.25fr)_minmax(0,0.9fr)]">
             <Reveal>
-              <div className={`${TYPE.kicker} mb-6`} style={{ color: OURS }}>One person · coding agents · one real-time strategy game</div>
+              <div className={`${TYPE.kicker} mb-6`} style={{ color: RED_INK }}>One person · coding agents · one real-time strategy game</div>
               <h1 className="mb-8 text-[clamp(2.75rem,6.3vw,6.75rem)] font-semibold leading-[0.92] tracking-[-0.05em]">Can an AI play<br />our game?</h1>
               <p data-spine className="mb-6 max-w-4xl text-[clamp(1.3rem,2.2vw,2.3rem)] font-semibold leading-snug tracking-[-0.015em]">
-                AI made building cheap. <span style={{ color: OURS }}>What got expensive was knowing what is true.</span>
+                AI made building cheap. <span style={{ color: RED_INK }}>What got expensive was knowing what is true.</span>
               </p>
               <p className={`${TYPE.lede} max-w-3xl`}>
                 We built a real-time strategy game with coding agents, learned to check their work the hard way, and then asked whether an AI could play it.
@@ -361,12 +380,12 @@ function Hero() {
           </div>
         </Wrap>
       </div>
-      <div className="pb-8 md:pb-24">
+      <div className="relative z-10 pb-8 md:pb-24">
         <Wrap>
           <div className="grid grid-cols-2 gap-x-6 gap-y-3 border-t border-white/10 pt-5 md:grid-cols-4 xl:grid-cols-7">
             {PARTS.map((p, i) => (
               <div key={p} className="flex items-baseline gap-2.5">
-                <span className="font-mono text-xs" style={{ color: OURS }}>0{i + 1}</span>
+                <span className="font-mono text-xs font-bold" style={{ color: RED_INK }}>0{i + 1}</span>
                 <span className="text-xs uppercase tracking-[0.16em] text-white/55">{p}</span>
               </div>
             ))}
@@ -460,7 +479,7 @@ function BuiltTour() {
   }, [at, print]);
   const now = BUILT[at];
   return (
-    <Part>
+    <Part lit>
       <Wrap>
         <Block className="pb-[20vh]">
           <PartHead n="01" label="What we built" title="First, what we built." lede="Five things you can open today. Click one, then click its picture to open the real thing." />
@@ -472,9 +491,9 @@ function BuiltTour() {
             {BUILT.map((b, i) => (
               <div key={b.key}>
                 <video src={`${MEDIA}/built-${b.key}.mp4`} poster={`${MEDIA}/built-${b.key}.jpg`} autoPlay muted loop playsInline preload="metadata" className="aspect-video w-full rounded-2xl bg-black" />
-                <div className={`${TYPE.kicker} mt-4`} style={{ color: OURS }}>0{i + 1} · {b.name}</div>
+                <div className={`${TYPE.kicker} mt-4`} style={{ color: RED_INK }}>0{i + 1} · {b.name}</div>
                 <p className="mt-2 text-[clamp(1.1rem,2vw,1.6rem)] font-semibold leading-snug">{b.line}</p>
-                <a href={b.href} target="_blank" rel="noreferrer" className="mt-2 inline-block font-mono text-sm font-semibold underline underline-offset-4" style={{ color: OURS }}>{b.where} →</a>
+                <a href={b.href} target="_blank" rel="noreferrer" className="mt-2 inline-block font-mono text-sm font-semibold underline underline-offset-4" style={{ color: RED_INK }}>{b.where} →</a>
               </div>
             ))}
           </div>
@@ -486,21 +505,21 @@ function BuiltTour() {
               {BUILT.map((b, i) => (
                 <button key={b.key} type="button" role="tab" aria-selected={i === at} onClick={() => setAt(i)}
                   className="rounded-full px-[clamp(0.7rem,1.2vw,1.2rem)] py-2 text-[clamp(0.9rem,1.35vw,1.4rem)] font-semibold transition-colors duration-200 hover:text-white"
-                  style={i === at ? { background: OURS, color: "#221a05" } : { color: "rgba(255,255,255,.55)", boxShadow: "inset 0 0 0 1px rgba(255,255,255,.14)" }}>
+                  style={i === at ? { background: RED, color: "#fff" } : { color: "rgba(255,255,255,.6)", boxShadow: "inset 0 0 0 1px rgba(255,255,255,.16)" }}>
                   {b.name}
                 </button>
               ))}
             </div>
             {/* The picture is the door: one click opens the real thing in its own tab. */}
             <a href={now.href} target="_blank" rel="noreferrer" data-built-stage aria-label={`${now.open}: ${now.where}`}
-              className="group relative mt-5 block aspect-video overflow-hidden rounded-2xl bg-black ring-1 ring-white/10 transition hover:ring-2 hover:ring-[#F2C14E]"
+              className="group relative mt-5 block aspect-video overflow-hidden rounded-2xl bg-black ring-1 ring-white/10 transition hover:ring-2 hover:ring-[#E8372C]"
               style={{ width: "min(100%, calc((100svh - 5vh - 17rem) * 16 / 9))" }}>
               {BUILT.map((b, i) => (
                 <video key={b.key} ref={(el) => { videos.current[i] = el; }} src={`${MEDIA}/built-${b.key}.mp4`} poster={`${MEDIA}/built-${b.key}.jpg`} muted loop playsInline preload="metadata"
                   aria-hidden={i !== at} className="absolute inset-0 h-full w-full object-cover transition-opacity duration-500" style={{ opacity: i === at ? 1 : 0 }} />
               ))}
-              <span data-built-where className={`${WHERE_PILL} absolute bottom-3 left-3 z-10`} style={{ color: OURS }}>{now.where}</span>
-              <span data-built-open className="absolute bottom-3 right-3 z-10 flex items-center gap-2 rounded-full px-[clamp(0.9rem,1.4vw,1.4rem)] py-2 text-[clamp(0.9rem,1.25vw,1.3rem)] font-bold shadow-lg transition group-hover:scale-105" style={{ background: OURS, color: "#221a05" }}>
+              <span data-built-where className={`${WHERE_PILL} absolute bottom-3 left-3 z-10 text-white`}>{now.where}</span>
+              <span data-built-open className="absolute bottom-3 right-3 z-10 flex items-center gap-2 rounded-full px-[clamp(0.9rem,1.4vw,1.4rem)] py-2 text-[clamp(0.9rem,1.25vw,1.3rem)] font-bold shadow-lg transition group-hover:scale-105" style={{ background: RED, color: "#fff" }}>
                 {now.open} <span aria-hidden>↗</span>
               </span>
             </a>
@@ -561,13 +580,13 @@ function ModelShelf() {
     <div data-stop="8" data-model-shelf className="mt-[22vh]">
       <div className="relative overflow-hidden rounded-2xl bg-white/[0.035] ring-1 ring-white/10" style={{ height: "min(54vh, 36rem)" }}>
         <UnitModel key={id} src={`${MEDIA}/models/${id}.glb`} poster={`${MEDIA}/models/${id}.jpg`} label={`${name}: the generated 3D model, turning slowly`} className="h-full w-full" />
-        <div className={`${TYPE.kicker} absolute left-5 top-4`} style={{ color: OURS }}>{name} · generated 3D model</div>
+        <div className={`${TYPE.kicker} absolute left-5 top-4`} style={{ color: RED_INK }}>{name} · generated 3D model</div>
         <div className="absolute bottom-3 right-5 font-mono text-[11px] uppercase tracking-[0.2em] text-white/45">Drag to turn</div>
       </div>
       <div className="mt-3 grid grid-cols-4 gap-2.5 sm:grid-cols-8">
         {MODELS.map(([mid, mname], i) => (
           <button key={mid} type="button" aria-pressed={i === pick} aria-label={`Show the 3D model of the ${mname}`} title={mname} onClick={() => setPick(i)}
-            className="overflow-hidden rounded-xl transition hover:opacity-100" style={{ boxShadow: `0 0 0 ${i === pick ? `3px ${OURS}` : "1px rgba(255,255,255,.12)"}`, opacity: i === pick ? 1 : 0.7 }}>
+            className="overflow-hidden rounded-xl transition hover:opacity-100" style={{ boxShadow: `0 0 0 ${i === pick ? `3px ${RED}` : "1px rgba(255,255,255,.12)"}`, opacity: i === pick ? 1 : 0.7 }}>
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={`${MEDIA}/models/${mid}.jpg`} alt="" className="aspect-[4/3] w-full object-cover" />
           </button>
@@ -598,8 +617,8 @@ function DonePart() {
                 </div>
                 <div className="hidden pt-9 text-3xl text-muted md:block" aria-hidden>→</div>
                 <div>
-                  <div className={`${TYPE.kicker} mb-3`} style={{ color: OURS }}>What was there</div>
-                  <b className={`${TYPE.big} block`} style={{ color: OURS }}>{r.had}</b>
+                  <div className={`${TYPE.kicker} mb-3`} style={{ color: RED_INK }}>What was there</div>
+                  <b className={`${TYPE.big} block`} style={{ color: RED_INK }}>{r.had}</b>
                   <span className="mt-3 block max-w-md text-[clamp(0.95rem,1.2vw,1.25rem)] leading-snug">{r.hadNote}</span>
                 </div>
               </div>
@@ -657,7 +676,7 @@ function RulerPart() {
             <div className="grid gap-7">
               {[
                 ["Its own score", "81.5", "of 100, pass mark 70", LIGHT],
-                ["Beside the original game’s tanks", "9 failed", "of 15 measured checks", LOSS],
+                ["Beside the original game’s tanks", "9 failed", "of 15 measured checks", RED_INK],
                 ["After changing only light, size and colours", "0 failed", "same model, same checks", OURS],
               ].map(([k, n, s, c]) => (
                 <div key={k} className="border-t border-border pt-4">
@@ -728,7 +747,7 @@ function SelfPlayPart() {
           {SELF_PLAY.map(([n, t], i) => (
             <Reveal key={t} delay={i * 0.08}>
               <div className="border-t-2 border-border pt-4">
-                <b className={`${TYPE.big} block`} style={i === 2 ? { color: OURS } : undefined}>{n}</b>
+                <b className={`${TYPE.big} block`} style={i === 2 ? { color: RED_INK } : undefined}>{n}</b>
                 <span className="mt-3 block text-[clamp(0.95rem,1.15vw,1.2rem)] leading-snug text-muted">{t}</span>
               </div>
             </Reveal>
@@ -738,7 +757,7 @@ function SelfPlayPart() {
         <div className="grid gap-0">
           {SELF_BUGS.map(([n, t]) => (
             <div key={n} className="grid items-baseline gap-x-8 gap-y-1 border-t border-border py-5 md:grid-cols-[minmax(0,17rem)_1fr]">
-              <b className="text-[clamp(1.5rem,2.6vw,2.6rem)] font-bold leading-none tracking-[-0.02em]" style={{ color: OURS }}>{n}</b>
+              <b className="text-[clamp(1.5rem,2.6vw,2.6rem)] font-bold leading-none tracking-[-0.02em]" style={{ color: RED_INK }}>{n}</b>
               <span className="text-[clamp(1rem,1.3vw,1.35rem)] leading-snug">{t}</span>
             </div>
           ))}
@@ -875,7 +894,7 @@ function Twist() {
 function PlayPart() {
   return (
     <div id="play">
-      <Part>
+      <Part lit>
         <Wrap>
           <Block className="pb-0">
             <PartHead n="05" label="The bet" title="So: can an AI play it?"
@@ -927,7 +946,7 @@ function HumanPart() {
             {TASTE.map(([h, b], i) => (
               <Reveal key={h} delay={i * 0.1}>
                 <div className="grid grid-cols-[2.25rem_1fr] gap-x-3 border-t border-border py-5">
-                  <span className="font-mono text-sm" style={{ color: OURS }}>0{i + 1}</span>
+                  <span className="font-mono text-sm font-bold" style={{ color: RED_INK }}>0{i + 1}</span>
                   <div>
                     <b className="block text-[clamp(1.15rem,1.7vw,1.75rem)] leading-tight">{h}</b>
                     <span className="mt-1.5 block text-[clamp(1rem,1.3vw,1.35rem)] leading-snug text-muted">{b}</span>
@@ -970,7 +989,7 @@ function HumanPart() {
         <div className="grid gap-x-10 gap-y-8 md:grid-cols-3">
           {FOR_ME.map(([h, b], i) => (
             <Reveal key={h} delay={i * 0.08}>
-              <div className="border-t border-border pt-5" style={{ borderTopColor: OURS }}>
+              <div className="border-t-2 border-border pt-5" style={{ borderTopColor: RED }}>
                 <h4 className="text-[clamp(1.15rem,1.6vw,1.6rem)] font-semibold leading-tight">{h}</h4>
                 <p className="mt-3 text-[clamp(0.95rem,1.15vw,1.15rem)] leading-relaxed text-muted">{b}</p>
               </div>
@@ -1013,7 +1032,7 @@ function HomePart() {
           {tips.map(([h, n, b], i) => (
             <Reveal key={h} delay={i * 0.08}>
               <div className="border-t border-border pt-5">
-                <div className="font-mono text-xs" style={{ color: OURS }}>0{i + 1}</div>
+                <div className="font-mono text-xs font-bold" style={{ color: RED_INK }}>0{i + 1}</div>
                 <h3 className="mt-2 text-[clamp(1.25rem,1.9vw,1.9rem)] font-semibold leading-tight">{h}</h3>
                 <div className={`${TYPE.big} mt-4`} style={{ color: OURS }}>{n}</div>
                 <p className="mt-3 text-[clamp(0.95rem,1.15vw,1.15rem)] leading-relaxed text-muted">{b}</p>
@@ -1022,12 +1041,12 @@ function HomePart() {
           ))}
         </div>
         <div className="mt-[22vh]" data-try-it data-stop data-nostop>
-          <div className={`${TYPE.kicker}`} style={{ color: OURS }}>Try it tonight</div>
+          <div className={`${TYPE.kicker}`} style={{ color: RED_INK }}>Try it tonight</div>
           <div className="mt-5 grid gap-x-10 gap-y-8 md:grid-cols-3">
             {TRY.map(([what, where, href, note]) => (
               <a key={where} href={href} target="_blank" rel="noreferrer" className="group block border-t border-border pt-5">
                 <h3 className="text-[clamp(1.15rem,1.6vw,1.6rem)] font-semibold leading-tight">{what}</h3>
-                <div className="mt-2 font-mono text-[clamp(0.95rem,1.25vw,1.3rem)] font-semibold underline-offset-4 group-hover:underline" style={{ color: OURS }}>{where} →</div>
+                <div className="mt-2 font-mono text-[clamp(0.95rem,1.25vw,1.3rem)] font-semibold underline-offset-4 group-hover:underline" style={{ color: RED_INK }}>{where} →</div>
                 <p className="mt-2 text-[clamp(0.9rem,1.05vw,1.05rem)] leading-relaxed text-muted">{note}</p>
               </a>
             ))}
@@ -1055,8 +1074,8 @@ export default function CanAnAiPlay() {
   return (
     <main className={`relative bg-background ${print ? "print-mode" : ""}`}>
       <ScrollProgress />
-      <ChapterNav chapters={CHAPTERS} />
-      <DeckNext accent={OURS} />
+      <ChapterNav chapters={CHAPTERS} toneOnDark={{ activeDot: "bg-[#E8372C]", activeText: "text-[#FF5648]", activeGlow: "shadow-[0_0_12px_rgba(232,55,44,0.7)]", inactiveDot: "bg-white/25 group-hover:bg-white/50", inactiveTextHover: "group-hover:text-white/60" }} />
+      <DeckNext accent={RED} solid />
       {/* On a phone the timer and controls would sit on the words: they show from 768 px. */}
       <div className="hidden md:block">
         <DeckControls />
