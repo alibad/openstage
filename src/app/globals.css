@@ -1,5 +1,12 @@
 @import "tailwindcss";
 
+/* `wide:` — a window that is short for its width (a laptop, a projector): height is the scarce side, so a screen
+   puts things side by side. A tall window (a half-screen, a tablet upright) stacks them instead. */
+@custom-variant wide (@media (min-width: 1024px) and (min-aspect-ratio: 4/3));
+/* `wider:` — wide enough that a film or a picture is held back by the window's height, not its width: its words go
+   beside it instead of above and below. */
+@custom-variant wider (@media (min-width: 1024px) and (min-aspect-ratio: 3/2));
+
 @theme {
   --font-sans: "Inter", system-ui, sans-serif;
   --font-mono: "JetBrains Mono", "Fira Code", ui-monospace, monospace;
