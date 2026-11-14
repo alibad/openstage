@@ -1,7 +1,7 @@
 "use client";
 
 /*
- * "Can an AI play our game?" — the AI Tinkerers Doha Round 5 talk (Monday 16 Nov 2026, 15 minutes).
+ * "Can an AI play our game?" — the AI Tinkerers Doha Round 5 talk (Monday 16 Nov 2026, about 8 minutes).
  *
  * Click-first (12 Nov 2026, the owner's ask: "make things clickable instead of scrollable", "show the 3D models",
  * "open the actual web experience"). One Next button (or → / Space / a clicker) moves the whole talk: it shows the
@@ -13,20 +13,24 @@
  * window, its heading and its content together in the middle of it, its picture as large as the window allows. See
  * Screen and Fill below. A wide window (`wide:`) puts things side by side; a tall one stacks them.
  *
- * One line: AI made building cheap. What got expensive was knowing what is true.
+ * Eight minutes (14 Nov 2026, the owner, after watching the seven videos of the longer talk: "a lot of content feels
+ * useless ... I have like 8 minutes ... there needs to be more profound things like how to play multiplayer, what
+ * went into the multiplayer, the voice command experience, how does it work, the AI auto suggest feature").
  *
- * Seven parts (rebuilt 12 Nov 2026 from the full history of the project, on the owner's ask: the talk had told only the
- * "models against rules" experiment and showed none of the product or of what building it with agents was like):
- *   built     What we built: the desktop game, the web game, the battle simulator, real-place maps, the Faction Studio.
- *   done      It said done. It wasn't: three reports whose numbers were true while the job was not finished.
- *   ruler     Give it a ruler: generated art beside the original game's; then check the ruler itself.
- *   selfplay  Let the game play itself: thousands of bot games, and the bugs only they found.
+ * One line: we built it with AI, then put AI inside it in three places, and each time plain rules did the job
+ * better than a model. An AI wrote the rules.
+ *
+ * Six parts:
+ *   built     What we built: five things you can open, eight of the generated units in 3D, and the count of commits.
+ *   together  Play together: multiplayer in a browser tab, and how it works with no server in the match.
+ *   adviser   The adviser: the game suggests the next order (the "Suggest orders / Apply automatically" setting).
+ *   voice     Voice orders: speak, confirm; rules first, a small model only for what the rules cannot read.
  *   play      So: can an AI play it? Three models and a page of rules on the same 16 games; why; one switch at a
- *             time; who wrote the rules. (The experiment that used to be five parts.)
- *   human     What no ruler catches: taste and attention, and what the owner built for themself.
- *   home      Take it home: four tips, each with its number, and where to play tonight.
+ *             time; who wrote the rules.
+ *   home      Take it home: three tips, each with its number, and where to play tonight.
  *
- * The new parts' numbers are constants beside each part, each with its source file or commit in a comment.
+ * The longer talk (reports that said "done", the ruler, self-play, taste and attention) is commit b898084.
+ * Each part's facts are constants beside it, each with its source file or commit in a comment.
  *
  * One theme throughout, the game's own "Command Red" (13 Nov 2026, the owner's asks: "more like a red alert with the
  * red color present and visible", then "make sure the red colors come from the red color that is in the game ... use
@@ -70,7 +74,6 @@ const GROUND = { "--color-background": "#151719", "--color-foreground": "#f5efe4
 // The fine screen lines the game's menu draws over its ground.
 const SCANLINES = "repeating-linear-gradient(0deg, rgba(255,255,255,.022) 0 1px, transparent 1px 3px)";
 const GREY = "#8f8e88";
-const LIGHT = "#c3c2b7";
 const MEDIA = "/talks/can-an-ai-play";
 // Three.js loads only in the browser, and only once a model is asked for.
 const UnitModel = dynamic(() => import("@/components/3d/unit-model").then((m) => m.UnitModel), { ssr: false });
@@ -78,23 +81,21 @@ const TAGLINE = "Read · Switch · Play · Keep · Repeat";
 
 const CHAPTERS = [
   { id: "built", label: "Built", dark: true },
-  { id: "done", label: "Done?", dark: true },
-  { id: "ruler", label: "Ruler", dark: true },
-  { id: "selfplay", label: "Self-play", dark: true },
+  { id: "together", label: "Together", dark: true },
+  { id: "adviser", label: "Adviser", dark: true },
+  { id: "voice", label: "Voice", dark: true },
   { id: "play", label: "Play", dark: true },
-  { id: "human", label: "Human", dark: true },
   { id: "home", label: "Home", dark: true },
 ] as const;
 
-// The 15-minute slot, per part: 14 minutes planned.
+// The 8-minute slot, per part: 7 minutes 40 planned.
 const BUDGET = [
-  { id: "built", label: "What we built", minutes: 2 },
-  { id: "done", label: "It said done", minutes: 1.5 },
-  { id: "ruler", label: "The ruler", minutes: 2 },
-  { id: "selfplay", label: "Self-play", minutes: 1.5 },
-  { id: "play", label: "Can an AI play it?", minutes: 3.5 },
-  { id: "human", label: "The human", minutes: 2 },
-  { id: "home", label: "Home", minutes: 1.5 },
+  { id: "built", label: "What we built", minutes: 1.15 },
+  { id: "together", label: "Play together", minutes: 1.15 },
+  { id: "adviser", label: "The adviser", minutes: 0.75 },
+  { id: "voice", label: "Voice orders", minutes: 1.15 },
+  { id: "play", label: "Can an AI play it?", minutes: 2.75 },
+  { id: "home", label: "Home", minutes: 0.7 },
 ];
 
 const LEVELS: Record<string, string> = { normal: "Normal", rush: "Rush", hard: "Hard", brutal: "Brutal" };
@@ -284,7 +285,7 @@ function Claim({ children, className = "", big = false }: { children: ReactNode;
 }
 
 // Where a screen's numbers come from. One click away, so the screen itself stays clear; written out in print.
-function Evidence({ children }: { children: ReactNode }) {
+function Evidence({ children, right = false, down = false }: { children: ReactNode; right?: boolean; down?: boolean }) {
   const print = usePrintMode();
   if (print) return <p className="max-w-5xl text-[0.85rem] leading-relaxed text-muted">{children}</p>;
   return (
@@ -292,7 +293,7 @@ function Evidence({ children }: { children: ReactNode }) {
       <summary className={`${TYPE.kicker} cursor-pointer list-none text-white/45 transition-colors hover:text-white/85 [&::-webkit-details-marker]:hidden`}>
         Sources <span aria-hidden className="inline-block transition-transform group-open:rotate-90">›</span>
       </summary>
-      <div className="absolute bottom-full left-0 z-30 mb-2 w-[min(46rem,84vw)] rounded-lg p-4 text-[0.9rem] leading-relaxed shadow-2xl ring-1 ring-[#56616a]" style={{ background: "#1d2023", color: "#e4dfd5" }}>{children}</div>
+      <div className={`absolute z-30 w-[min(46rem,84vw)] rounded-lg p-4 text-left text-[0.9rem] font-normal normal-case leading-relaxed tracking-normal shadow-2xl ring-1 ring-[#56616a] ${down ? "top-full mt-2" : "bottom-full mb-2"} ${right ? "right-0" : "left-0"}`} style={{ background: "#1d2023", color: "#e4dfd5" }}>{children}</div>
     </details>
   );
 }
@@ -465,11 +466,11 @@ function Bars({ items, max }: { items: { label: string; value: number; display: 
 }
 
 // Under a stepped block's heading: what a click does, and a way to see it all at once.
-function StepHint({ flat, done, onNext, onAll, what }: { flat: boolean; done: boolean; onNext: () => void; onAll: () => void; what: string }) {
-  if (flat) return <p className={`${TYPE.text} text-muted`}>Each row is one {what}.</p>;
+function StepHint({ flat, done, onNext, onAll, what, lead }: { flat: boolean; done: boolean; onNext: () => void; onAll: () => void; what: string; lead?: string }) {
+  if (flat) return <p className={`${TYPE.text} text-muted`}>{lead ?? `Each row is one ${what}.`}</p>;
   return (
     <p className={`${TYPE.text} flex min-h-[2.2em] shrink-0 flex-wrap items-center gap-x-4 gap-y-1 text-muted`}>
-      <span>One {what} at a time.</span>
+      <span>{lead ?? `One ${what} at a time.`}</span>
       {!done && <button type="button" onClick={onNext} className="rounded-md px-3.5 py-1 font-bold" style={{ color: ON_RED, background: BUTTON }}>Next {what} ›</button>}
       {!done && <button type="button" onClick={onAll} className="underline underline-offset-4 hover:text-white">Show all</button>}
     </p>
@@ -485,7 +486,7 @@ function StepArea({ flat, done, onNext, children }: { flat: boolean; done: boole
 
 /* ─── The title ─────────────────────────────────────────────────────────── */
 
-const PARTS = ["What we built", "It said done", "Give it a ruler", "The game plays itself", "Can an AI play it?", "What no ruler catches", "Take it home"];
+const PARTS = ["What we built", "Play together", "The adviser", "Voice orders", "Can an AI play it?", "Take it home"];
 
 // Glide to a part's first screen (the title screen's list of parts).
 const goToPart = (id: string) => {
@@ -517,10 +518,10 @@ function Hero() {
                 Can an <span style={{ color: RED_INK }}>AI</span> play <br className="hidden wide:block" />our game?
               </h1>
               <p data-spine className="mb-[clamp(0.6rem,2vh,1.5rem)] max-w-5xl text-[clamp(1.25rem,min(2.2vw,3.7vh),2.3rem)] font-semibold leading-snug tracking-[-0.015em]">
-                AI made building cheap. <span style={{ color: RED_INK }}>What got expensive was knowing what is true.</span>
+                We built it with AI. <span style={{ color: RED_INK }}>Then we put AI inside it, in three places.</span>
               </p>
               <p className={`${TYPE.lede} max-w-4xl`}>
-                We built a real-time strategy game with coding agents, learned to check their work the hard way, and then asked whether an AI could play it.
+                An adviser that suggests your next order, orders you can speak, and a player of its own. Where a model earned its place surprised us.
                 Every number here comes from the project’s own logs and history.
               </p>
             </Reveal>
@@ -533,8 +534,8 @@ function Hero() {
       </div>
       <div className="relative z-10 pb-8 md:pb-[5.25rem]">
         <Wrap>
-          {/* The seven parts, each a door to its first screen. */}
-          <nav aria-label="The seven parts" className="grid grid-cols-2 gap-x-2 gap-y-1 border-t border-white/10 pt-3 sm:grid-cols-4 xl:grid-cols-7">
+          {/* The six parts, each a door to its first screen. */}
+          <nav aria-label="The six parts" className="grid grid-cols-2 gap-x-2 gap-y-1 border-t border-white/10 pt-3 sm:grid-cols-3 xl:grid-cols-6">
             {CHAPTERS.map((c, i) => (
               <button key={c.id} type="button" onClick={() => goToPart(c.id)} className="group flex items-baseline gap-2 rounded-md px-2 py-1.5 text-left transition-colors hover:bg-white/[0.07]">
                 <span className="font-mono text-sm font-bold" style={{ color: RED_INK }}>0{i + 1}</span>
@@ -571,7 +572,7 @@ function SixteenGames() {
         </StepArea>
         <div className="flex shrink-0 flex-wrap items-center justify-between gap-x-8 gap-y-2">
           <Legend />
-          <Evidence>
+          <Evidence right>
             Real games in our AI Arena, {day(R.madeAt)} 2026, on the live web game{page ? ` (page ${page.page})` : ""}. Map {R.map}, mirror factions, starts 1–4 = China, Iran, Turkey, Saudi. The game pauses
             while a model thinks, so its speed doesn’t change the result.{fallbacks.length ? ` Turns a model failed to answer, played by our rules instead: ${fallbacks.join(", ")}.` : ""}
           </Evidence>
@@ -663,18 +664,21 @@ function BuiltTour() {
           </MediaRow>
         </Screen>
       )}
+      {/* The units are real 3D models, and the whole thing was built with agents: the count. */}
       <Screen>
-        <div className="grid shrink-0 gap-x-8 gap-y-6 sm:grid-cols-3">
-          <Stat big n={num(BUILT_COUNT.commits)}>commits in four repositories: the game, the web game, the website and the art</Stat>
-          <Stat big n={num(BUILT_COUNT.signed)}>of them signed by Claude as co-author</Stat>
-          <Stat big n="8½ hours" color={OURS} line={OURS}>from the web game’s first commit to a battle you could play</Stat>
+        <ModelShelf />
+        <div className="grid shrink-0 gap-x-8 gap-y-4 sm:grid-cols-3">
+          <Stat n="122">unit designs generated in one day, each with a 3D model. Click one above and turn it.</Stat>
+          <Stat n={num(BUILT_COUNT.commits)}>commits in four repositories; {num(BUILT_COUNT.signed)} signed by Claude as co-author</Stat>
+          <Stat n="8½ hours" color={OURS} line={OURS}>from the web game’s first commit to a battle you could play</Stat>
         </div>
-        <Claim big className={GROUP}>All of it was built with coding agents. Building was not the hard part.</Claim>
+        <Claim>All of it was built with coding agents. Building was not the hard part.</Claim>
         <Evidence>
           Counted on {BUILT_COUNT.day} with git log, merges left out: {num(BUILT_COUNT.commits)} commits in four repositories (game, web game, website, art);{" "}
-          {num(BUILT_COUNT.signed)} are signed by Claude as co-author; Codex does not sign its commits, so its share is in the rest. On screen: screenshots of the
-          1 Nov Windows release, the website’s trailer, the live web game filmed on 11 and 12 Nov, and the Faction Studio on our own machine. The web game:
-          first commit at 02:28 and a playable skirmish at 11:03 on 7 Oct. The live pages open in their own tab and ask for the one free account.
+          {num(BUILT_COUNT.signed)} are signed by Claude as co-author; Codex does not sign its commits, so its share is in the rest. The designs: the agents’
+          handoff note of 5 Oct (122 of 122 model jobs); the eight models here are talk-sized copies. On screen in the tabs: screenshots of the 1 Nov Windows
+          release, the website’s trailer, the live web game filmed on 11 and 12 Nov, and the Faction Studio on our own machine. The web game: first commit at
+          02:28 and a playable skirmish at 11:03 on 7 Oct.
         </Evidence>
       </Screen>
     </Part>
@@ -690,21 +694,7 @@ function BuiltPart() {
   );
 }
 
-/* ─── 02 · It said done. It wasn't. ─────────────────────────────────────── */
-
-// What an agent reported, and what was really there. Each pair read from its source on 12 Nov 2026:
-//   models  hq/games/HANDOFF-claude-2026-10-05.md: "122 / 122 GLB jobs"; new native exports "0 VXL, 0 HVA, 0 SHP"; clips "0 / 0".
-//   tests   hq/games/artifacts/quality-check-20261025/CHECK.md: 77 scripts, 24 pass, 51 not run, 7 named as out of date.
-//   score   RTSAI-Art README (pilot, 3 Oct): Qilin voxel-v2 scored 81.5 against a bar of 70;
-//           RTSAI-Art docs/original-vs-generated.md: the same tank failed 9 of 15 checks beside the original game's vehicles.
-const RECEIPTS: { when: string; said: string; saidNote: string; had: string; hadNote: string }[] = [
-  { when: "5 Oct", said: "122 of 122", saidNote: "3D models generated, one for every new unit",
-    had: "0", hadNote: "in the game. None was converted to the game’s own format, and none could move." },
-  { when: "25 Oct", said: "77", saidNote: "test scripts written for the web game",
-    had: "24", hadNote: "ran and passed. 51 had not been run, and 7 waited for buttons that no longer existed." },
-  { when: "3 Oct", said: "81.5 of 100", saidNote: "the art pipeline’s score for its own tank (pass mark 70)",
-    had: "9 of 15", hadNote: "checks failed, once the tank stood beside the original game’s tanks." },
-];
+/* ─── The generated units, in 3D (part 1's second screen) ───────────────── */
 
 // Eight of the generated designs (cut from the art repository's review sheet of 4 Oct) and the 3D model each one got.
 // The models here are talk-sized copies: 10,000 of their 30,000 triangles and smaller textures, to load quickly.
@@ -713,7 +703,7 @@ const MODELS: [string, string][] = [
   ["longbow", "Longbow Rocket Artillery"], ["skyspear", "Skyspear Interceptor"], ["cloud", "Cloud Recon Drone"], ["crane", "Crane Airlift"],
 ];
 
-// Click a design; its generated 3D model loads on the stage, and you can turn it. In print the designs stand alone.
+// Click a design; its generated 3D model loads on the stage, and you can turn it.
 function ModelShelf() {
   const [pick, setPick] = useState(0);
   const [id, name] = MODELS[pick];
@@ -740,179 +730,228 @@ function ModelShelf() {
   );
 }
 
-function DonePart() {
+// A door to the real thing: the game's own button, opening in its own tab.
+function Door({ href, children }: { href: string; children: ReactNode }) {
   return (
-    <Part id="done">
-      <Screen data-part="done">
-        <PartHead n="02" label="The catch" title="It said done. It wasn’t."
-          lede="Three reports from the agents. Every number in them was true. None of the three jobs was finished." />
-        <ModelShelf />
-        <p className={`${TYPE.text} shrink-0 text-muted`}>
-          Eight of the 122 unit designs the agents generated on 4 Oct, and the 3D model each one got. Click a design, then turn its model. They looked finished.
-        </p>
-      </Screen>
-      <Screen>
-        <div className="shrink-0">
-          {RECEIPTS.map((r) => (
-            <div key={r.said} data-receipt className="grid items-start gap-x-6 gap-y-3 border-t border-border py-[clamp(0.6rem,2.3vh,1.75rem)] md:grid-cols-[minmax(0,1fr)_3rem_minmax(0,1fr)]">
-              <div>
-                <div className={`${TYPE.kicker} mb-[clamp(0.3rem,1.2vh,0.75rem)] text-white/50`}>{r.when} · the report</div>
-                <b className={`${TYPE.big} block`} style={{ color: LIGHT }}>{r.said}</b>
-                <span className={`${TYPE.text} mt-[clamp(0.3rem,1.2vh,0.75rem)] block max-w-lg text-muted`}>{r.saidNote}</span>
-              </div>
-              <div className="hidden pt-[clamp(1.25rem,4vh,2.25rem)] text-3xl text-muted md:block" aria-hidden>→</div>
-              <div>
-                <div className={`${TYPE.kicker} mb-[clamp(0.3rem,1.2vh,0.75rem)]`} style={{ color: RED_INK }}>What was there</div>
-                <b className={`${TYPE.big} block`} style={{ color: RED_INK }}>{r.had}</b>
-                <span className={`${TYPE.text} mt-[clamp(0.3rem,1.2vh,0.75rem)] block max-w-lg`}>{r.hadNote}</span>
-              </div>
-            </div>
-          ))}
-        </div>
-        <Claim>An agent counts what it made. I had to look at what I got.</Claim>
-        <Evidence>
-          Models: the 5 Oct handoff note between agents (122 of 122 model jobs; 0 exports to the game’s formats; 0 animations). Tests: the 25 Oct check of
-          the web game’s tools folder. Score: the art pipeline’s own gate on its pilot tank, 3 Oct, and the comparison written the same day.
-        </Evidence>
-      </Screen>
-    </Part>
+    <a href={href} target="_blank" rel="noreferrer" data-door
+      className="inline-flex items-center gap-2 rounded-md px-[clamp(0.8rem,1.4vw,1.4rem)] py-[clamp(0.35rem,1.1vh,0.6rem)] text-[clamp(0.9rem,min(1.25vw,2.3vh),1.3rem)] font-bold transition hover:scale-[1.03]"
+      style={{ background: BUTTON, color: ON_RED }}>
+      {children} <span aria-hidden>↗</span>
+    </a>
   );
 }
 
-/* ─── 03 · Give it a ruler ──────────────────────────────────────────────── */
-
-// The ruler was the original game: 15 measured checks against its own vehicles (RTSAI-Art docs/original-vs-generated.md,
-// 3 Oct). A prototype that changed only the light, the scale and the palette went from 9 failed checks to 0.
-// Icons, against the original game's build-menu icons: RTSAI-Art a305e23e (image-model icons 0 of 122; first renders 76),
-// 7f56f859 (120), e5e0e8d1 (122 of 122), 5 and 6 Oct.
-// The ruler's own faults: RTSAI-Art docs/sprite-vs-voxel.md (previews drew 0.63 px per voxel, the engine draws 1.267);
-// RTSAI-Mod 1e0a5e0 and 31912c4 (3 Oct: unfair duel lines; 8-0 became 4-4 and 3-5); RTSAI-WebGame bb7e949 (4 Nov).
-const ICONS = [
-  { label: "Painted by an image model", value: 0, display: "0 of 122 pass" },
-  { label: "Rendered from the unit’s own 3D model", value: 76, display: "76" },
-  { label: "Second pass", value: 120, display: "120" },
-  { label: "Third pass", value: 122, display: "122 of 122", ours: true },
-];
-const RULER_FAULTS: [string, string][] = [
-  ["The preview drew every unit at half size", "0.63 pixels per block, where the game draws 1.27. The first art was judged at the wrong size."],
-  ["The duel test was unfair", "One side always started on the same line. Once that was fixed, an 8–0 became 4–4 and another became 3–5."],
-  ["A model that never answered", "Two local models spent their whole answer thinking, so every turn quietly fell back to our rules."],
-];
-
-function RulerPart() {
-  const strip = "absolute inset-0 h-full w-full rounded-xl [image-rendering:pixelated]";
-  const STRIP = 1320 / 252; // the two strips' own shape
+// A short fact with its heading, under a red rule.
+function Fact({ title, children }: { title: string; children: ReactNode }) {
   return (
-    <Part id="ruler">
-      {/* The tank, first try and as shipped, and its three scores: beside the strips in a wide window, under them in a tall one. */}
-      <Screen data-part="ruler">
-        <PartHead n="03" label="The ruler" title="Give it a ruler."
-          lede="A score means nothing until it stands beside something you know is good. Our ruler was the original game." />
-        <div className={`flex min-h-0 shrink flex-col gap-x-10 ${GAP} wide:flex-row`}>
-          <div className="flex min-h-0 shrink flex-col justify-center gap-[clamp(0.3rem,1vh,0.6rem)] wide:min-w-0 wide:flex-[1.5]">
-            <div className={`${TYPE.kicker} shrink-0 text-white/50`}>First try · generated, then turned into game blocks</div>
-            <Fill ratio={STRIP} min="3rem">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={`${MEDIA}/ruler-first.png`} alt="The generated tank from four sides at game size: dark, muddy and hard to read" className={strip} />
-            </Fill>
-            <div className={`${TYPE.kicker} mt-[clamp(0.3rem,1.4vh,1rem)] shrink-0`} style={{ color: OURS }}>The same model, drawn as a sprite · the route that shipped</div>
-            <Fill ratio={STRIP} min="3rem">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={`${MEDIA}/ruler-shipped.png`} alt="The same tank from four sides, drawn as a sprite: lighter, with clear camouflage and a readable shape" className={strip} />
-            </Fill>
-            <p className="shrink-0 text-sm text-muted">Our own tank, the Qilin, three times the size it has in the game.</p>
-          </div>
-          <div className="grid shrink-0 gap-x-6 gap-y-[clamp(0.6rem,2.2vh,1.5rem)] sm:grid-cols-3 wide:flex-1 wide:shrink wide:grid-cols-1 wide:content-center">
-            {[
-              ["Its own score", "81.5", "of 100, pass mark 70", LIGHT],
-              ["Beside the original game’s tanks", "9 failed", "of 15 measured checks", RED_INK],
-              ["After changing only light, size and colours", "0 failed", "same model, same checks", OURS],
-            ].map(([k, n, s, c]) => (
-              <div key={k} className="border-t border-border pt-[clamp(0.4rem,1.4vh,1rem)]">
-                <div className={`${TYPE.text} text-muted`}>{k}</div>
-                <b className={`${TYPE.big} mt-[clamp(0.2rem,0.9vh,0.5rem)] block`} style={{ color: c }}>{n}</b>
-                <span className="mt-1 block text-sm text-muted">{s}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      </Screen>
+    <div className="border-t-2 pt-[clamp(0.4rem,1.5vh,0.9rem)]" style={{ borderTopColor: RED }}>
+      <h4 className={TYPE.h4}>{title}</h4>
+      <p className={`${TYPE.text} mt-[clamp(0.2rem,0.9vh,0.5rem)] text-muted`}>{children}</p>
+    </div>
+  );
+}
 
-      {/* The icons, then the ruler's own faults: two columns in a wide window, one under the other in a tall one. */}
-      <Screen>
-        <div className={`grid shrink-0 gap-x-12 ${GAP} wide:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)] wide:items-start`}>
-          <div>
-            <h3 className={TYPE.h3}>The same ruler, for 122 build-menu icons</h3>
-            <p className={`${TYPE.text} mb-[clamp(0.6rem,2vh,1.25rem)] mt-1 text-muted`}>How many pass, measured against the original game’s icons.</p>
-            <Bars max={122} items={ICONS} />
-          </div>
-          <div>
-            <h3 className={`${TYPE.h3} mb-[clamp(0.6rem,2vh,1.25rem)]`}>Then check the ruler.</h3>
-            <div className="grid gap-x-8 gap-y-[clamp(0.6rem,2vh,1.25rem)] md:grid-cols-3 wide:grid-cols-1">
-              {RULER_FAULTS.map(([h, b]) => (
-                <div key={h} className="border-t border-border pt-[clamp(0.4rem,1.4vh,0.9rem)]">
-                  <h4 className={TYPE.h4}>{h}</h4>
-                  <p className={`${TYPE.text} mt-1 text-muted`}>{b}</p>
-                </div>
+/* ─── 02 · Play together ────────────────────────────────────────────────── */
+
+// Multiplayer in the web game, read from its code on 14 Nov 2026:
+//   web/src/net/matchmaker.ts  Firestore only introduces the browsers ("The match itself never touches Firestore").
+//   web/src/peer.ts            one ordered WebRTC data channel; PeerLockstep releases a frame once every player's
+//                              orders for it are in and the previous frame's hashes agree; STUN only, no relay.
+//   web/src/sim/worker.ts      a tick is 40 ms.      web/src/ui/Multiplayer.tsx  the window's own words ("Up to 8 players").
+// What went into it: 2d59f1a (9 Oct: a room server, and pasted connection codes), eadf9ed (13 Oct: the matchmaker),
+// docs/RELEASE-20261014.md (a random map travels as its seed; 299 frame hashes agreed), e0e5a38 (1 Nov: failed joins
+// are reported, with the kind of network worked out in the browser). The picture: the release check of 8 Nov.
+const TOGETHER_STEPS: [string, string][] = [
+  ["Create a match", "You get a link and a 6-character code."],
+  ["Send the link", "Friends open it in their own browser. Nothing to install."],
+  ["Pick sides and start", "Nations, teams, a map or a fresh random one, AI players if you want them. Up to 8 players."],
+];
+const TOGETHER_FACTS: [string, string][] = [
+  ["3 designs in 4 days", "A room server, then pasted codes, then this. With agents, throwing two away was cheap."],
+  ["A random map is one number", "The map is never sent. Every browser builds the same one from the same seed."],
+  ["No relay yet", "On a strict network a join can fail. The browser now works out why and reports it."],
+];
+
+// The one diagram: two browsers, the orders between them, and the service that only introduces them.
+function Wire() {
+  const box = "rounded-lg p-[clamp(0.8rem,2.8vh,1.9rem)] ring-1 ring-[#56616a]";
+  const name = "block text-[clamp(1.1rem,min(2vw,3.4vh),2rem)] font-semibold leading-tight";
+  const note = "mt-1 block text-[clamp(0.9rem,min(1.25vw,2.2vh),1.3rem)] leading-snug text-muted";
+  const ground = { background: "rgba(255,255,255,.04)" };
+  return (
+    <div data-wire className="grid gap-y-[clamp(0.5rem,1.8vh,1.1rem)]">
+      <div className="mx-auto w-fit rounded-md border border-dashed border-white/35 px-4 py-[clamp(0.3rem,1.1vh,0.6rem)] text-center">
+        <b className="block text-[clamp(1rem,min(1.5vw,2.6vh),1.5rem)] font-semibold">Firestore</b>
+        <span className="block text-[clamp(0.85rem,min(1.15vw,2vh),1.2rem)] text-muted">introduces the browsers, then steps out</span>
+      </div>
+      <div className="grid grid-cols-[minmax(0,1fr)_minmax(5rem,0.8fr)_minmax(0,1fr)] items-center">
+        <div className={box} style={ground}>
+          <b className={name}>Your browser</b>
+          <span className={note}>runs the whole game</span>
+        </div>
+        <div className="px-1 text-center">
+          <span className="block font-mono text-[clamp(0.75rem,min(1.05vw,1.9vh),1.1rem)] font-bold uppercase tracking-[0.12em]" style={{ color: RED_INK }}>orders only</span>
+          <div className="my-2 h-1 rounded" style={{ background: RED }} />
+          <span className="block text-[clamp(0.8rem,min(1.05vw,1.9vh),1.1rem)] text-muted">browser to browser</span>
+        </div>
+        <div className={box} style={ground}>
+          <b className={name}>Your friend’s browser</b>
+          <span className={note}>runs the same game, tick for tick</span>
+        </div>
+      </div>
+      <p className="text-center text-[clamp(0.95rem,min(1.4vw,2.5vh),1.45rem)] leading-snug">
+        Every 40 ms the browsers compare a hash of the whole game. <b style={{ color: RED_INK }}>One mismatch stops the match.</b>
+      </p>
+    </div>
+  );
+}
+
+function TogetherPart() {
+  return (
+    <Part id="together">
+      <Screen data-part="together">
+        <PartHead n="02" label="Play together" title="Send a link. Play in a browser tab." />
+        <MediaRow ratio={880 / 450}
+          before={
+            <ol className="grid gap-[clamp(0.4rem,1.6vh,1rem)]">
+              {TOGETHER_STEPS.map(([h, b], i) => (
+                <li key={h} className="grid grid-cols-[2.25rem_1fr] gap-x-3 border-t border-border pt-[clamp(0.4rem,1.4vh,0.9rem)]">
+                  <span className="font-mono text-sm font-bold" style={{ color: RED_INK }}>0{i + 1}</span>
+                  <div>
+                    <b className={`${TYPE.h4} block`}>{h}</b>
+                    <span className={`${TYPE.text} mt-1 block text-muted`}>{b}</span>
+                  </div>
+                </li>
               ))}
-            </div>
-          </div>
-        </div>
-        <Claim className={GROUP}>Compare it with something you know is good. Then check the ruler.</Claim>
-        <Evidence>
-          The 15 checks measure light, size, colour and detail against the original game’s own vehicles, which all pass against each other. The 9 and the 0
-          are the same generated model before and after a change to light, scale and palette only (3 Oct). The icons: 5 and 6 Oct.
-        </Evidence>
-      </Screen>
-    </Part>
-  );
-}
-
-/* ─── 04 · Let the game play itself ─────────────────────────────────────── */
-
-// RTSAI-Mod 46dcbd3 (2 Oct): "30-minute game takes ~45-120 s of wall time". Balance games: 8,808 match rows in
-// RTSAI-Mod docs/balance-data (counted 12 Nov 2026; the two duel files are left out).
-// Showdown: RTSAI-WebGame evals/faction-showdown-20261022 (21 and 22 Oct): 120 games before the fixes and 230 after,
-// bugs.json B1 to B7, and the effects audit (329 of 3,912 deaths drew nothing; after the fix, 0).
-const SELF_PLAY: [string, string][] = [
-  ["8,808", "balance games, to set what every unit costs"],
-  ["350", "games, every faction against every faction"],
-  ["7", "bugs that no person had found"],
-];
-const SELF_BUGS: [string, string][] = [
-  ["40 minutes", "Starting with $2,500, each army built a power plant, then stood idle for the whole game. Nobody could ever afford a refinery."],
-  ["329 of 3,912", "unit deaths showed nothing on screen: the unit just vanished. After the fix: 0."],
-  ["Mind control", "did nothing at all for nine of the countries. Neither did two ships’ aircraft."],
-];
-
-function SelfPlayPart() {
-  return (
-    <Part id="selfplay">
-      <Screen data-part="selfplay">
-        <PartHead n="04" label="Self-play" title="Let the game play itself." />
-        <MediaRow ratio={16 / 9}
-          before={<p className={`${TYPE.lede} max-w-5xl`}>A 30-minute battle runs in about a minute with nobody watching. So the game played itself, thousands of times.</p>}
-          after={<p className={`${TYPE.text} text-muted`}>AI against AI, 21 and 22 Oct: three of the 350 games. Nobody is playing.</p>}>
-          <video data-bots src={`${MEDIA}/bots.mp4`} poster={`${MEDIA}/bots.jpg`} autoPlay muted loop playsInline preload="metadata" className="absolute inset-0 h-full w-full rounded-xl bg-black object-cover" />
+            </ol>
+          }
+          after={<Door href="https://rtsai.net/play/">Play it live</Door>}>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={`${MEDIA}/together-entry.jpg`} alt="The game’s Multiplayer window: Start a match, with a Create match button, and Have an invite?, with a box for a 6-character code" className="absolute inset-0 h-full w-full rounded-lg object-cover ring-1 ring-[#56616a]" />
         </MediaRow>
       </Screen>
+      {/* How it works, and what went into it. */}
       <Screen>
-        <div className="grid shrink-0 gap-x-8 gap-y-6 sm:grid-cols-3">
-          {SELF_PLAY.map(([n, t], i) => <Stat key={t} n={n} color={i === 2 ? RED_INK : undefined} line={i === 2 ? RED : undefined}>{t}</Stat>)}
+        <h3 className={`${TYPE.h2} shrink-0`}>No server in the match.</h3>
+        <div className={`grid shrink-0 gap-x-12 ${GAP} wide:grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)] wide:items-center`}>
+          <Wire />
+          <div className="grid gap-x-8 gap-y-[clamp(0.6rem,2vh,1.25rem)] md:grid-cols-3 wide:grid-cols-1">
+            {TOGETHER_FACTS.map(([h, b]) => <Fact key={h} title={h}>{b}</Fact>)}
+          </div>
         </div>
-        <div className={`${GROUP} shrink-0`}>
-          <h3 className={`${TYPE.h3} mb-[clamp(0.5rem,1.8vh,1.25rem)]`}>Three of the seven</h3>
-          {SELF_BUGS.map(([n, t]) => (
-            <div key={n} className="grid items-baseline gap-x-8 gap-y-1 border-t border-border py-[clamp(0.5rem,1.9vh,1.25rem)] md:grid-cols-[minmax(0,17rem)_1fr]">
-              <b className="text-[clamp(1.4rem,min(2.6vw,4.2vh),2.6rem)] font-bold leading-none tracking-[-0.02em]" style={{ color: RED_INK }}>{n}</b>
-              <span className="text-[clamp(1rem,min(1.3vw,2.3vh),1.35rem)] leading-snug">{t}</span>
-            </div>
-          ))}
-        </div>
-        <Claim>Our best tester was the game itself, played thousands of times.</Claim>
         <Evidence>
-          Balance: bot against bot on the desktop game, 2 to 8 Oct, six rounds. Showdown: all 16 factions on the live web game, 120 games before the fixes
-          and 230 after; the film is from its own record. The seven bugs and their fixes are listed in that record.
+          Read from the web game’s own code on 14 Nov: the matchmaker only passes the two browsers’ connection offers; orders then travel on one ordered
+          WebRTC channel, the host passing them on when there are more than two players; a frame is released only when every player’s orders for it are in
+          and the last frame’s hashes agree. Three designs: commits of 9 and 13 Oct. The seed: the release notes of 14 Oct, where 299 frame hashes agreed
+          on a map each browser had built for itself. Failed joins have been reported since 1 Nov. Play across very strict networks would need a relay.
+        </Evidence>
+      </Screen>
+    </Part>
+  );
+}
+
+/* ─── 03 · The adviser ──────────────────────────────────────────────────── */
+
+// The game's "Built-in adviser" (the owner's "AI auto suggest"), read from the web game on 14 Nov 2026:
+//   web/src/adviser.ts            "deterministic ... Every decision reads the native, fog-respecting ... observation. This
+//                                 module only proposes commands; ... the native engine validates them again before execution."
+//   web/src/ui/GameSettings.tsx   the setting: Off / Suggest orders / Apply automatically.    web/src/game.ts  J applies.
+//   docs/PUBLIC-CO-COMMANDER.md   "There is no model API, companion server or additional model download."
+//   docs/CO-COMMANDER.md          asked aloud on the desktop, "what should I build first / do next?" took a local model
+//                                 3.3 to 12.5 s; as a card with no model call, 0.6 to 1.1 s (8 Oct).
+// The picture: the release check of 8 Nov, the first seconds of a skirmish.
+const ADVISER_FACTS: [string, string][] = [
+  ["No model", "Plain rules, running in your browser. Nothing to set up, nothing to pay for."],
+  ["It sees what you see", "It reads the same fog-of-war view the player has. No hidden knowledge."],
+  ["About a second", "A local model took 3 to 12 seconds to say what to do next. The rules take about one."],
+];
+
+function AdviserPart() {
+  return (
+    <Part id="adviser">
+      <Screen data-part="adviser">
+        <PartHead n="03" label="The adviser" title="It suggests the next order." />
+        <MediaRow ratio={16 / 9}
+          before={<p className={`${TYPE.lede} max-w-5xl`}>On by default when you play alone. One card, one order: press J and it is done. Or let it play the order itself.</p>}
+          after={
+            <div className="flex flex-wrap items-center gap-2">
+              {["Off", "Suggest orders", "Apply automatically"].map((t, i) => (
+                <span key={t} className={`${TYPE.text} rounded-md px-3 py-1.5 font-semibold`} style={i === 1 ? { background: BUTTON, color: ON_RED } : { color: "rgba(245,239,228,.7)", boxShadow: "inset 0 0 0 1px #56616a" }}>{t}</span>
+              ))}
+              <span className="basis-full text-sm text-muted">The setting, in the game’s own words.</span>
+            </div>
+          }>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={`${MEDIA}/adviser.jpg`} alt="The web game at the start of a skirmish: a card at the top reads Recommended order, Deploy the Mobile Construction Vehicle, with an Apply button marked J" className="absolute inset-0 h-full w-full rounded-lg object-cover ring-1 ring-[#56616a]" />
+        </MediaRow>
+        <div className="grid shrink-0 gap-x-8 gap-y-[clamp(0.5rem,1.8vh,1rem)] md:grid-cols-3">
+          {ADVISER_FACTS.map(([h, b]) => <Fact key={h} title={h}>{b}</Fact>)}
+        </div>
+        <Evidence>
+          The adviser is the desktop companion’s rules, ported to the browser: deploy, build order, power, harvesters, radar, army and threats; in a
+          campaign mission it follows the mission’s objectives. It only proposes; the engine checks every order again before it runs. The timing is the
+          companion’s own measurement of 8 Oct: the question “what should I build first?” asked aloud took a local model 3.3 to 12.5 seconds, and the same
+          answer as a card with no model call 0.6 to 1.1 seconds. The picture is from the automated check of the 8 Nov build.
+        </Evidence>
+      </Screen>
+    </Part>
+  );
+}
+
+/* ─── 04 · Voice orders ─────────────────────────────────────────────────── */
+
+// Voice orders on the desktop game, read on 14 Nov 2026:
+//   RTSAI-Mod companion/services/companion/README.md  hold a key to talk; every order is a proposal the player confirms;
+//       explicit phrasing is parsed by rules, everything else becomes one typed intent from a model; Python grounds it
+//       in the fog-respecting snapshot, "so a model can choose what the player meant but never invents ids, coordinates
+//       or production items"; the engine validates again; surrender, support powers and cheats are refused before any
+//       model call.
+//   companion/packaging/ai-pack.lock.json  Whisper base.en, Qwen3-VL 2B and Kokoro, all on the player's PC.
+//   RTSAI-WebGame docs/CO-COMMANDER.md     talk key released to reply playing: median 0.98 s, p95 2.1 s. The web game
+//       does not deliver voice ("microphone/voice assistance are not delivered").
+// The numbers are the bench of 23 Oct (H in ./data): 281 written test orders, phrased the way players speak and the way
+// speech-to-text mishears them (companion evals/nl_orders/cases.py).
+const VOICE_STEPS: [string, string][] = [
+  ["Hold a key and speak", "“Build five tanks.”"],
+  ["Speech to text", "Whisper, on your own PC"],
+  ["Rules read the order", "in 3 milliseconds"],
+  ["Only if they can’t", "a small model picks what you meant"],
+  ["You confirm", "the engine checks it, then does it"],
+];
+
+function VoicePart() {
+  const both = H.runs.filter((r) => r.how === "both")[0];
+  const model = Math.max(...H.runs.filter((r) => r.how === "model").map((r) => r.correct));
+  const tank = H.handedOver.find((o) => /chilling/.test(o.said));
+  return (
+    <Part id="voice">
+      <Screen data-part="voice">
+        <PartHead n="04" label="Voice orders" title="Say it. Confirm it." />
+        <ol data-voice-steps className="grid shrink-0 gap-[clamp(0.3rem,0.8vw,0.75rem)] sm:grid-cols-5">
+          {VOICE_STEPS.map(([h, b], i) => (
+            <li key={h} className="rounded-lg p-[clamp(0.5rem,1.7vh,1rem)] ring-1 ring-[#56616a]" style={{ background: i === 3 ? "rgba(225,90,67,.14)" : "rgba(255,255,255,.035)" }}>
+              <div className="font-mono text-xs font-bold" style={{ color: RED_INK }}>0{i + 1}{i < VOICE_STEPS.length - 1 ? " →" : ""}</div>
+              <b className={`${TYPE.h4} mt-1 block`}>{h}</b>
+              <span className={`${TYPE.text} mt-1 block text-muted`}>{b}</span>
+            </li>
+          ))}
+        </ol>
+        <div className={`${GROUP} grid shrink-0 gap-x-8 gap-y-4 sm:grid-cols-3`}>
+          <Stat big n={`${run("rules").correct} %`}>of {H.orders} test orders read right by the rules alone</Stat>
+          <Stat big n={`${both.correct} %`} color={OURS} line={OURS}>rules first, the model only for the rest: it was asked {both.modelCalls} times</Stat>
+          <Stat big n={`${model} %`} color={RED_INK} line={RED}>at best, with a model reading every order</Stat>
+        </div>
+        <p className={`${TYPE.text} max-w-6xl shrink-0`}>
+          {tank && <><b className="text-foreground">“{tank.said}”</b> <span className="text-muted">The rules could not read it. The model made it</span> <b style={{ color: OURS }}>Train 1 Qilin Battle Tank</b><span className="text-muted">. </span></>}
+          <span className="text-muted">On the desktop game today, with models that run on the player’s own PC: about a second from letting go of the key to the spoken reply. Not in the browser game yet.</span>
+        </p>
+        <Claim>Put the model where rules can’t reach.</Claim>
+        <Evidence>
+          The bench of 23 Oct: {H.orders} written test orders, phrased the way players speak and the way speech-to-text mishears them (“bill the power
+          plan”), graded against a snapshot of a real game. Rules alone: {run("rules").right} right, no unsafe order accepted. Rules, then a model:{" "}
+          {both.right} right with three different models. A model for every order: {H.runs.filter((r) => r.how === "model").map((r) => `${r.name} ${r.correct} %`).join(", ")}.
+          The model only picks what the player meant; code finds the real units and places, so it cannot invent them. Surrender, superweapons and cheats
+          are refused before any model is asked. Local models: Whisper base.en, Qwen3-VL 2B and Kokoro. Reply time: median 0.98 s, 2.1 s at the slow end.
         </Evidence>
       </Screen>
     </Part>
@@ -966,59 +1005,53 @@ function WhyBrief() {
 }
 
 type RuleRow = (typeof RL.evening.rows)[number] | (typeof RL.flags.rows)[number];
+// What each switch does, in plain words (tools/arena/brain.mjs, EXPERIMENTS). "counters" is no cheat: the engine
+// hands the brain only the enemy units its own units can see through the fog (OpenRA ObservationSerializer:
+// player.Shroud.IsVisible), the brain remembers a sighting for two minutes, and it builds what beats them.
+const SWITCH_TEXT: Record<string, string> = {
+  scouting: "scouts keep moving instead of fighting",
+  budget: "the opening saves its credits for the army",
+  counters: "builds what beats the units it has seen",
+  hunt: "searches the whole map for the enemy base",
+};
 const ruleRow = (r: RuleRow): BoardRow => ({
-  key: r.key, label: r.label, sub: r.what, accent: r.key === "both", games: r.games as Cell[][], total: r.wins,
+  key: r.key, label: r.label, sub: SWITCH_TEXT[r.key] ?? r.what, accent: r.key === "both", games: r.games as Cell[][], total: r.wins,
   of: `of ${r.finished}${r.played > r.finished ? " finished" : ""}`,
 });
 
 function Switches() {
-  const { ref, flat, at, setAt, last } = useSteps(RL.flags.rows.length + 1);
-  const ringed = new Set(at >= RL.flags.rows.length ? RL.together.flatMap((t) => ["counters", "hunt", "both"].map((k) => `${k}|${t.opponent}|${t.seed}`)) : []);
+  // Three steps: the brain before, the four switches each tried alone, then the two that worked, together.
+  const SHOWN = [1, RL.flags.rows.length - 1, RL.flags.rows.length];
+  const { ref, flat, at, setAt, last } = useSteps(SHOWN.length);
+  const done = at >= last;
+  const ringed = new Set(done ? RL.together.flatMap((t) => ["counters", "hunt", "both"].map((k) => `${k}|${t.opponent}|${t.seed}`)) : []);
   return (
     <Part>
-      {/* Why one switch at a time: the evening several rules changed at once. */}
-      <Screen>
-        <h3 className={`${TYPE.h3} shrink-0`}>How the rules got good: one switch at a time.</h3>
-        <div className={`grid shrink-0 items-center gap-x-10 ${GAP} md:grid-cols-[auto_minmax(0,1fr)]`}>
-          <b className={HUGE}>
-            {ev("base").wins} <span className="text-muted">→</span> <span style={{ color: RED_INK }}>{ev("defence").wins}</span>
-          </b>
-          <p className={`${TYPE.lede} max-w-3xl`}>
-            wins of {ev("base").finished}, the evening we changed several rules at once. Nothing told us which rule had hurt.
-          </p>
-        </div>
-        <p className={`${GROUP} max-w-5xl shrink-0 text-[clamp(1.2rem,min(2.5vw,4vh),2.5rem)] font-semibold leading-snug tracking-[-0.015em]`} style={{ color: OURS }}>
-          So each idea became one switch, tested alone on the same 16 games.
-        </p>
-      </Screen>
       <Screen refEl={ref} data-board="switches" data-step={at}>
         <div className="shrink-0">
-          <h3 className={TYPE.h3}>One switch at a time, the same 16 games</h3>
-          <StepHint flat={flat} done={at >= last} onNext={() => setAt(Math.min(last, at + 1))} onAll={() => setAt(last)} what="switch" />
+          <div className="flex items-baseline justify-between gap-6">
+            <h3 className={TYPE.h3}>How the rules got good: one switch at a time.</h3>
+            <Evidence right down>
+              Map {RL.map}, starts 1–4 = China, Iran, Turkey, Saudi. Where a start was played twice, the later game counts. “counters” uses only what the
+              rules’ own units have seen: the engine lists an enemy unit only while it is visible through the fog of war, the rules remember a sighting for
+              two minutes, and before the first sighting they expect infantry, because the game’s AI opens with it. On a map the rules had never seen, they
+              went from {RL.newMap.before.wins} to {RL.newMap.adopted.wins} wins of {RL.newMap.adopted.played}. The models were never tried on a second map.
+            </Evidence>
+          </div>
+          <StepHint flat={flat} done={done} onNext={() => setAt(Math.min(last, at + 1))} onAll={() => setAt(last)} what="step"
+            lead={`Several rules at once cut the wins from ${ev("base").wins} to ${ev("defence").wins} of ${ev("base").finished}. So: one switch, the same 16 games.`} />
         </div>
-        <StepArea flat={flat} done={at >= last} onNext={() => setAt(at + 1)}>
-          <Board rows={RL.flags.rows.map(ruleRow)} seeds={RL.flags.seeds} shown={at + 1} ringed={ringed} />
+        <StepArea flat={flat} done={done} onNext={() => setAt(at + 1)}>
+          <Board rows={RL.flags.rows.map(ruleRow)} seeds={RL.flags.seeds} shown={SHOWN[at]} ringed={ringed} />
         </StepArea>
-        <p className="shrink-0 text-[clamp(1.05rem,min(1.7vw,2.9vh),1.75rem)] font-semibold transition-opacity duration-500" style={{ color: OURS, opacity: at >= RL.flags.rows.length ? 1 : 0 }}>
-          Each switch alone lost the ringed games. Together they won {RL.together.length === 2 ? "both" : "them all"}.
+        <p className="shrink-0 transition-opacity duration-500" style={{ opacity: done ? 1 : 0 }}>
+          <b className="text-[clamp(1.05rem,min(1.7vw,2.9vh),1.75rem)] font-semibold" style={{ color: OURS }}>
+            Each switch alone lost the ringed games. Together they won {RL.together.length === 2 ? "both" : "them all"}.
+          </b>{" "}
+          <span data-caution className={`${TYPE.text} text-muted`}>
+            One caution: ten days later the same rules won {oursWins} of these 16, not {fl("both").wins}. One game per square is a small sample.
+          </span>
         </p>
-      </Screen>
-      {/* The claim, and the caution that belongs beside it. */}
-      <Screen>
-        <Claim big>Our rules aren’t clever. They were tested, one switch at a time.</Claim>
-        <div data-caution className={`${GROUP} grid shrink-0 items-center gap-x-10 ${GAP} md:grid-cols-[auto_minmax(0,1fr)]`}>
-          <b className={HUGE}>
-            <span style={{ color: OURS }}>{fl("both").wins}</span> <span className="text-muted">→</span> {oursWins}
-          </b>
-          <p className={`${TYPE.lede} max-w-3xl`}>
-            <b className="text-foreground">One caution.</b> Ten days later the same rules played the same 16 games again and won {oursWins}, not {fl("both").wins}.
-            One game per square is a small sample, and results move between runs.
-          </p>
-        </div>
-        <Evidence>
-          Map {RL.map}, starts 1–4 = China, Iran, Turkey, Saudi. Where a start was played twice, the later game counts. On a map the rules had never seen,
-          they went from {RL.newMap.before.wins} to {RL.newMap.adopted.wins} wins of {RL.newMap.adopted.played}. The models were never tried on a second map.
-        </Evidence>
       </Screen>
     </Part>
   );
@@ -1082,97 +1115,7 @@ function PlayPart() {
   );
 }
 
-/* ─── 06 · What no ruler catches ────────────────────────────────────────── */
-
-// Taste: RTSAI-WebGame docs/PLAYTEST-LOG.md, the owner's reports of 26 Oct (2 to 4: three art bugs; 6 and 7: the shots),
-// and 9c733d8 (1 Nov): eleven unit types whose turret always pointed north. The pictures are from that fix's own
-// before/after capture (hq/games/artifacts/playtest-20261101/muzzle).
-// Attention: the owner's instruction files (51 folders and 381 GB left on one drive, 8 to 27 Oct; one fix that grew
-// into 11 sessions, by 10 Nov); hq/games/artifacts/build-journey-20261024/OUTLINE.md, beat 9 (a release on 26 Oct
-// went out without two finished fixes, every check green; they shipped on 1 Nov).
-const TASTE: [string, ReactNode][] = [
-  ["I played for ten minutes", <>and said: the shots look wrong.</>],
-  ["We measured 90 shells", <>They landed 2 pixels from the target. Not a bug.</>],
-  ["The measuring found the real one", <>On 11 kinds of unit the turret always pointed north.</>],
-];
-const ATTENTION: [string, string][] = [
-  ["381 GB", "of leftover copies of the project in 51 folders. None held anything new."],
-  ["11 sessions", "grew out of one small fix. Half my turns were clicks on whatever a session offered."],
-  ["6 days", "two finished fixes waited, after a second agent released without them. Every check was green."],
-];
-const FOR_ME: [string, string][] = [
-  ["One release command", "It builds only from the latest code, and it refuses when something is off."],
-  ["Rules with their reason", "Written where every agent reads them, each with the incident that caused it."],
-  ["A step back", "Before any big job, one question: which of my goals does this serve?"],
-];
-
-function HumanPart() {
-  const shot = "absolute inset-0 h-full w-full rounded-xl [image-rendering:pixelated]";
-  const SHOT = 600 / 540; // the two pictures' own shape
-  return (
-    <Part id="human">
-      {/* Taste: the three steps, and the turret before and after. Side by side in a wide window, stacked in a tall one. */}
-      <Screen data-part="human">
-        <PartHead n="06" label="The human" title="What no ruler catches."
-          lede="Two things stayed mine the whole way: taste and attention." />
-        <div className={`flex min-h-0 shrink flex-col gap-x-10 ${GAP} wide:flex-row`}>
-          <div className="flex shrink-0 flex-col justify-center wide:min-w-0 wide:flex-1 wide:shrink">
-            {TASTE.map(([h, b], i) => (
-              <div key={h} className="grid grid-cols-[2.25rem_1fr] gap-x-3 border-t border-border py-[clamp(0.5rem,1.9vh,1.25rem)]">
-                <span className="font-mono text-sm font-bold" style={{ color: RED_INK }}>0{i + 1}</span>
-                <div>
-                  <b className="block text-[clamp(1.1rem,min(1.7vw,3vh),1.75rem)] leading-tight">{h}</b>
-                  <span className="mt-1 block text-[clamp(0.95rem,min(1.3vw,2.3vh),1.35rem)] leading-snug text-muted">{b}</span>
-                </div>
-              </div>
-            ))}
-            <p className="mt-[clamp(0.4rem,1.6vh,1.25rem)] text-[clamp(1.1rem,min(1.8vw,3.1vh),1.75rem)] font-semibold" style={{ color: OURS }}>My eye found it. The ruler located it.</p>
-          </div>
-          <div className="flex min-h-0 shrink flex-col justify-center gap-2 wide:min-w-0 wide:flex-[1.1]">
-            <div className="flex min-h-0 shrink gap-4">
-              <Fill ratio={SHOT} min="8rem">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={`${MEDIA}/human-turret-before.png`} alt="A tank firing at a target to its right while its turret and muzzle flash point straight up the screen" className={shot} />
-              </Fill>
-              <Fill ratio={SHOT} min="8rem">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={`${MEDIA}/human-turret-after.png`} alt="The same tank after the fix, its turret and muzzle flash pointing right at the target" className={shot} />
-              </Fill>
-            </div>
-            <p className="shrink-0 text-sm text-muted">
-              <b className="text-foreground">Before:</b> the target is to the right, the turret points north. <b className="text-foreground">After:</b> on target.
-              The same ten minutes found three art bugs that no test could see.
-            </p>
-          </div>
-        </div>
-      </Screen>
-
-      {/* Attention, and what it led the owner to build. */}
-      <Screen>
-        <h3 className={`${TYPE.h3} shrink-0`}>The agents never ran out of output. I ran out of attention.</h3>
-        <div className="grid shrink-0 gap-x-8 gap-y-6 sm:grid-cols-3">
-          {ATTENTION.map(([n, t]) => <Stat key={n} n={n}>{t}</Stat>)}
-        </div>
-        <h3 className={`${TYPE.h3} ${GROUP} shrink-0`}>So the most useful things I built were for me.</h3>
-        <div className="grid shrink-0 gap-x-8 gap-y-6 md:grid-cols-3">
-          {FOR_ME.map(([h, b]) => (
-            <div key={h} className="border-t-2 pt-[clamp(0.5rem,1.6vh,1rem)]" style={{ borderTopColor: RED }}>
-              <h4 className={TYPE.h4}>{h}</h4>
-              <p className={`${TYPE.text} mt-[clamp(0.3rem,1.2vh,0.75rem)] text-muted`}>{b}</p>
-            </div>
-          ))}
-        </div>
-        <Claim className={GROUP}>The scarce thing isn’t code. It’s taste and attention.</Claim>
-        <Evidence>
-          The play session: 26 Oct, on the live game; the turret fix shipped on 1 Nov. The folders were counted on one drive between 8 and 27 Oct. The
-          release that went out without the two fixes: 26 Oct; they shipped on 1 Nov.
-        </Evidence>
-      </Screen>
-    </Part>
-  );
-}
-
-/* ─── 07 · Take it home ─────────────────────────────────────────────────── */
+/* ─── 06 · Take it home ─────────────────────────────────────────────────── */
 
 // Where the room can open what the talk showed. Checked signed out on 12 Nov 2026: play asks for one free account
 // (Google in one click), the installer downloads straight from the public GitHub release, the repository is public.
@@ -1183,52 +1126,46 @@ const TRY: [string, string, string, string][] = [
 ];
 
 function HomePart() {
-  const withModel = H.runs.filter((r) => r.how === "both");
+  const both = H.runs.filter((r) => r.how === "both")[0];
   const tips: [string, string, string][] = [
-    ["Give the agent a ruler before the task", "9 → 0", "failed checks on a generated tank, once it stood beside the original game’s. Its own score had been 81.5 of 100."],
-    ["Race the dumbest thing that could work", `${oursWins} vs ${bestModel}`, "Plain rules against the best model, the same 16 games. Then read each loser’s decision log."],
+    ["Put the model where rules can’t reach", `${run("rules").correct} → ${both.correct} %`, `Voice orders: rules first, a model only for what they can’t read. A model for every order: ${Math.max(...H.runs.filter((r) => r.how === "model").map((r) => r.correct))} % at best.`],
+    ["Race the dumbest thing that could work", `${oursWins} vs ${bestModel}`, "Plain rules against the best model, on the same 16 games. Then read each loser’s decision log."],
     ["Change one thing at a time", `${fl("counters").wins} + ${fl("hunt").wins} → ${fl("both").wins}`, `of ${fl("both").finished}: two switches, each tested alone, then together. Several changes at once had cut the wins from ${ev("base").wins} to ${ev("defence").wins}.`],
-    ["Put the model where rules can’t reach", `${run("rules").correct} → ${withModel[0].correct} %`, `of ${H.orders} spoken orders read right: rules first, a model only for the ${withModel[0].modelCalls} they couldn’t read. A model for every order: at most ${Math.max(...H.runs.filter((r) => r.how === "model").map((r) => r.correct))} %.`],
   ];
   return (
     <Part id="home">
-      <Screen data-part="home">
-        <PartHead n="07" label="Take it home" title="Four things to try on Monday." />
-        <div className="grid shrink-0 gap-x-10 gap-y-[clamp(0.75rem,2.6vh,2.25rem)] md:grid-cols-2">
+      {/* The last screen: three things to try, three doors, and the talk itself as a code to scan. */}
+      <Screen data-part="home" data-try-it>
+        <PartHead n="06" label="Take it home" title="Three things to try on Monday." />
+        <div className="grid shrink-0 gap-x-8 gap-y-[clamp(0.6rem,2vh,1.25rem)] md:grid-cols-3">
           {tips.map(([h, n, b], i) => (
-            <div key={h} className="grid grid-cols-[2rem_minmax(0,1fr)] gap-x-2 border-t border-border pt-[clamp(0.5rem,1.6vh,1.1rem)]">
-              <div className="pt-1 font-mono text-sm font-bold" style={{ color: RED_INK }}>0{i + 1}</div>
-              <div>
-                <h3 className="text-[clamp(1.15rem,min(1.8vw,3.1vh),1.85rem)] font-semibold leading-tight">{h}</h3>
-                <div className={`${TYPE.big} mt-[clamp(0.3rem,1.3vh,0.9rem)]`} style={{ color: OURS }}>{n}</div>
-                <p className={`${TYPE.text} mt-[clamp(0.3rem,1.2vh,0.75rem)] text-muted`}>{b}</p>
-              </div>
+            <div key={h} className="border-t border-border pt-[clamp(0.4rem,1.5vh,1rem)]">
+              <div className="font-mono text-xs font-bold" style={{ color: RED_INK }}>0{i + 1}</div>
+              <h3 className={`${TYPE.h4} mt-1`}>{h}</h3>
+              <div className="mt-[clamp(0.3rem,1.2vh,0.8rem)] whitespace-nowrap text-[clamp(1.6rem,min(3.3vw,6vh),3.6rem)] font-bold leading-none tracking-[-0.03em]" style={{ color: OURS }}>{n}</div>
+              <p className={`${TYPE.text} mt-[clamp(0.3rem,1.1vh,0.7rem)] text-muted`}>{b}</p>
             </div>
           ))}
         </div>
-      </Screen>
-      {/* The last screen: three doors, and the talk itself as a code to scan. */}
-      <Screen data-try-it>
-        <h3 className={`${TYPE.h2} shrink-0`}>Try it tonight.</h3>
-        <div className="grid shrink-0 gap-[clamp(0.6rem,1.4vw,1.25rem)] md:grid-cols-3">
+        <div className={`${GROUP} grid shrink-0 items-stretch gap-[clamp(0.5rem,1.2vw,1rem)] md:grid-cols-[repeat(3,minmax(0,1fr))_auto]`}>
           {TRY.map(([what, where, href, note]) => (
-            <a key={where} href={href} target="_blank" rel="noreferrer" className="group relative block rounded-lg p-[clamp(0.9rem,2.4vh,1.6rem)] ring-1 ring-[#56616a] transition hover:ring-2 hover:ring-[#e15a43]" style={{ background: "rgba(255,255,255,.035)" }}>
+            <a key={where} href={href} target="_blank" rel="noreferrer" className="group block rounded-lg p-[clamp(0.7rem,2vh,1.25rem)] ring-1 ring-[#56616a] transition hover:ring-2 hover:ring-[#e15a43]" style={{ background: "rgba(255,255,255,.035)" }}>
               <h4 className={TYPE.h4}>{what}</h4>
-              <div className="mt-[clamp(0.4rem,1.4vh,0.9rem)] inline-flex items-center gap-2 rounded-md px-3 py-1.5 font-mono text-[clamp(0.85rem,min(1.15vw,2.1vh),1.2rem)] font-bold transition group-hover:scale-[1.03]" style={{ background: BUTTON, color: ON_RED }}>{where} <span aria-hidden>↗</span></div>
-              <p className={`${TYPE.text} mt-[clamp(0.4rem,1.4vh,0.9rem)] text-muted`}>{note}</p>
+              <div className="mt-[clamp(0.3rem,1.2vh,0.7rem)] inline-flex max-w-full items-center gap-2 rounded-md px-3 py-1.5 font-mono text-[clamp(0.78rem,min(1.05vw,2vh),1.1rem)] font-bold transition group-hover:scale-[1.03]" style={{ background: BUTTON, color: ON_RED }}>
+                <span className="truncate">{where}</span> <span aria-hidden>↗</span>
+              </div>
+              <p className="mt-[clamp(0.3rem,1.2vh,0.7rem)] text-sm leading-snug text-muted">{note}</p>
             </a>
           ))}
-        </div>
-        <div className={`${GROUP} flex shrink-0 flex-col items-start gap-6 md:flex-row md:items-center md:justify-between`}>
-          <div>
-            <div className={`${TYPE.kicker} text-white/70`}>{TAGLINE}</div>
-            <p className="mt-3 max-w-xl text-sm text-muted">The model games were played on our own machine on 3 to 5 Nov 2026; the numbers on these pages come from those games’ logs. Ali Badereddin · AI Tinkerers Doha · 16 Nov 2026.</p>
-          </div>
-          <div className="flex items-center gap-4 rounded-2xl bg-white p-4 text-[#120907]">
-            <QRCodeSVG value="https://present.humanquest.net/can-an-ai-play" size={132} />
-            <div className="text-sm leading-snug"><b className="block text-lg">This talk</b>present.humanquest.net<br />/can-an-ai-play</div>
+          <div className="flex items-center gap-3 rounded-lg bg-white p-3 text-[#120907]">
+            <QRCodeSVG value="https://present.humanquest.net/can-an-ai-play" size={112} />
+            <div className="text-sm leading-snug"><b className="block text-base">This talk</b>present.humanquest.net<br />/can-an-ai-play</div>
           </div>
         </div>
+        <p className="shrink-0 text-sm text-muted">
+          <span className={`${TYPE.kicker} mr-3 text-white/70`}>{TAGLINE}</span>
+          Ali Badereddin · AI Tinkerers Doha · 16 Nov 2026. The model games were played on our own machine on 3 to 5 Nov 2026.
+        </p>
       </Screen>
     </Part>
   );
@@ -1246,14 +1183,13 @@ export default function CanAnAiPlay() {
       {/* On a phone the timer and controls would sit on the words: they show from 768 px. */}
       <div className="hidden md:block">
         <DeckControls />
-        <PresentationTimer targetMinutes={15} sections={BUDGET} />
+        <PresentationTimer targetMinutes={8} sections={BUDGET} />
       </div>
       <BuiltPart />
-      <DonePart />
-      <RulerPart />
-      <SelfPlayPart />
+      <TogetherPart />
+      <AdviserPart />
+      <VoicePart />
       <PlayPart />
-      <HumanPart />
       <HomePart />
     </main>
   );
