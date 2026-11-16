@@ -20,7 +20,11 @@
  * One line: we built it with AI, then put AI inside it in three places, and each time plain rules did the job
  * better than a model. An AI wrote the rules.
  *
- * Six parts:
+ * Seven parts:
+ *   map       The whole thing (16 Nov 2026, the owner: the architecture is "the central thing of here's what it is and
+ *             here was what was done"): the title, then one screen with the clickable architecture of RTS AI. Each part
+ *             opens a card with pictures from the game and what we did there (public/talks/can-an-ai-play/architecture,
+ *             built from D:GeneratedRTSAIarchitecture-20261116).
  *   built     What we built: five things you can open, eight of the generated units in 3D, and the count of commits.
  *   together  Play together: multiplayer in a browser tab, and how it works with no server in the match.
  *   adviser   The adviser: the game suggests the next order (the "Suggest orders / Apply automatically" setting).
@@ -49,6 +53,7 @@
 
 import { useEffect, useRef, useState, type CSSProperties, type ReactNode, type RefObject } from "react";
 import dynamic from "next/dynamic";
+import { createPortal } from "react-dom";
 import { QRCodeSVG } from "qrcode.react";
 import { Reveal, ScrollProgress, ScrollRevealText } from "@/components/animations";
 import { ChapterNav } from "@/components/chapter-nav";
@@ -80,6 +85,7 @@ const UnitModel = dynamic(() => import("@/components/3d/unit-model").then((m) =>
 const TAGLINE = "Read · Switch · Play · Keep · Repeat";
 
 const CHAPTERS = [
+  { id: "map", label: "Map", dark: true },
   { id: "built", label: "Built", dark: true },
   { id: "together", label: "Together", dark: true },
   { id: "adviser", label: "Adviser", dark: true },
@@ -90,11 +96,12 @@ const CHAPTERS = [
 
 // The 8-minute slot, per part: 7 minutes 40 planned.
 const BUDGET = [
-  { id: "built", label: "What we built", minutes: 1.15 },
+  { id: "map", label: "The whole thing", minutes: 1.0 },
+  { id: "built", label: "What we built", minutes: 0.9 },
   { id: "together", label: "Play together", minutes: 1.15 },
   { id: "adviser", label: "The adviser", minutes: 0.75 },
   { id: "voice", label: "Voice orders", minutes: 1.15 },
-  { id: "play", label: "Can an AI play it?", minutes: 2.75 },
+  { id: "play", label: "Can an AI play it?", minutes: 2.35 },
   { id: "home", label: "Home", minutes: 0.7 },
 ];
 
@@ -486,7 +493,7 @@ function StepArea({ flat, done, onNext, children }: { flat: boolean; done: boole
 
 /* ─── The title ─────────────────────────────────────────────────────────── */
 
-const PARTS = ["What we built", "Play together", "The adviser", "Voice orders", "Can an AI play it?", "Take it home"];
+const PARTS = ["The whole thing", "What we built", "Play together", "The adviser", "Voice orders", "Can an AI play it?", "Take it home"];
 
 // Glide to a part's first screen (the title screen's list of parts).
 const goToPart = (id: string) => {
@@ -534,8 +541,8 @@ function Hero() {
       </div>
       <div className="relative z-10 pb-8 md:pb-[5.25rem]">
         <Wrap>
-          {/* The six parts, each a door to its first screen. */}
-          <nav aria-label="The six parts" className="grid grid-cols-2 gap-x-2 gap-y-1 border-t border-white/10 pt-3 sm:grid-cols-3 xl:grid-cols-6">
+          {/* The seven parts, each a door to its first screen. */}
+          <nav aria-label="The seven parts" className="grid grid-cols-2 gap-x-2 gap-y-1 border-t border-white/10 pt-3 sm:grid-cols-4 xl:grid-cols-7">
             {CHAPTERS.map((c, i) => (
               <button key={c.id} type="button" onClick={() => goToPart(c.id)} className="group flex items-baseline gap-2 rounded-md px-2 py-1.5 text-left transition-colors hover:bg-white/[0.07]">
                 <span className="font-mono text-sm font-bold" style={{ color: RED_INK }}>0{i + 1}</span>
@@ -619,7 +626,7 @@ function BuiltTour() {
     <Part lit>
       {print ? (
         <Screen data-part="built">
-          <PartHead n="01" label="What we built" title="First, what we built." lede="Five things you can open today." />
+          <PartHead n="02" label="What we built" title="What we built." lede="Five things you can open today." />
           <div className="grid gap-x-8 gap-y-12 md:grid-cols-2">
             {BUILT.map((b, i) => (
               <div key={b.key}>
@@ -634,7 +641,7 @@ function BuiltTour() {
       ) : (
         // One screen: the heading, the five names, the picture of the one that is picked, and what it is.
         <Screen refEl={ref} data-part="built" data-built-tour data-step={at}>
-          <PartHead n="01" label="What we built" title="First, what we built." />
+          <PartHead n="02" label="What we built" title="What we built." />
           {/* The picture is the door: one click opens the real thing in its own tab. */}
           <MediaRow ratio={16 / 9}
             before={
@@ -688,8 +695,64 @@ function BuiltTour() {
 function BuiltPart() {
   return (
     <div id="built">
-      <Hero />
       <BuiltTour />
+    </div>
+  );
+}
+
+/* ─── Part 1: the whole thing, as one clickable architecture ─────────────── */
+
+// The architecture of RTS AI (Archify, checked), in the talk's dark theme. Click a part: a card with pictures from the
+// game, what it is built with, where it lives and what we did there. The page sits in a frame, so while no card is
+// open it hands the talk's Next and Back keys up to this page.
+const MAP_RATIO = 1.72; // the diagram's own shape in its frame, measured at 1,000 and 1,650 px wide (1.73-1.75)
+function MapPart() {
+  const print = usePrintMode();
+  // The part whose card is open over the whole window (the map asks for it; the card's own frame says when it closes).
+  const [card, setCard] = useState<string | null>(null);
+  useEffect(() => {
+    const onMessage = (e: MessageEvent) => {
+      if (e.origin !== window.location.origin) return;
+      const type = e.data?.type;
+      if (type === "rtsai-map-key") window.dispatchEvent(new KeyboardEvent("keydown", { key: String(e.data.key) }));
+      else if (type === "rtsai-map-card" && /^[a-z0-9-]+$/i.test(String(e.data.id))) setCard(String(e.data.id));
+      else if (type === "rtsai-map-close") setCard(null);
+    };
+    window.addEventListener("message", onMessage);
+    return () => window.removeEventListener("message", onMessage);
+  }, []);
+  return (
+    <div id="map">
+      <Hero />
+      <Part lit>
+        {/* In a tall window the heading stands above the map; in a wide one beside it, so the map takes the full height. */}
+        <Screen data-part="map">
+          <MediaRow ratio={MAP_RATIO}
+            before={<PartHead n="01" label="The whole thing" title="Here is what it is." lede="Seventeen parts in three places. Click any one: what it is, and what we did there." />}
+            after={
+              <Evidence>
+                Read from the five repositories at their latest main on 16 Nov (OpenRA, RTSAI-Mod, RTSAI-WebGame, RTSAI-Web, RTSAI-Art), the key facts
+                checked in their source, and drawn with Archify (its validation and browser checks passed). The pictures are the live site on 16 Nov and
+                the product films of this talk. Each card&apos;s “what we did” comes from the release records of 14 Oct to 15 Nov.
+              </Evidence>
+            }>
+            {print ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={`${MEDIA}/architecture/map.png`} alt="The architecture of RTS AI: the player's computer, the cloud, and the machine where it is made and released" className="absolute inset-0 h-full w-full rounded-lg object-contain" />
+            ) : (
+              <iframe src={`${MEDIA}/architecture/map.html`} title="RTS AI: how it is built. Click any part to see it in the game and what we did there."
+                className="absolute inset-0 h-full w-full rounded-lg ring-1 ring-[#56616a]" style={{ border: 0, background: "#151719" }} />
+            )}
+          </MediaRow>
+        </Screen>
+      </Part>
+      {card && !print && createPortal(
+        <div data-map-card className="fixed inset-0 z-[300]" style={{ background: "#151719" }}>
+          <iframe src={`${MEDIA}/architecture/map.html#card=${card}`} title="What this part is, and what we did there" autoFocus
+            onLoad={(e) => e.currentTarget.contentWindow?.focus()} className="h-full w-full" style={{ border: 0 }} />
+        </div>,
+        document.body,
+      )}
     </div>
   );
 }
@@ -810,7 +873,7 @@ function TogetherPart() {
   return (
     <Part id="together">
       <Screen data-part="together">
-        <PartHead n="02" label="Play together" title="Send a link. Play in a browser tab." />
+        <PartHead n="03" label="Play together" title="Send a link. Play in a browser tab." />
         <MediaRow ratio={880 / 450}
           before={
             <ol className="grid gap-[clamp(0.4rem,1.6vh,1rem)]">
@@ -870,7 +933,7 @@ function AdviserPart() {
   return (
     <Part id="adviser">
       <Screen data-part="adviser">
-        <PartHead n="03" label="The adviser" title="It suggests the next order." />
+        <PartHead n="04" label="The adviser" title="It suggests the next order." />
         <MediaRow ratio={16 / 9}
           before={<p className={`${TYPE.lede} max-w-5xl`}>On by default when you play alone. One card, one order: press J and it is done. Or let it play the order itself.</p>}
           after={
@@ -926,7 +989,7 @@ function VoicePart() {
   return (
     <Part id="voice">
       <Screen data-part="voice">
-        <PartHead n="04" label="Voice orders" title="Say it. Confirm it." />
+        <PartHead n="05" label="Voice orders" title="Say it. Confirm it." />
         <ol data-voice-steps className="grid shrink-0 gap-[clamp(0.3rem,0.8vw,0.75rem)] sm:grid-cols-5">
           {VOICE_STEPS.map(([h, b], i) => (
             <li key={h} className="rounded-lg p-[clamp(0.5rem,1.7vh,1rem)] ring-1 ring-[#56616a]" style={{ background: i === 3 ? "rgba(225,90,67,.14)" : "rgba(255,255,255,.035)" }}>
@@ -1099,7 +1162,7 @@ function PlayPart() {
     <div id="play">
       <Part lit>
         <Screen data-part="play">
-          <PartHead n="05" label="The bet" title="So: can an AI play it?" />
+          <PartHead n="06" label="The bet" title="So: can an AI play it?" />
           <MediaRow ratio={16 / 9}
             before={<p className={`${TYPE.lede} max-w-5xl`}>The same ruler, pointed at the AI itself. Three AI models and one page of plain rules each played the same 16 games against the game’s own AI.</p>}
             after={<p className={`${TYPE.text} text-muted`}><b className="text-foreground">Same start. Same enemy. Four brains.</b> Brutal, start 1 (China): the four games side by side, clocks in step.</p>}>
@@ -1136,7 +1199,7 @@ function HomePart() {
     <Part id="home">
       {/* The last screen: three things to try, three doors, and the talk itself as a code to scan. */}
       <Screen data-part="home" data-try-it>
-        <PartHead n="06" label="Take it home" title="Three things to try on Monday." />
+        <PartHead n="07" label="Take it home" title="Three things to try on Monday." />
         <div className="grid shrink-0 gap-x-8 gap-y-[clamp(0.6rem,2vh,1.25rem)] md:grid-cols-3">
           {tips.map(([h, n, b], i) => (
             <div key={h} className="border-t border-border pt-[clamp(0.4rem,1.5vh,1rem)]">
@@ -1185,6 +1248,7 @@ export default function CanAnAiPlay() {
         <DeckControls />
         <PresentationTimer targetMinutes={8} sections={BUDGET} />
       </div>
+      <MapPart />
       <BuiltPart />
       <TogetherPart />
       <AdviserPart />
