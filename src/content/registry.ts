@@ -33,8 +33,6 @@ export const presentations: PresentationMeta[] = [
     accentColor: "#F2C14E",
     customer: "Human Quest",
     status: "live",
-    // Off the public gallery and sitemap until the talk has been given.
-    visibility: "unlisted",
   },
   {
     slug: "stagecraft",
