@@ -6,7 +6,7 @@ export const metadata = buildPresentationMetadata({
   title: "The Power of Replit",
   subtitle: "A sentence in. A live app out.",
   description:
-    "A field guide to Replit in November 2026: what one browser tab now replaces, ten builds with paste-ready prompts, the ten closest rivals on one map, and Replit against Claude job by job.",
+    "A field guide to Replit in November 2026: what one browser tab now replaces, ten builds with paste-ready prompts, the ten closest rivals on one map, a security scorecard, and Replit against Claude job by job.",
   author: "Ali Badereddin",
   type: "scroll",
   customer: "Human Quest",

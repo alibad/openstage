@@ -28,7 +28,7 @@ export const presentations: PresentationMeta[] = [
     author: "Ali Badereddin",
     date: "November 2026",
     description:
-      "A field guide to Replit in November 2026: what one browser tab now replaces, ten builds with paste-ready prompts, the ten closest rivals on one map, and Replit against Claude job by job.",
+      "A field guide to Replit in November 2026: what one browser tab now replaces, ten builds with paste-ready prompts, the ten closest rivals on one map, a security scorecard, and Replit against Claude job by job.",
     type: "scroll",
     accentColor: "#F26207",
     customer: "Human Quest",

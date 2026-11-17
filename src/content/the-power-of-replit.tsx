@@ -32,13 +32,17 @@ import {
   Rocket,
 } from "lucide-react";
 import {
+  AUDIT_ROWS,
   BUILDS,
   LEAN_ROWS,
+  PLATFORM_ROWS,
   REPLIT_POINT,
   RIVALS,
   SOURCES,
+  type Band,
   type Build,
   type Camp,
+  type Grade,
 } from "./the-power-of-replit.data";
 
 /**
@@ -51,6 +55,9 @@ import {
  * - Revenue and valuation are third-party figures and are labelled as such.
  * - The positioning map and the Replit-vs-Claude chart are editorial judgment.
  *   Both say so on screen. Do not present them as measurements.
+ * - "The audit" is a desk review of public evidence. Nothing was tested against
+ *   Replit or any rival. Replit's rows were checked against its own security
+ *   page; rival rows are what each vendor reports about itself.
  *
  * English only: Openstage has no i18n port yet (see CLAUDE.md).
  */
@@ -75,6 +82,7 @@ const CHAPTERS = [
   { id: "connect", label: "Connect", dark: true },
   { id: "builds", label: "Ten builds", dark: true },
   { id: "prove", label: "Prove it", dark: true },
+  { id: "security", label: "The audit", dark: true },
   { id: "price", label: "The price", dark: false },
   { id: "field", label: "The field", dark: true },
   { id: "versus", label: "Replit vs Claude", dark: true },
@@ -272,7 +280,7 @@ function HeroSection() {
                   className="h-2 w-2 rounded-full"
                   style={{ background: C.orange, boxShadow: `0 0 18px ${C.orange}` }}
                 />
-                Ten builds · two comparisons · five real screens
+                Ten builds · two comparisons · one audit
               </div>
               <h1 className="mb-10 text-5xl font-semibold leading-[0.9] tracking-[-0.06em] sm:text-6xl md:text-7xl lg:text-[7rem]">
                 The Power of Replit.
@@ -733,7 +741,153 @@ refusal it gets.`}
   );
 }
 
-/* ─── 7. The price ────────────────────────────────────────────────────── */
+/* ─── 7. The audit — is the platform itself secure? ───────────────────── */
+
+const GRADE: Record<Grade, { label: string; color: string }> = {
+  strong: { label: "Strong", color: C.teal },
+  watch: { label: "Watch", color: "#FBBF24" },
+  gap: { label: "Gap", color: "#FB7185" },
+};
+
+const BAND_COLOR: Record<Band, string> = {
+  more: C.teal,
+  replit: C.orange,
+  similar: C.gray,
+  less: "#FB7185",
+};
+
+function SecuritySection() {
+  const tally = (["strong", "watch", "gap"] as Grade[]).map((g) => ({
+    g,
+    n: AUDIT_ROWS.filter((r) => r.grade === g).length,
+  }));
+  return (
+    <Section id="security" tone="ink2" className="overflow-hidden py-28 md:py-36">
+      <div className="mx-auto max-w-7xl px-6 md:px-10">
+        <Head
+          kicker="07 · The audit"
+          title="Secure platform."
+          em="Unproven apps."
+          body="“Is Replit secure?” is two questions. Is the company and its infrastructure sound? On the public evidence, yes — with one gap and one scar. Is the app its agent built for you sound? Nobody has checked that but you."
+        />
+
+        <div className="my-14 grid grid-cols-3 border-y border-white/12">
+          {tally.map(({ g, n }, i) => (
+            <Reveal key={i} delay={0.08 + i * 0.08}>
+              <div className="min-w-0 border-white/12 px-4 py-7 first:border-l-0 md:border-l md:px-7">
+                <div
+                  className="text-4xl font-semibold leading-none tracking-[-0.05em] md:text-6xl"
+                  style={{ color: GRADE[g].color }}
+                >
+                  <FlipNumber value={n} />
+                </div>
+                <div className="mt-4 text-sm font-semibold uppercase tracking-[0.08em] text-white">
+                  {GRADE[g].label}
+                </div>
+              </div>
+            </Reveal>
+          ))}
+        </div>
+
+        <StaggerChildren className="border-b border-white/10">
+          {AUDIT_ROWS.map((r, i) => (
+            <StaggerItem key={i}>
+              <div className="grid gap-x-8 gap-y-2 border-t border-white/10 py-5 md:grid-cols-[15rem_6rem_1fr] md:items-baseline">
+                <h3 className="text-lg font-semibold tracking-[-0.01em]">{r.area}</h3>
+                <span
+                  className="inline-flex w-fit items-center rounded-full border px-2.5 py-1 font-mono text-[10px] uppercase tracking-[0.14em]"
+                  style={{
+                    color: GRADE[r.grade].color,
+                    borderColor: `${GRADE[r.grade].color}59`,
+                    background: `${GRADE[r.grade].color}14`,
+                  }}
+                >
+                  {GRADE[r.grade].label}
+                </span>
+                <p className="text-base leading-relaxed text-white/60">{r.finding}</p>
+              </div>
+            </StaggerItem>
+          ))}
+        </StaggerChildren>
+
+        <Reveal>
+          <h3 className="mt-24 text-3xl font-semibold tracking-[-0.03em] md:text-5xl">
+            Against the others.
+            <span className="editorial-italic ml-3 font-normal text-white/40">More to less.</span>
+          </h3>
+          <div className="mt-6 flex flex-wrap gap-x-6 gap-y-2 text-sm text-white/60">
+            {(
+              [
+                ["More evidence than Replit", BAND_COLOR.more],
+                ["Replit", BAND_COLOR.replit],
+                ["About the same", BAND_COLOR.similar],
+                ["Less", BAND_COLOR.less],
+              ] as const
+            ).map(([label, color]) => (
+              <span key={label} className="inline-flex items-center gap-2">
+                <span className="h-2.5 w-2.5 rounded-full" style={{ background: color }} />
+                {label}
+              </span>
+            ))}
+          </div>
+        </Reveal>
+
+        <div className="mt-8 overflow-x-auto">
+          <table className="w-full min-w-[900px] text-left text-sm">
+            <thead>
+              <tr className="font-mono text-[10px] uppercase tracking-[0.18em] text-white/40">
+                <th className="pb-3 font-normal">Platform</th>
+                <th className="pb-3 font-normal">Our read</th>
+                <th className="pb-3 font-normal">Audits it reports</th>
+                <th className="pb-3 font-normal">Checks before you publish</th>
+                <th className="pb-3 font-normal">On the record</th>
+              </tr>
+            </thead>
+            <tbody>
+              {PLATFORM_ROWS.map((p, i) => (
+                <tr
+                  key={i}
+                  className={`border-t border-white/10 align-top ${p.band === "replit" ? "bg-white/[0.05]" : ""}`}
+                >
+                  <td className="py-4 pl-3 pr-5">
+                    <span className="inline-flex items-center gap-2 whitespace-nowrap font-semibold text-white">
+                      <span
+                        className="h-2 w-2 rounded-full"
+                        style={{ background: BAND_COLOR[p.band] }}
+                      />
+                      {p.name}
+                    </span>
+                  </td>
+                  <td className="py-4 pr-5" style={{ color: BAND_COLOR[p.band] }}>
+                    {p.read}
+                  </td>
+                  <td className="py-4 pr-5 text-white/70">{p.audits}</td>
+                  <td className="py-4 pr-5 text-white/70">{p.checks}</td>
+                  <td className="py-4 pr-3 text-white/70">{p.record}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        <p className="mt-8 max-w-3xl text-sm leading-relaxed text-white/45">
+          A desk review of public evidence on 17 November 2026; nothing was tested. The audit
+          column is what each vendor reports about itself. Incidents are those found in public
+          reporting. The read is editorial judgment, and an audit covers the vendor, not the app
+          you build on it.
+        </p>
+        <div className="mt-12">
+          <Callout>
+            A SOC 2 report audits the vendor. Nobody audits what the agent built for you — which
+            is why the prompt has to.
+          </Callout>
+        </div>
+      </div>
+    </Section>
+  );
+}
+
+/* ─── 8. The price ────────────────────────────────────────────────────── */
 
 function PriceSection() {
   const plans = [
@@ -746,7 +900,7 @@ function PriceSection() {
       <div className="mx-auto max-w-7xl px-6 md:px-10">
         <Head
           light
-          kicker="07 · The price"
+          kicker="08 · The price"
           title="A subscription buys credits."
           em="The agent spends them by effort."
         />
@@ -793,7 +947,7 @@ function PriceSection() {
   );
 }
 
-/* ─── 8. The field — positioning map + the ten rivals ─────────────────── */
+/* ─── 9. The field — positioning map + the ten rivals ─────────────────── */
 
 const CAMP_COLOR: Record<Camp, string> = {
   replit: C.orange,
@@ -894,7 +1048,7 @@ function FieldSection() {
     <Section id="field" tone="ink2" className="overflow-hidden py-28 md:py-36">
       <div className="mx-auto max-w-7xl px-6 md:px-10">
         <Head
-          kicker="08 · The field"
+          kicker="09 · The field"
           title="Ten rivals."
           em="Two different fights."
           body="Five compete for the same person: describe an app, get it live. Five are where developers go when the project outgrows a browser tab. Hover a name to see its edge."
@@ -958,7 +1112,7 @@ function FieldSection() {
   );
 }
 
-/* ─── 9. Replit vs Claude — dots slide to their side as you scroll ────── */
+/* ─── 10. Replit vs Claude — dots slide to their side as you scroll ────── */
 
 function LeanDot({
   lean,
@@ -1050,7 +1204,7 @@ function VersusSection() {
     <Section id="versus" tone="ink" className="overflow-hidden py-28 md:py-36">
       <div className="mx-auto max-w-7xl px-6 md:px-10">
         <Head
-          kicker="09 · Replit vs Claude"
+          kicker="10 · Replit vs Claude"
           title="Not the same job."
           em="One hosts. One works."
           body="Ten jobs, placed on a line between the two. Scroll and each dot settles on the side that does it better."
@@ -1101,7 +1255,7 @@ function VersusSection() {
   );
 }
 
-/* ─── 10. The sweet spot — a scrubbable continuum ─────────────────────── */
+/* ─── 11. The sweet spot — a scrubbable continuum ─────────────────────── */
 
 function FitSection() {
   const sides = [
@@ -1118,7 +1272,7 @@ function FitSection() {
     <Section id="fit" tone="ink2" className="overflow-hidden py-28 md:py-36">
       <div className="mx-auto max-w-7xl px-6 md:px-10">
         <Head
-          kicker="10 · The sweet spot"
+          kicker="11 · The sweet spot"
           title="Strongest at the start."
           em="Weakest at year ten."
           body="Every tool has a range. Replit's runs from an idea you have not validated to a product with its first paying customers."
@@ -1162,7 +1316,7 @@ function FitSection() {
   );
 }
 
-/* ─── 11. CTA ─────────────────────────────────────────────────────────── */
+/* ─── 12. CTA ─────────────────────────────────────────────────────────── */
 
 function CtaSection() {
   return (
@@ -1171,7 +1325,7 @@ function CtaSection() {
       <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,.14)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,.14)_1px,transparent_1px)] bg-[size:72px_72px] opacity-[0.05]" />
       <div className="relative mx-auto max-w-6xl px-6 py-28 md:py-36">
         <Reveal>
-          <Kicker>11 · Start</Kicker>
+          <Kicker>12 · Start</Kicker>
           <h2 className="max-w-4xl text-5xl font-semibold leading-[0.94] tracking-[-0.055em] sm:text-6xl md:text-7xl lg:text-[5.7rem]">
             Start with a sentence.
             <span className="editorial-italic mt-2 block font-normal" style={{ color: C.orangeSoft }}>
@@ -1267,6 +1421,7 @@ export default function ThePowerOfReplit() {
       <ConnectSection />
       <BuildsSection />
       <ProveSection />
+      <SecuritySection />
       <PriceSection />
       <FieldSection />
       <VersusSection />

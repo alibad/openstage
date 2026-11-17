@@ -401,6 +401,59 @@ export const LEAN_ROWS: LeanRow[] = [
   { job: "Work beyond code: research, docs, analysis", lean: 96 },
 ];
 
+/* ─── The audit ───────────────────────────────────────────────────────────
+ * A desk review of public evidence, 17 Nov 2026. Nothing here was tested
+ * against Replit or anyone else: it is what each vendor says about itself,
+ * plus what security researchers and the press have reported.
+ *
+ * Checked word for word on replit.com/security: SOC 2 Type II, GDPR, "working
+ * toward ISO 27001", an isolated Google Cloud project per customer, hardened
+ * containers "migrating to microVMs", Trail of Bits reviews, the HackerOne
+ * bounty, Auto-Protect, and separated development and production databases.
+ * Rival rows rest on each vendor's own pages and were not independently verified.
+ */
+
+export type Grade = "strong" | "watch" | "gap";
+
+export interface AuditRow {
+  area: string;
+  grade: Grade;
+  finding: string;
+}
+
+export const AUDIT_ROWS: AuditRow[] = [
+  { area: "Independent audit", grade: "strong", finding: "SOC 2 Type II held. Infrastructure reviewed by Trail of Bits, plus a public HackerOne bug bounty." },
+  { area: "ISO 27001", grade: "gap", finding: "Not yet. Replit says it is working toward it. Lovable, Base44 and Vercel already report holding it." },
+  { area: "Isolation and encryption", grade: "strong", finding: "Every customer gets an isolated Google Cloud project, even on the free tier. TLS 1.2+ in transit, AES-256 at rest. Sandboxes are hardened containers, still migrating to microVMs." },
+  { area: "Secrets", grade: "strong", finding: "Keys live outside the code and, Replit says, are never exposed to the AI." },
+  { area: "Scanning", grade: "strong", finding: "Code is scanned before deploy for vulnerabilities, exposed secrets and outdated dependencies. Auto-Protect then watches published apps for newly disclosed flaws." },
+  { area: "Database safety", grade: "watch", finding: "Development and production databases are now fully separated. That is a repair: in July 2025 the agent deleted a user's production database during a code freeze." },
+  { area: "Enterprise controls", grade: "strong", finding: "SSO, SCIM and audit logs, with single-tenant and private networking options. Enterprise plan only." },
+];
+
+export type Band = "more" | "replit" | "similar" | "less";
+
+export interface PlatformRow {
+  name: string;
+  band: Band;
+  /** Editorial judgment, relative to Replit. */
+  read: string;
+  audits: string;
+  checks: string;
+  record: string;
+}
+
+/** Ordered from more public evidence of security to less. */
+export const PLATFORM_ROWS: PlatformRow[] = [
+  { name: "Your own cloud, reviewed", band: "more", read: "Stronger, if staffed", audits: "Whatever you buy and maintain", checks: "Code review, CI scanning and pen tests. All of it is your job", record: "Depends entirely on the team behind it" },
+  { name: "v0 on Vercel", band: "more", read: "Stronger on paper", audits: "SOC 2 Type 2, ISO 27001:2022, PCI DSS. HIPAA for enterprise", checks: "Blocks insecure deployments. Vercel counts over 100,000 blocked", record: "No platform incident found in this review" },
+  { name: "Replit", band: "replit", read: "The baseline", audits: "SOC 2 Type II. ISO 27001 in progress", checks: "Scan before deploy, then Auto-Protect monitoring", record: "July 2025: its agent deleted a user's production database. Repaired with separate dev and prod databases" },
+  { name: "Bolt.new", band: "similar", read: "About the same", audits: "SOC 2 Type 2", checks: "Security audit when you publish", record: "No platform incident found in this review" },
+  { name: "Base44", band: "similar", read: "About the same", audits: "SOC 2 Type II, ISO 27001", checks: "Automatic scan, including exposed secrets", record: "July 2025: Wiz found a way into private apps. Fixed within 24 hours, with no sign it was exploited" },
+  { name: "Lovable", band: "less", read: "More certificates, rougher record", audits: "SOC 2 Type 2, ISO 27001:2022", checks: "A quick scan runs automatically. The deep scan is optional", record: "CVE-2025-48757 left data in generated apps readable. In April 2026 a platform bug exposed chat and code from public projects; Lovable says it was not a breach" },
+  { name: "Zeabur", band: "less", read: "Failed", audits: "Not reviewed", checks: "Not reviewed", record: "Two breaches eight weeks apart and 3.2 million records, per Cybernews. Shutting down" },
+];
+
 /* ─── Sources ─────────────────────────────────────────────────────────── */
 
 export const SOURCES: { label: string; href: string }[] = [
@@ -410,4 +463,15 @@ export const SOURCES: { label: string; href: string }[] = [
   { label: "TechCrunch — Replit and its model partners, October 2026", href: "https://techcrunch.com/2026/10/16/replit-is-no-longer-working-with-anthropic-ceo-says/" },
   { label: "Zapier — Replit alternatives", href: "https://zapier.com/blog/replit-alternatives/" },
   { label: "Morph — AI app builders compared, 2026", href: "https://www.morphllm.com/best-ai-app-builder" },
+  // The audit
+  { label: "Replit — security page and information security overview", href: "https://replit.com/security" },
+  { label: "The Register — Replit's response to the deleted database, July 2025", href: "https://www.theregister.com/2025/07/22/replit_saastr_response/" },
+  { label: "Semgrep — scanning inside Replit", href: "https://semgrep.dev/blog/2025/replit-and-semgrep-secure-vibe-coding" },
+  { label: "Wiz Research — the Base44 access bypass, July 2025", href: "https://www.wiz.io/blog/critical-vulnerability-base44" },
+  { label: "NVD — CVE-2025-48757 (Lovable)", href: "https://nvd.nist.gov/vuln/detail/CVE-2025-48757" },
+  { label: "Lovable — security documentation", href: "https://docs.lovable.dev/features/security" },
+  { label: "Vercel — compliance, and v0's blocked deployments", href: "https://vercel.com/blog/v0-vibe-coding-securely" },
+  { label: "Bolt — security page", href: "https://bolt.new/platform/security" },
+  { label: "Base44 — security page", href: "https://base44.com/security" },
+  { label: "Cybernews — Zeabur shuts down after two breaches", href: "https://cybernews.com/news/zeabur-cloud-provider-shutdown-two-breaches-3-million-records/" },
 ];
