@@ -22,6 +22,22 @@ export interface PresentationMeta {
 
 export const presentations: PresentationMeta[] = [
   {
+    slug: "the-power-of-replit",
+    title: "The Power of Replit",
+    subtitle: "A sentence in. A live app out.",
+    author: "Ali Badereddin",
+    date: "November 2026",
+    description:
+      "A field guide to Replit in November 2026: what one browser tab now replaces, ten builds with paste-ready prompts, the ten closest rivals on one map, and Replit against Claude job by job.",
+    type: "scroll",
+    accentColor: "#F26207",
+    customer: "Human Quest",
+    status: "live",
+    // Reachable by URL, kept out of the gallery and the sitemap until the owner
+    // asks to list it — the same path the RTS AI talk took.
+    visibility: "unlisted",
+  },
+  {
     slug: "can-an-ai-play",
     title: "Can an AI Play Our Game?",
     subtitle: "What building a game with coding agents taught us, and who really won",
